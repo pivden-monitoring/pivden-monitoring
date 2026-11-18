@@ -42,7 +42,6 @@
         .alert-info { text-align: center; flex: 1; }
         .alert-info h2 { font-size: 20px; font-weight: 800; }
         .alert-info p { font-size: 13px; color: #fecaca; }
-        .timer-box { background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-family: monospace; }
         .main-grid {
             display: grid;
             grid-template-columns: 260px 1fr 290px;
@@ -136,16 +135,11 @@
 
     <div class="admin-controls">
         <div class="control-group">
-            <span style="font-size: 13px; color: #94a3b8;">Вибери ціль і тисни на карту:</span>
+            <span style="font-size: 13px; color: #94a3b8;">Ціль для карти:</span>
             <button class="btn-tool btn-shahed" onclick="selectTool('Шахед / БпЛА', '✈️', '#ea580c')">✈️ Шахед</button>
             <button class="btn-tool btn-rocket" onclick="selectTool('Ракета', '🚀', '#dc2626')">🚀 Ракета</button>
             <button class="btn-tool btn-banderol" onclick="selectTool('Розвідник', '🛸', '#2563eb')">🛸 Бандероль</button>
-            <button class="btn-tool btn-clear" onclick="clearMarkers()">🗑️ Очистити</button>
-        </div>
-        <div class="control-group">
-            <button class="btn-tool" style="background:#dc2626;" onclick="setAlertMode('red')">Червоний</button>
-            <button class="btn-tool" style="background:#ca8a04;" onclick="setAlertMode('yellow')">Жовтий</button>
-            <button class="btn-tool" style="background:#16a34a;" onclick="setAlertMode('green')">Відбій</button>
+            <button class="btn-tool btn-clear" onclick="clearMarkers()">🗑️ Очистити цілі</button>
         </div>
     </div>
 
@@ -158,18 +152,18 @@
                 <div class="legend-item"><span class="circle green"></span> Відбій тривоги</div>
             </div>
             <div>
-                <div class="panel-title">Статус регіону</div>
+                <div class="panel-title">Статус регіону (клікніть для зміни)</div>
                 <div class="region-row">
                     <span>Дніпропетровська обл.</span>
-                    <span class="badge badge-red" onclick="toggleBadge(this)">Тривога</span>
+                    <span id="badgeDnipro" class="badge badge-red" onclick="changeRegionStatus('dnipro')">Тривога</span>
                 </div>
                 <div class="region-row">
                     <span>Кіровоградська обл.</span>
-                    <span class="badge badge-red" onclick="toggleBadge(this)">Тривога</span>
+                    <span id="badgeKirovo" class="badge badge-red" onclick="changeRegionStatus('kirovo')">Тривога</span>
                 </div>
                 <div class="region-row">
                     <span>Херсонська обл.</span>
-                    <span class="badge badge-yellow" onclick="toggleBadge(this)">Загроза</span>
+                    <span id="badgeKherson" class="badge badge-yellow" onclick="changeRegionStatus('kherson')">Загроза</span>
                 </div>
             </div>
         </div>
@@ -184,7 +178,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Система активна</div>
-                    <div class="feed-desc">Моніторинг запущено</div>
+                    <div class="feed-desc">Моніторинг працює</div>
                 </div>
             </div>
         </div>
@@ -200,6 +194,89 @@
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
+
+        // Попередні координати областей для зафарбовування на карті
+        // Дніпропетровська область
+        const dniproPolygon = L.polygon([
+            [48.8, 33.5], [48.9, 36.2], [47.5, 36.5], [47.4, 33.8]
+        ], { color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2 }).addTo(map);
+
+        // Кіровоградська область
+        const kirovoPolygon = L.polygon([
+            [49.1, 31.2], [49.0, 33.3], [47.9, 33.3], [47.8, 31.0]
+        ], { color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2 }).addTo(map);
+
+        // Херсонська область
+        const khersonPolygon = L.polygon([
+            [47.8, 32.5], [47.6, 35.1], [46.1, 35.0], [46.1, 32.2]
+        ], { color: '#ca8a04', fillColor: '#ca8a04', fillOpacity: 0.5, weight: 2 }).addTo(map);
+
+        // Статуси областей ('red', 'yellow', 'green')
+        let statuses = {
+            dnipro: 'red',
+            kirovo: 'red',
+            kherson: 'yellow'
+        };
+
+        function changeRegionStatus(region) {
+            // Змінюємо статус по циклу: red -> yellow -> green -> red
+            if (statuses[region] === 'red') {
+                statuses[region] = 'yellow';
+            } else if (statuses[region] === 'yellow') {
+                statuses[region] = 'green';
+            } else {
+                statuses[region] = 'red';
+            }
+
+            updateRegionUI(region);
+        }
+
+        function updateRegionUI(region) {
+            let badge = document.getElementById(badgeId(region));
+            let polygon = getPolygon(region);
+            let colorHex = '#16a34a';
+            let borderHex = '#15803d';
+            let statusText = 'Відбій';
+            let badgeClass = 'badge badge-green';
+
+            if (statuses[region] === 'red') {
+                colorHex = '#dc2626';
+                borderHex = '#b91c1c';
+                statusText = 'Тривога';
+                badgeClass = 'badge badge-red';
+            } else if (statuses[region] === 'yellow') {
+                colorHex = '#ca8a04';
+                borderHex = '#a16207';
+                statusText = 'Загроза';
+                badgeClass = 'badge badge-yellow';
+            }
+
+            badge.className = badgeClass;
+            badge.innerText = statusText;
+            polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.5 });
+
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            addFeedItem(timeStr, `Зміна статусу: ${regionName(region)}`, `Встановлено рівень: ${statusText}`, statuses[region] === 'red' ? '' : 'yellow-line');
+        }
+
+        function badgeId(region) {
+            if (region === 'dnipro') return 'badgeDnipro';
+            if (region === 'kirovo') return 'badgeKirovo';
+            return 'badgeKherson';
+        }
+
+        function getPolygon(region) {
+            if (region === 'dnipro') return dniproPolygon;
+            if (region === 'kirovo') return kirovoPolygon;
+            return khersonPolygon;
+        }
+
+        function regionName(region) {
+            if (region === 'dnipro') return 'Дніпропетровська обл.';
+            if (region === 'kirovo') return 'Кіровоградська обл.';
+            return 'Херсонська обл.';
+        }
 
         let selectedType = null;
         let selectedIconSymbol = '';
@@ -230,49 +307,4 @@
             const marker = L.marker(e.latlng, { icon: customIcon }).addTo(map)
                 .bindPopup(`<b>${selectedType}</b><br>Час: ${timeStr}`).openPopup();
             markers.push(marker);
-            addFeedItem(timeStr, selectedType, 'Ціль нанесено на карту', 'yellow-line');
-        });
-
-        function clearMarkers() {
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-        }
-
-        function setAlertMode(color) {
-            const banner = document.getElementById('alertBanner');
-            const title = document.getElementById('bannerTitle');
-            banner.className = 'alert-banner';
-            if (color === 'red') {
-                title.innerText = 'ПОВІТРЯНА ТРИВОГА';
-            } else if (color === 'yellow') {
-                banner.classList.add('warning');
-                title.innerText = 'ПІДВИЩЕНА ЗАГРОЗА';
-            } else if (color === 'green') {
-                banner.classList.add('safe');
-                title.innerText = 'ВІДБІЙ ТРИВОГИ';
-            }
-        }
-
-        function toggleBadge(el) {
-            if (el.classList.contains('badge-red')) {
-                el.className = 'badge badge-yellow';
-                el.innerText = 'Загроза';
-            } else if (el.classList.contains('badge-yellow')) {
-                el.className = 'badge badge-green';
-                el.innerText = 'Відбій';
-            } else {
-                el.className = 'badge badge-red';
-                el.innerText = 'Тривога';
-            }
-        }
-
-        function addFeedItem(time, title, desc, lineClass) {
-            const feed = document.getElementById('feedList');
-            const item = document.createElement('div');
-            item.className = `feed-item ${lineClass}`;
-            item.innerHTML = `<div class="feed-time">${time}</div><div class="feed-title">${title}</div><div class="feed-desc">${desc}</div>`;
-            feed.prepend(item);
-        }
-    </script>
-</body>
-</html>
+            addFeedItem(timeStr, selectedType, 'Ціль нанесено на карту',
