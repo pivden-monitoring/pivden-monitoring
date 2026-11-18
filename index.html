@@ -17,31 +17,12 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #1e3252;
-            flex-wrap: wrap;
-            gap: 10px;
         }
         .logo-block { display: flex; align-items: center; gap: 12px; }
         .trident { font-size: 28px; color: #facc15; }
         .title h1 { font-size: 20px; font-weight: 800; letter-spacing: 1px; }
         .title h1 span { color: #38bdf8; }
         .title p { font-size: 11px; color: #94a3b8; }
-        .alert-banner {
-            margin: 12px 20px 0;
-            background: linear-gradient(90deg, #7f1d1d 0%, #b91c1c 50%, #7f1d1d 100%);
-            border: 1px solid #ef4444;
-            border-radius: 10px;
-            padding: 14px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .alert-banner.warning { background: linear-gradient(90deg, #713f12 0%, #ca8a04 50%, #713f12 100%); border-color: #facc15; }
-        .alert-banner.safe { background: linear-gradient(90deg, #14532d 0%, #15803d 50%, #14532d 100%); border-color: #22c55e; }
-        .alert-info { text-align: center; flex: 1; }
-        .alert-info h2 { font-size: 20px; font-weight: 800; }
-        .alert-info p { font-size: 13px; color: #fecaca; }
         .main-grid {
             display: grid;
             grid-template-columns: 260px 1fr 290px;
@@ -72,8 +53,22 @@
         .badge-red { background: #dc2626; color: white; }
         .badge-yellow { background: #ca8a04; color: white; }
         .badge-green { background: #16a34a; color: white; }
-        #map-container { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid #1f2d45; min-height: 450px; }
-        #map { width: 100%; height: 100%; min-height: 450px; background: #090d16; }
+        
+        /* Чіткі стилі для контейнера та самої карти */
+        #map-container { 
+            position: relative; 
+            border-radius: 10px; 
+            overflow: hidden; 
+            border: 1px solid #1f2d45; 
+            min-height: 500px;
+            height: 100%;
+        }
+        #map { 
+            width: 100%; 
+            height: 500px; 
+            background: #090d16; 
+        }
+
         .admin-controls {
             background: #162033;
             border: 1px solid #2b3f63;
@@ -84,9 +79,7 @@
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
-            justify-content: space-between;
         }
-        .control-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .btn-tool {
             padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: white;
         }
@@ -97,7 +90,6 @@
         .btn-tool.selected { outline: 2px solid #facc15; }
         .feed-item { border-left: 3px solid #ef4444; padding-left: 10px; margin-bottom: 12px; }
         .feed-item.yellow-line { border-color: #eab308; }
-        .feed-item.green-line { border-color: #22c55e; }
         .feed-time { font-size: 11px; color: #94a3b8; }
         .feed-title { font-size: 13px; font-weight: 700; }
         .feed-desc { font-size: 12px; color: #cbd5e1; }
@@ -105,12 +97,9 @@
             background: #0d1522;
             border-top: 1px solid #1f2d45;
             padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
             font-size: 13px;
             color: #94a3b8;
+            text-align: center;
         }
     </style>
 </head>
@@ -125,22 +114,12 @@
         </div>
     </header>
 
-    <div id="alertBanner" class="alert-banner">
-        <div><i class="fa-solid fa-triangle-exclamation"></i></div>
-        <div class="alert-info">
-            <h2 id="bannerTitle">ПОВІТРЯНА ТРИВОГА</h2>
-            <p id="bannerSub">У Дніпропетровській, Кіровоградській та Херсонській областях</p>
-        </div>
-    </div>
-
     <div class="admin-controls">
-        <div class="control-group">
-            <span style="font-size: 13px; color: #94a3b8;">Ціль для карти:</span>
-            <button class="btn-tool btn-shahed" onclick="selectTool('Шахед / БпЛА', '✈️', '#ea580c')">✈️ Шахед</button>
-            <button class="btn-tool btn-rocket" onclick="selectTool('Ракета', '🚀', '#dc2626')">🚀 Ракета</button>
-            <button class="btn-tool btn-banderol" onclick="selectTool('Розвідник', '🛸', '#2563eb')">🛸 Бандероль</button>
-            <button class="btn-tool btn-clear" onclick="clearMarkers()">🗑️ Очистити цілі</button>
-        </div>
+        <span style="font-size: 13px; color: #94a3b8; margin-right: 5px;">Ціль для карти:</span>
+        <button class="btn-tool btn-shahed" onclick="selectTool('Шахед / БпЛА', '✈️', '#ea580c')">✈️ Шахед</button>
+        <button class="btn-tool btn-rocket" onclick="selectTool('Ракета', '🚀', '#dc2626')">🚀 Ракета</button>
+        <button class="btn-tool btn-banderol" onclick="selectTool('Розвідник', '🛸', '#2563eb')">🛸 Бандероль</button>
+        <button class="btn-tool btn-clear" onclick="clearMarkers()">🗑️ Очистити</button>
     </div>
 
     <div class="main-grid">
@@ -152,7 +131,7 @@
                 <div class="legend-item"><span class="circle green"></span> Відбій тривоги</div>
             </div>
             <div>
-                <div class="panel-title">Статус регіону (клікніть для зміни)</div>
+                <div class="panel-title">Статус регіону</div>
                 <div class="region-row">
                     <span>Дніпропетровська обл.</span>
                     <span id="badgeDnipro" class="badge badge-red" onclick="changeRegionStatus('dnipro')">Тривога</span>
@@ -168,17 +147,18 @@
             </div>
         </div>
 
+        <!-- Контейнер карти -->
         <div id="map-container">
             <div id="map"></div>
         </div>
 
         <div class="panel">
-            <div class="panel-title">Останні повідомлення</div>
+            <div class="panel-title">Останні події</div>
             <div id="feedList">
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Система активна</div>
-                    <div class="feed-desc">Моніторинг працює</div>
+                    <div class="feed-desc">Карта завантажена успішно</div>
                 </div>
             </div>
         </div>
@@ -189,37 +169,30 @@
     </footer>
 
     <script>
+        // Ініціалізація карти
         const map = L.map('map').setView([47.9, 33.4], 7);
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Попередні координати областей для зафарбовування на карті
-        // Дніпропетровська область
+        // Полігони областей
         const dniproPolygon = L.polygon([
             [48.8, 33.5], [48.9, 36.2], [47.5, 36.5], [47.4, 33.8]
-        ], { color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2 }).addTo(map);
+        ], { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2 }).addTo(map);
 
-        // Кіровоградська область
         const kirovoPolygon = L.polygon([
             [49.1, 31.2], [49.0, 33.3], [47.9, 33.3], [47.8, 31.0]
-        ], { color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2 }).addTo(map);
+        ], { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2 }).addTo(map);
 
-        // Херсонська область
         const khersonPolygon = L.polygon([
             [47.8, 32.5], [47.6, 35.1], [46.1, 35.0], [46.1, 32.2]
-        ], { color: '#ca8a04', fillColor: '#ca8a04', fillOpacity: 0.5, weight: 2 }).addTo(map);
+        ], { color: '#a16207', fillColor: '#ca8a04', fillOpacity: 0.5, weight: 2 }).addTo(map);
 
-        // Статуси областей ('red', 'yellow', 'green')
-        let statuses = {
-            dnipro: 'red',
-            kirovo: 'red',
-            kherson: 'yellow'
-        };
+        let statuses = { dnipro: 'red', kirovo: 'red', kherson: 'yellow' };
 
         function changeRegionStatus(region) {
-            // Змінюємо статус по циклу: red -> yellow -> green -> red
             if (statuses[region] === 'red') {
                 statuses[region] = 'yellow';
             } else if (statuses[region] === 'yellow') {
@@ -227,37 +200,23 @@
             } else {
                 statuses[region] = 'red';
             }
-
             updateRegionUI(region);
         }
 
         function updateRegionUI(region) {
             let badge = document.getElementById(badgeId(region));
             let polygon = getPolygon(region);
-            let colorHex = '#16a34a';
-            let borderHex = '#15803d';
-            let statusText = 'Відбій';
-            let badgeClass = 'badge badge-green';
+            let colorHex = '#16a34a', borderHex = '#15803d', statusText = 'Відбій', badgeClass = 'badge badge-green';
 
             if (statuses[region] === 'red') {
-                colorHex = '#dc2626';
-                borderHex = '#b91c1c';
-                statusText = 'Тривога';
-                badgeClass = 'badge badge-red';
+                colorHex = '#dc2626'; borderHex = '#b91c1c'; statusText = 'Тривога'; badgeClass = 'badge badge-red';
             } else if (statuses[region] === 'yellow') {
-                colorHex = '#ca8a04';
-                borderHex = '#a16207';
-                statusText = 'Загроза';
-                badgeClass = 'badge badge-yellow';
+                colorHex = '#ca8a04'; borderHex = '#a16207'; statusText = 'Загроза'; badgeClass = 'badge badge-yellow';
             }
 
             badge.className = badgeClass;
             badge.innerText = statusText;
             polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.5 });
-
-            const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            addFeedItem(timeStr, `Зміна статусу: ${regionName(region)}`, `Встановлено рівень: ${statusText}`, statuses[region] === 'red' ? '' : 'yellow-line');
         }
 
         function badgeId(region) {
@@ -272,16 +231,7 @@
             return khersonPolygon;
         }
 
-        function regionName(region) {
-            if (region === 'dnipro') return 'Дніпропетровська обл.';
-            if (region === 'kirovo') return 'Кіровоградська обл.';
-            return 'Херсонська обл.';
-        }
-
-        let selectedType = null;
-        let selectedIconSymbol = '';
-        let selectedColor = '';
-        let markers = [];
+        let selectedType = null, selectedIconSymbol = '', selectedColor = '', markers = [];
 
         function selectTool(type, symbol, color) {
             selectedType = type;
@@ -293,7 +243,7 @@
 
         map.on('click', function(e) {
             if (!selectedType) {
-                alert('Вибери ціль (Шахед, Ракета або Бандероль) зверху!');
+                alert('Вибери ціль зверху (Шахед, Ракета...)!');
                 return;
             }
             const customIcon = L.divIcon({
@@ -302,9 +252,15 @@
                 iconSize: [34, 34],
                 iconAnchor: [17, 17]
             });
-            const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             const marker = L.marker(e.latlng, { icon: customIcon }).addTo(map)
-                .bindPopup(`<b>${selectedType}</b><br>Час: ${timeStr}`).openPopup();
+                .bindPopup(`<b>${selectedType}</b>`).openPopup();
             markers.push(marker);
-            addFeedItem(timeStr, selectedType, 'Ціль нанесено на карту',
+        });
+
+        function clearMarkers() {
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+        }
+    </script>
+</body>
+</html>
