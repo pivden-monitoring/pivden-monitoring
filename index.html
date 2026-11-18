@@ -54,7 +54,6 @@
         .badge-yellow { background: #ca8a04; color: white; }
         .badge-green { background: #16a34a; color: white; }
         
-        /* Чіткі стилі для контейнера та самої карти */
         #map-container { 
             position: relative; 
             border-radius: 10px; 
@@ -147,7 +146,6 @@
             </div>
         </div>
 
-        <!-- Контейнер карти -->
         <div id="map-container">
             <div id="map"></div>
         </div>
@@ -158,7 +156,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Система активна</div>
-                    <div class="feed-desc">Карта завантажена успішно</div>
+                    <div class="feed-desc">Межі областей оновлено</div>
                 </div>
             </div>
         </div>
@@ -169,7 +167,6 @@
     </footer>
 
     <script>
-        // Ініціалізація карти
         const map = L.map('map').setView([47.9, 33.4], 7);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -177,18 +174,31 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Полігони областей
-        const dniproPolygon = L.polygon([
-            [48.8, 33.5], [48.9, 36.2], [47.5, 36.5], [47.4, 33.8]
-        ], { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2 }).addTo(map);
+        // Красиві детальні контури Дніпропетровської області
+        const dniproCoords = [
+            [48.98, 33.85], [49.20, 34.60], [49.00, 35.50], [48.60, 36.20],
+            [48.40, 36.70], [47.90, 36.60], [47.50, 36.40], [47.30, 35.80],
+            [47.20, 35.20], [47.45, 34.40], [47.70, 33.90], [48.00, 33.30],
+            [48.45, 33.35], [48.80, 33.50]
+        ];
 
-        const kirovoPolygon = L.polygon([
-            [49.1, 31.2], [49.0, 33.3], [47.9, 33.3], [47.8, 31.0]
-        ], { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2 }).addTo(map);
+        // Красиві детальні контури Кіровоградської області
+        const kirovoCoords = [
+            [49.10, 31.30], [49.35, 32.10], [49.15, 33.20], [48.70, 33.70],
+            [48.10, 33.40], [47.80, 32.80], [47.90, 31.80], [48.30, 31.15],
+            [48.75, 31.00]
+        ];
 
-        const khersonPolygon = L.polygon([
-            [47.8, 32.5], [47.6, 35.1], [46.1, 35.0], [46.1, 32.2]
-        ], { color: '#a16207', fillColor: '#ca8a04', fillOpacity: 0.5, weight: 2 }).addTo(map);
+        // Красиві детальні контури Херсонської області
+        const khersonCoords = [
+            [47.60, 32.70], [47.80, 33.80], [47.40, 34.40], [47.35, 35.25],
+            [46.90, 35.50], [46.30, 35.20], [46.10, 34.50], [46.05, 33.50],
+            [46.40, 32.40], [46.70, 32.10], [47.20, 32.30]
+        ];
+
+        const dniproPolygon = L.polygon(dniproCoords, { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.4, weight: 2.5 }).addTo(map);
+        const kirovoPolygon = L.polygon(kirovoCoords, { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.4, weight: 2.5 }).addTo(map);
+        const khersonPolygon = L.polygon(khersonCoords, { color: '#a16207', fillColor: '#ca8a04', fillOpacity: 0.4, weight: 2.5 }).addTo(map);
 
         let statuses = { dnipro: 'red', kirovo: 'red', kherson: 'yellow' };
 
@@ -216,7 +226,7 @@
 
             badge.className = badgeClass;
             badge.innerText = statusText;
-            polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.5 });
+            polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.4 });
         }
 
         function badgeId(region) {
