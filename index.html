@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ПІВДЕНЬ MONITORING</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+body {
+  margin: 0;
+  background: #101820;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+header {
+  padding: 17px;
+  text-align: center;
+  background: #172633;
+  font-size: 21px;
+  font-weight: bold;
+}
+#map {
+  height: 72vh;
+  width: 100%;
+}
+.panel {
+  padding: 15px;
+  text-align: center;
+}
+button {
+  padding: 13px 20px;
+  margin: 5px;
+  border: 0;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: bold;
+}
+.add { background: #e9a23b; }
+.remove { background: #d94b4b; color: white; }
+.info {
+  color: #b9c7d3;
+  font-size: 12px;
+}
+</style>
+</head>
+<body>
+
+<header>🛰️ ПІВДЕНЬ MONITORING</header>
+
+<div id="map"></div>
+
+<div class="panel">
+  <button class="add" onclick="adding=true">
+    📍 Додати умовну позначку
+  </button>
+  <button class="remove" onclick="clearMarkers()">
+    Видалити позначки
+  </button>
+  <p id="status">Натисни кнопку, щоб додати позначку</p>
+  <p class="info">Умовна карта. Позначки не є підтвердженими даними.</p>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('map').setView([48.0, 33.5], 7);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+let adding = false;
+let markers = [];
+
+map.on('click', function(e) {
+  if (!adding) return;
+
+  const marker = L.circle(e.latlng, {
+    radius: 15000,
+    color: '#e9a23b',
+    fillColor: '#e9a23b',
+    fillOpacity: 0.25
+  }).addTo(map);
+
+  marker.bindPopup('🛩️ Умовна зона');
+
+  markers.push(marker);
+  adding = false;
+
+  document.getElementById('status').innerText =
+    'Умовну позначку додано';
+});
+
+function clearMarkers() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  document.getElementById('status').innerText =
+    'Позначки видалено';
+}
+</script>
+
+</body>
+</html>
