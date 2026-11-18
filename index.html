@@ -1,103 +1,388 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ПІВДЕНЬ MONITORING</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<style>
-body {
-  margin: 0;
-  background: #101820;
-  color: white;
-  font-family: Arial, sans-serif;
-}
-header {
-  padding: 17px;
-  text-align: center;
-  background: #172633;
-  font-size: 21px;
-  font-weight: bold;
-}
-#map {
-  height: 72vh;
-  width: 100%;
-}
-.panel {
-  padding: 15px;
-  text-align: center;
-}
-button {
-  padding: 13px 20px;
-  margin: 5px;
-  border: 0;
-  border-radius: 9px;
-  font-size: 15px;
-  font-weight: bold;
-}
-.add { background: #e9a23b; }
-.remove { background: #d94b4b; color: white; }
-.info {
-  color: #b9c7d3;
-  font-size: 12px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПІВДЕНЬ MONITORING</title>
+    <!-- Підключаємо карту Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Іконки -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b111e; color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; }
+
+        /* Шапка */
+        header {
+            background: linear-gradient(90deg, #0d1626 0%, #13223b 100%);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e3252;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .logo-block { display: flex; align-items: center; gap: 12px; }
+        .trident { font-size: 28px; color: #facc15; }
+        .title h1 { font-size: 20px; font-weight: 800; letter-spacing: 1px; }
+        .title h1 span { color: #38bdf8; }
+        .title p { font-size: 11px; color: #94a3b8; }
+
+        .nav-buttons { display: flex; gap: 8px; }
+        .nav-btn {
+            background: #17253b; border: 1px solid #263b5e; color: #cbd5e1;
+            padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer;
+        }
+        .nav-btn.active { background: #2563eb; color: white; border-color: #3b82f6; }
+
+        .status-time { display: flex; align-items: center; gap: 15px; font-size: 13px; }
+        .online-badge { background: rgba(34, 197, 94, 0.15); color: #4ade80; padding: 4px 10px; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .dot-green { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; }
+
+        /* Банер тривоги */
+        .alert-banner {
+            margin: 12px 20px 0;
+            background: linear-gradient(90deg, #7f1d1d 0%, #b91c1c 50%, #7f1d1d 100%);
+            border: 1px solid #ef4444;
+            border-radius: 10px;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+        }
+        .alert-banner.warning { background: linear-gradient(90deg, #713f12 0%, #ca8a04 50%, #713f12 100%); border-color: #facc15; }
+        .alert-banner.safe { background: linear-gradient(90deg, #14532d 0%, #15803d 50%, #14532d 100%); border-color: #22c55e; }
+        
+        .alert-info { text-align: center; flex: 1; }
+        .alert-info h2 { font-size: 20px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .alert-info p { font-size: 13px; color: #fecaca; margin-top: 4px; }
+        .timer-box { background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-family: monospace; }
+
+        /* Основна сітка */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 260px 1fr 290px;
+            gap: 15px;
+            padding: 15px 20px;
+            flex: 1;
+        }
+        @media (max-width: 1024px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: #111928;
+            border: 1px solid #1f2d45;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .panel-title { font-size: 14px; font-weight: 700; color: #e2e8f0; border-bottom: 1px solid #1f2d45; padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+
+        /* Легенда */
+        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #cbd5e1; margin-bottom: 8px; }
+        .circle { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .red { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+        .yellow { background: #eab308; box-shadow: 0 0 8px #eab308; }
+        .green { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+
+        /* Статуси регіонів */
+        .region-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #182338; }
+        .badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .badge-red { background: #dc2626; color: white; }
+        .badge-yellow { background: #ca8a04; color: white; }
+        .badge-green { background: #16a34a; color: white; }
+
+        /* Карта */
+        #map-container { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid #1f2d45; min-height: 450px; }
+        #map { width: 100%; height: 100%; min-height: 450px; background: #090d16; }
+
+        /* Панель інструментів адміна прямо на карті */
+        .admin-controls {
+            background: #162033;
+            border: 1px solid #2b3f63;
+            border-radius: 10px;
+            padding: 12px 20px;
+            margin: 0 20px 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .control-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .btn-tool {
+            padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: white; transition: 0.2s;
+        }
+        .btn-shahed { background: #ea580c; }
+        .btn-rocket { background: #dc2626; }
+        .btn-banderol { background: #2563eb; }
+        .btn-clear { background: #475569; }
+        .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
+
+        /* Останні повідомлення */
+        .feed-item { border-left: 3px solid #ef4444; padding-left: 10px; margin-bottom: 12px; }
+        .feed-item.yellow-line { border-color: #eab308; }
+        .feed-item.green-line { border-color: #22c55e; }
+        .feed-time { font-size: 11px; color: #94a3b8; }
+        .feed-title { font-size: 13px; font-weight: 700; margin: 2px 0; }
+        .feed-desc { font-size: 12px; color: #cbd5e1; }
+
+        /* Футер */
+        footer {
+            background: #0d1522;
+            border-top: 1px solid #1f2d45;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+    </style>
 </head>
 <body>
 
-<header>🛰️ ПІВДЕНЬ MONITORING</header>
+    <!-- Шапка -->
+    <header>
+        <div class="logo-block">
+            <div class="trident"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="title">
+                <h1>ПІВДЕНЬ <span>MONITORING</span></h1>
+                <p>Дніпропетровщина • Кіровоградщина • Херсонщина</p>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-btn active"><i class="fa-solid fa-map"></i> Карта</button>
+            <button class="nav-btn" onclick="alert('Сповіщення підключено!')"><i class="fa-solid fa-bell"></i> Повідомлення</button>
+        </div>
+        <div class="status-time">
+            <div class="online-badge"><span class="dot-green"></span> Онлайн</div>
+            <div id="clock" style="font-weight: bold;">20:42</div>
+        </div>
+    </header>
 
-<div id="map"></div>
+    <!-- Головний банер тривоги -->
+    <div id="alertBanner" class="alert-banner">
+        <div style="font-size: 24px;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="alert-info">
+            <h2 id="bannerTitle">ПОВІТРЯНА ТРИВОГА</h2>
+            <p id="bannerSub">У Дніпропетровській, Кіровоградській та Херсонській областях</p>
+        </div>
+        <div class="timer-box">Триває: <span id="timer">00:25:17</span></div>
+    </div>
 
-<div class="panel">
-  <button class="add" onclick="adding=true">
-    📍 Додати умовну позначку
-  </button>
-  <button class="remove" onclick="clearMarkers()">
-    Видалити позначки
-  </button>
-  <p id="status">Натисни кнопку, щоб додати позначку</p>
-  <p class="info">Умовна карта. Позначки не є підтвердженими даними.</p>
-</div>
+    <!-- Адмін-панель для додавання міток -->
+    <div class="admin-controls">
+        <div class="control-group">
+            <span style="font-size: 13px; color: #94a3b8;">1. Вибери об'єкт і тикни на карту:</span>
+            <button class="btn-tool btn-shahed" onclick="selectTool('Шахед / БпЛА', '🛸')"><i class="fa-solid fa-plane"></i> + Шахед</button>
+            <button class="btn-tool btn-rocket" onclick="selectTool('Ракета', '🚀')"><i class="fa-solid fa-rocket"></i> + Ракета</button>
+            <button class="btn-tool btn-banderol" onclick="selectTool('Розвідник / Бандероль', '🛩️')"><i class="fa-solid fa-paper-plane"></i> + Бандероль</button>
+            <button class="btn-tool btn-clear" onclick="clearMarkers()"><i class="fa-solid fa-trash"></i> Очистити мітки</button>
+        </div>
+        <div class="control-group">
+            <span style="font-size: 13px; color: #94a3b8;">Режим банера:</span>
+            <button class="btn-tool" style="background:#dc2626;" onclick="setAlertMode('red')">Червоний</button>
+            <button class="btn-tool" style="background:#ca8a04;" onclick="setAlertMode('yellow')">Жовтий</button>
+            <button class="btn-tool" style="background:#16a34a;" onclick="setAlertMode('green')">Відбій</button>
+        </div>
+    </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-const map = L.map('map').setView([48.0, 33.5], 7);
+    <!-- Основна робоча зона -->
+    <div class="main-grid">
+        
+        <!-- Ліва панель -->
+        <div class="panel">
+            <div>
+                <div class="panel-title"><i class="fa-solid fa-layer-group"></i> Легенда</div>
+                <div class="legend-item"><span class="circle red"></span> Повітряна тривога</div>
+                <div class="legend-item"><span class="circle yellow"></span> Загроза</div>
+                <div class="legend-item"><span class="circle green"></span> Відбій тривоги</div>
+                <hr style="border-color: #1f2d45; margin: 10px 0;">
+                <div class="legend-item">🛸 Шахеди / БпЛА</div>
+                <div class="legend-item">🚀 Ракета</div>
+                <div class="legend-item">🛩️ Бандероль</div>
+            </div>
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap'
-}).addTo(map);
+            <div>
+                <div class="panel-title"><i class="fa-solid fa-chart-simple"></i> Статус регіону (натисни для зміни)</div>
+                <div class="region-row">
+                    <span>Дніпропетровська обл.</span>
+                    <span class="badge badge-red" onclick="toggleBadge(this)">Тривога</span>
+                </div>
+                <div class="region-row">
+                    <span>Кіровоградська обл.</span>
+                    <span class="badge badge-red" onclick="toggleBadge(this)">Тривога</span>
+                </div>
+                <div class="region-row">
+                    <span>Херсонська обл.</span>
+                    <span class="badge badge-yellow" onclick="toggleBadge(this)">Загроза</span>
+                </div>
+            </div>
+        </div>
 
-let adding = false;
-let markers = [];
+        <!-- Карта -->
+        <div id="map-container">
+            <div id="map"></div>
+        </div>
 
-map.on('click', function(e) {
-  if (!adding) return;
+        <!-- Права панель повідомлень -->
+        <div class="panel">
+            <div class="panel-title"><i class="fa-solid fa-bell"></i> Останні повідомлення</div>
+            <div id="feedList">
+                <div class="feed-item">
+                    <div class="feed-time">20:41</div>
+                    <div class="feed-title" style="color: #f87171;">Повітряна тривога</div>
+                    <div class="feed-desc">У Дніпропетровській, Кіровоградській та Херсонській областях</div>
+                </div>
+                <div class="feed-item yellow-line">
+                    <div class="feed-time">19:55</div>
+                    <div class="feed-title" style="color: #facc15;">Загроза застосування БпЛА</div>
+                    <div class="feed-desc">У регіоні</div>
+                </div>
+                <div class="feed-item green-line">
+                    <div class="feed-time">18:20</div>
+                    <div class="feed-title" style="color: #4ade80;">Відбій тривоги</div>
+                    <div class="feed-desc">У Дніпропетровській області</div>
+                </div>
+            </div>
+        </div>
 
-  const marker = L.circle(e.latlng, {
-    radius: 15000,
-    color: '#e9a23b',
-    fillColor: '#e9a23b',
-    fillOpacity: 0.25
-  }).addTo(map);
+    </div>
 
-  marker.bindPopup('🛩️ Умовна зона');
+    <!-- Нижня панель -->
+    <footer>
+        <div>👥 Населення регіону: <b>≈ 3.6 млн</b></div>
+        <div>📍 Площа регіону: <b>≈ 77 тис. км²</b></div>
+        <div>💙💛 <b>Разом до Перемоги!</b></div>
+        <div>⚠️ Слідкуйте за офіційними джерелами та не ігноруйте сигнали тривоги!</div>
+    </footer>
 
-  markers.push(marker);
-  adding = false;
+    <script>
+        // Ініціалізація карти (центр на Півдні України)
+        const map = L.map('map').setView([47.9, 33.4], 7);
 
-  document.getElementById('status').innerText =
-    'Умовну позначку додано';
-});
+        // Темна тема карти (CartoDB Dark Matter)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
 
-function clearMarkers() {
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-  document.getElementById('status').innerText =
-    'Позначки видалено';
-}
-</script>
+        let selectedType = null;
+        let selectedEmoji = '';
+        let markers = [];
 
+        // Вибір інструменту
+        function selectTool(type, emoji) {
+            selectedType = type;
+            selectedEmoji = emoji;
+            document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        // Клік по карті для встановлення мітки
+        map.on('click', function(e) {
+            if (!selectedType) {
+                alert('Спочатку вибери об’єкт (Шахед, Ракета чи Бандероль) на панелі вище!');
+                return;
+            }
+
+            const customIcon = L.divIcon({
+                html: `<div style="font-size: 26px; text-shadow: 0 0 10px red;">${selectedEmoji}</div>`,
+                className: 'custom-marker',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+            const marker = L.marker(e.latlng, { icon: customIcon }).addTo(map)
+                .bindPopup(`<b>${selectedType}</b><br>Час фіксації: ${timeStr}`).openPopup();
+            
+            markers.push(marker);
+
+            // Додаємо запис у праву стрічку новин
+            addFeedItem(timeStr, selectedType, `Зафіксовано нову ціль на карті (${e.latlng.lat.toFixed(2)}, ${e.latlng.lng.toFixed(2)})`, 'yellow-line');
+        });
+
+        // Очистити мітки
+        function clearMarkers() {
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+        }
+
+        // Зміна режиму головного банера
+        function setAlertMode(color) {
+            const banner = document.getElementById('alertBanner');
+            const title = document.getElementById('bannerTitle');
+            const sub = document.getElementById('bannerSub');
+            banner.className = 'alert-banner';
+
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+            if (color === 'red') {
+                title.innerText = 'ПОВІТРЯНА ТРИВОГА';
+                sub.innerText = 'У Дніпропетровській, Кіровоградській та Херсонській областях';
+                addFeedItem(timeStr, 'Повітряна тривога', 'Оголошено червоний рівень небезпеки!', '');
+            } else if (color === 'yellow') {
+                banner.classList.add('warning');
+                title.innerText = 'ПІДВИЩЕНА ЗАГРОЗА';
+                sub.innerText = 'Загроза застосування ударних БпЛА / ворожої авіації';
+                addFeedItem(timeStr, 'Загроза', 'Жовтий рівень небезпеки у регіоні', 'yellow-line');
+            } else if (color === 'green') {
+                banner.classList.add('safe');
+                title.innerText = 'ВІДБІЙ ПОВІТРЯНОЇ ТРИВОГИ';
+                sub.innerText = 'Небезпека минула. Слідкуйте за подальшими повідомленнями';
+                addFeedItem(timeStr, 'Відбій тривоги', 'Зелений рівень — відбій небезпеки', 'green-line');
+            }
+        }
+
+        // Перемикання статусу областей при натисканні
+        function toggleBadge(el) {
+            if (el.classList.contains('badge-red')) {
+                el.className = 'badge badge-yellow';
+                el.innerText = 'Загроза';
+            } else if (el.classList.contains('badge-yellow')) {
+                el.className = 'badge badge-green';
+                el.innerText = 'Відбій';
+            } else {
+                el.className = 'badge badge-red';
+                el.innerText = 'Тривога';
+            }
+        }
+
+        // Додавання новини в праву колонку
+        function addFeedItem(time, title, desc, lineClass) {
+            const feed = document.getElementById('feedList');
+            const item = document.createElement('div');
+            item.className = `feed-item ${lineClass}`;
+            item.innerHTML = `
+                <div class="feed-time">${time}</div>
+                <div class="feed-title">${title}</div>
+                <div class="feed-desc">${desc}</div>
+            `;
+            feed.prepend(item);
+        }
+
+        // Живий годинник
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = 
+                now.getHours().toString().padStart(2, '0') + ':' + 
+                now.getMinutes().toString().padStart(2, '0');
+        }, 1000);
+    </script>
 </body>
 </html>
