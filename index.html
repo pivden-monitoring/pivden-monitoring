@@ -53,19 +53,19 @@
         .badge-red { background: #dc2626; color: white; }
         .badge-yellow { background: #ca8a04; color: white; }
         .badge-green { background: #16a34a; color: white; }
-        
-        #map-container { 
-            position: relative; 
-            border-radius: 10px; 
-            overflow: hidden; 
-            border: 1px solid #1f2d45; 
+
+        #map-container {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #1f2d45;
             min-height: 500px;
             height: 100%;
         }
-        #map { 
-            width: 100%; 
-            height: 500px; 
-            background: #090d16; 
+        #map {
+            width: 100%;
+            height: 500px;
+            background: #060911;
         }
 
         .admin-controls {
@@ -109,7 +109,7 @@
             <div class="trident"><i class="fa-solid fa-shield-halved"></i></div>
             <div class="title">
                 <h1>ПІВДЕНЬ <span>MONITORING</span></h1>
-                <p>Дніпропетровщина • Кіровоградщина • Херсонщина</p>
+                <p>Дніпропетровщина • Запоріжжя • Кіровоградщина • Херсонщина</p>
             </div>
         </div>
     </header>
@@ -159,6 +159,10 @@
                     <span id="badgeDnipro" class="badge badge-red" onclick="changeRegionStatus('dnipro')">Тривога</span>
                 </div>
                 <div class="region-row">
+                    <span>Запорізька обл.</span>
+                    <span id="badgeZaporizhzhia" class="badge badge-red" onclick="changeRegionStatus('zaporizhzhia')">Тривога</span>
+                </div>
+                <div class="region-row">
                     <span>Кіровоградська обл.</span>
                     <span id="badgeKirovo" class="badge badge-red" onclick="changeRegionStatus('kirovo')">Тривога</span>
                 </div>
@@ -179,7 +183,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Система активна</div>
-                    <div class="feed-desc">Нові іконки цілей підключено</div>
+                    <div class="feed-desc">Залишено 4 області, сусідні затемнено по кордону</div>
                 </div>
             </div>
         </div>
@@ -190,13 +194,21 @@
     </footer>
 
     <script>
-        const map = L.map('map').setView([47.8, 33.5], 7);
+        const map = L.map('map').setView([47.85, 34.0], 7);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
+        // Створюємо окремі панелі для затемнення чужих областей і для активних областей
+        map.createPane('blackoutPane');
+        map.getPane('blackoutPane').style.zIndex = 350;
+
+        map.createPane('regionsPane');
+        map.getPane('regionsPane').style.zIndex = 410;
+
+        // 4 цільові області
         const dniproCoords = [
             [48.52, 33.50], [48.80, 33.45], [49.05, 33.70], [49.30, 34.20],
             [49.25, 34.90], [49.05, 35.40], [48.75, 35.80], [48.45, 36.30],
@@ -219,15 +231,57 @@
             [46.90, 32.05], [47.20, 32.15], [47.45, 32.30]
         ];
 
-        L.marker([48.46, 35.04], {icon: L.divIcon({html: '<div style="color:white; font-size:11px; font-weight:bold; text-shadow: 1px 1px 2px black;">📍 Дніпро</div>', className: ''})}).addTo(map);
-        L.marker([48.51, 32.26], {icon: L.divIcon({html: '<div style="color:white; font-size:11px; font-weight:bold; text-shadow: 1px 1px 2px black;">📍 Кропивницький</div>', className: ''})}).addTo(map);
-        L.marker([46.63, 32.61], {icon: L.divIcon({html: '<div style="color:white; font-size:11px; font-weight:bold; text-shadow: 1px 1px 2px black;">📍 Херсон</div>', className: ''})}).addTo(map);
+        const zaporizhzhiaCoords = [
+            [47.95, 34.60], [48.10, 35.20], [47.85, 36.10], [47.65, 36.75],
+            [47.25, 37.05], [46.85, 36.85], [46.60, 36.10], [46.65, 35.25],
+            [47.05, 34.95], [47.45, 34.85], [47.75, 34.55], [47.95, 34.60]
+        ];
 
-        const dniproPolygon = L.polygon(dniproCoords, { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
-        const kirovoPolygon = L.polygon(kirovoCoords, { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
-        const khersonPolygon = L.polygon(khersonCoords, { color: '#a16207', fillColor: '#ca8a04', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
+        // "Вирізаємо" / затемнюємо все навколо 4 областей чорною маскою з діркою під ці 4 області
+        const worldOuter = [
+            [55.0, 20.0], [55.0, 48.0], [42.0, 48.0], [42.0, 20.0]
+        ];
 
-        let statuses = { dnipro: 'red', kirovo: 'red', kherson: 'yellow' };
+        const blackoutMask = L.polygon(
+            [worldOuter, dniproCoords, kirovoCoords, khersonCoords, zaporizhzhiaCoords],
+            {
+                pane: 'blackoutPane',
+                color: '#060911',
+                weight: 2,
+                fillColor: '#05080f',
+                fillOpacity: 0.92
+            }
+        ).addTo(map);
+
+        // Підписи обласних центрів
+        const cities = [
+            { name: 'Дніпро', coords: [48.46, 35.04] },
+            { name: 'Запоріжжя', coords: [47.84, 35.14] },
+            { name: 'Кропивницький', coords: [48.51, 32.26] },
+            { name: 'Херсон', coords: [46.63, 32.61] }
+        ];
+
+        cities.forEach(city => {
+            L.marker(city.coords, {
+                interactive: false,
+                icon: L.divIcon({
+                    html: `<div style="color:#ffffff; font-size:11px; font-weight:700; white-space:nowrap; text-shadow: 0 1px 4px rgba(0,0,0,0.95); transform: translate(-10%, -50%);">• ${city.name}</div>`,
+                    className: ''
+                })
+            }).addTo(map);
+        });
+
+        const dniproPolygon = L.polygon(dniproCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
+        const zaporizhzhiaPolygon = L.polygon(zaporizhzhiaCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
+        const kirovoPolygon = L.polygon(kirovoCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
+        const khersonPolygon = L.polygon(khersonCoords, { pane: 'regionsPane', color: '#facc15', fillColor: '#ca8a04', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
+
+        let statuses = {
+            dnipro: 'red',
+            zaporizhzhia: 'red',
+            kirovo: 'red',
+            kherson: 'yellow'
+        };
 
         function changeRegionStatus(region) {
             if (statuses[region] === 'red') {
@@ -243,32 +297,48 @@
         function updateRegionUI(region) {
             let badge = document.getElementById(badgeId(region));
             let polygon = getPolygon(region);
-            let colorHex = '#16a34a', borderHex = '#15803d', statusText = 'Відбій', badgeClass = 'badge badge-green';
+            let colorHex = '#16a34a', borderHex = '#4ade80', statusText = 'Відбій', badgeClass = 'badge badge-green';
 
             if (statuses[region] === 'red') {
-                colorHex = '#dc2626'; borderHex = '#b91c1c'; statusText = 'Тривога'; badgeClass = 'badge badge-red';
+                colorHex = '#dc2626'; borderHex = '#f87171'; statusText = 'Тривога'; badgeClass = 'badge badge-red';
             } else if (statuses[region] === 'yellow') {
-                colorHex = '#ca8a04'; borderHex = '#a16207'; statusText = 'Загроза'; badgeClass = 'badge badge-yellow';
+                colorHex = '#ca8a04'; borderHex = '#facc15'; statusText = 'Загроза'; badgeClass = 'badge badge-yellow';
             }
 
             badge.className = badgeClass;
             badge.innerText = statusText;
             polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.45 });
+
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            const feed = document.getElementById('feedList');
+            const item = document.createElement('div');
+            item.className = `feed-item ${statuses[region] === 'yellow' ? 'yellow-line' : statuses[region] === 'green' ? 'green-line' : ''}`;
+            item.innerHTML = `<div class="feed-time">${timeStr}</div><div class="feed-title">${regionName(region)}</div><div class="feed-desc">Статус: ${statusText}</div>`;
+            feed.prepend(item);
         }
 
         function badgeId(region) {
             if (region === 'dnipro') return 'badgeDnipro';
+            if (region === 'zaporizhzhia') return 'badgeZaporizhzhia';
             if (region === 'kirovo') return 'badgeKirovo';
             return 'badgeKherson';
         }
 
         function getPolygon(region) {
             if (region === 'dnipro') return dniproPolygon;
+            if (region === 'zaporizhzhia') return zaporizhzhiaPolygon;
             if (region === 'kirovo') return kirovoPolygon;
             return khersonPolygon;
         }
 
-        // Налаштування твоїх 3-х іконок цілей
+        function regionName(region) {
+            if (region === 'dnipro') return 'Дніпропетровська обл.';
+            if (region === 'zaporizhzhia') return 'Запорізька обл.';
+            if (region === 'kirovo') return 'Кіровоградська обл.';
+            return 'Херсонська обл.';
+        }
+
         const targetsData = {
             geran: {
                 name: 'Герань-2',
