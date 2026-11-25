@@ -263,7 +263,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Тривога — КР</div>
-                    <div class="feed-desc">Суцільна заливка та керування статусом увімкнено</div>
+                    <div class="feed-desc">Визначення населених пунктів увімкнено</div>
                 </div>
             </div>
         </div>
@@ -451,7 +451,6 @@
             ]
         };
 
-        // Собираем непрерывный контур из всех LineString по ближайшим концам, чтобы заливка была сплошной
         function buildContinuousPolygon(geoJson) {
             const segments = geoJson.features
                 .filter(f => f.geometry && f.geometry.type === 'LineString' && Array.isArray(f.geometry.coordinates))
@@ -525,6 +524,70 @@
 
         if (solidContour.length > 0) {
             map.fitBounds(krBorder.getBounds(), { padding: [25, 25] });
+        }
+
+        // Опорные населённые пункты и локации Криворожского района и ближайших направлений
+        const settlements = [
+            { name: 'Радушне', lat: 47.8065, lng: 33.4285, radiusKm: 6 },
+            { name: 'Кривий Ріг', lat: 47.9105, lng: 33.3918, radiusKm: 13 },
+            { name: 'Інгулець', lat: 47.6850, lng: 33.1750, radiusKm: 6 },
+            { name: 'Апостолове', lat: 47.6550, lng: 33.7150, radiusKm: 8 },
+            { name: 'Зеленодольськ', lat: 47.5520, lng: 33.6350, radiusKm: 7 },
+            { name: 'Широке', lat: 47.6820, lng: 33.2680, radiusKm: 7 },
+            { name: 'Софіївка', lat: 48.0550, lng: 33.8900, radiusKm: 7 },
+            { name: 'Лозуватка', lat: 48.0420, lng: 33.2750, radiusKm: 6 },
+            { name: 'Грушівка', lat: 47.5650, lng: 33.8750, radiusKm: 6 },
+            { name: 'Карпівка', lat: 47.8950, lng: 33.1450, radiusKm: 6 },
+            { name: 'Нива Трудова', lat: 47.6150, lng: 33.5450, radiusKm: 6 },
+            { name: 'Вакулове', lat: 48.2080, lng: 33.9150, radiusKm: 6 },
+            { name: 'Христофорівка', lat: 48.0350, lng: 33.4550, radiusKm: 6 },
+            { name: 'Веселе', lat: 47.8250, lng: 33.6650, radiusKm: 6 }
+        ];
+
+        function distanceKm(lat1, lng1, lat2, lng2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function resolveLocationName(latlng) {
+            let closest = null;
+            let minDist = Infinity;
+
+            for (const place of settlements) {
+                const d = distanceKm(latlng.lat, latlng.lng, place.lat, place.lng);
+                if (d < minDist) {
+                    minDist = d;
+                    closest = place;
+                }
+            }
+
+            if (!closest) return 'сектор КР';
+            if (minDist <= closest.radiusKm) {
+                return closest.name;
+            }
+            return `р-н ${closest.name}`;
+        }
+
+        function pushTargetFeed(targetName, latlng, actionText = 'зафіксовано в н.п.') {
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            const locationName = resolveLocationName(latlng);
+            const feed = document.getElementById('feedList');
+            const feedEntry = document.createElement('div');
+            feedEntry.className = 'feed-item yellow-line';
+            feedEntry.innerHTML = `
+                <div class="feed-time">${timeStr}</div>
+                <div class="feed-title" style="color: #facc15;">${targetName} — ${locationName}</div>
+                <div class="feed-desc">Ціль ${actionText}: ${locationName}</div>
+            `;
+            feed.prepend(feedEntry);
+            return locationName;
         }
 
         const statusPalette = {
@@ -665,8 +728,9 @@
             if (!activeMarkerItem) return;
             activeMarkerItem.angle = normalized;
             applyMarkerTransform(activeMarkerItem);
+            const loc = resolveLocationName(activeMarkerItem.marker.getLatLng());
             activeMarkerItem.marker.setPopupContent(
-                `<b>${activeMarkerItem.target.name}</b><br>Кут: ${normalized > 0 ? '+' : ''}${normalized}°<br><small>Тягни значок або крути повзунком</small>`
+                `<b>${activeMarkerItem.target.name}</b> — ${loc}<br>Кут: ${normalized > 0 ? '+' : ''}${normalized}°<br><small>Тягни значок або крути повзунком</small>`
             );
         }
 
@@ -692,12 +756,13 @@
 
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            const locationName = resolveLocationName(e.latlng);
 
             const marker = L.marker(e.latlng, { icon: customIcon, draggable: true }).addTo(map);
-            const itemObj = { marker, target, angle: initialAngle };
+            const itemObj = { marker, target, angle: initialAngle, lastLocation: locationName };
             markers.push(itemObj);
 
-            marker.bindPopup(`<b>${target.name}</b><br>Час фіксації: ${timeStr}<br><small>Тягни значок або крути вліво/вправо</small>`);
+            marker.bindPopup(`<b>${target.name}</b> — ${locationName}<br>Час фіксації: ${timeStr}<br><small>Тягни значок або крути вліво/вправо</small>`);
 
             marker.on('click', function(ev) {
                 L.DomEvent.stopPropagation(ev);
@@ -711,6 +776,11 @@
 
             marker.on('dragend', function() {
                 applyMarkerTransform(itemObj);
+                const updatedLoc = pushTargetFeed(itemObj.target.name, itemObj.marker.getLatLng(), 'змістилась у');
+                itemObj.lastLocation = updatedLoc;
+                marker.setPopupContent(
+                    `<b>${itemObj.target.name}</b> — ${updatedLoc}<br>Кут: ${itemObj.angle > 0 ? '+' : ''}${itemObj.angle}°<br><small>Тягни значок або крути вліво/вправо</small>`
+                );
             });
 
             marker.on('add', function() {
@@ -722,7 +792,7 @@
             const feed = document.getElementById('feedList');
             const feedEntry = document.createElement('div');
             feedEntry.className = 'feed-item yellow-line';
-            feedEntry.innerHTML = `<div class="feed-time">${timeStr}</div><div class="feed-title" style="color: #facc15;">${target.name}</div><div class="feed-desc">Ціль додано в сектор КР</div>`;
+            feedEntry.innerHTML = `<div class="feed-time">${timeStr}</div><div class="feed-title" style="color: #facc15;">${target.name} — ${locationName}</div><div class="feed-desc">Ціль додано в н.п. ${locationName}</div>`;
             feed.prepend(feedEntry);
         });
 
