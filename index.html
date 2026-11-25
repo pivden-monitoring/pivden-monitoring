@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b111e; color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; }
@@ -17,12 +19,46 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #1e3252;
+            gap: 12px;
+            flex-wrap: wrap;
         }
         .logo-block { display: flex; align-items: center; gap: 12px; }
         .trident { font-size: 28px; color: #facc15; }
         .title h1 { font-size: 20px; font-weight: 800; letter-spacing: 1px; }
         .title h1 span { color: #38bdf8; }
         .title p { font-size: 11px; color: #94a3b8; }
+
+        .op-access {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+        }
+        .op-access input {
+            background: #0f172a;
+            border: 1px solid #2b3f63;
+            border-radius: 6px;
+            color: #fff;
+            padding: 6px 10px;
+            font-size: 12px;
+            width: 140px;
+        }
+        .role-tag {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+        }
+        .role-tag.active {
+            background: rgba(22, 163, 74, 0.22);
+            color: #4ade80;
+            border-color: #16a34a;
+        }
+
         .main-grid {
             display: grid;
             grid-template-columns: 260px 1fr 290px;
@@ -43,13 +79,14 @@
             gap: 15px;
         }
         .panel-title { font-size: 14px; font-weight: 700; color: #e2e8f0; border-bottom: 1px solid #1f2d45; padding-bottom: 8px; }
-        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #cbd5e1; margin-bottom: 8px; }
+        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #cbd5e1; margin-bottom: 10px; }
         .circle { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
         .red { background: #ef4444; }
         .yellow { background: #eab308; }
         .green { background: #22c55e; }
         .region-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #182338; }
-        .badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer; user-select: none; }
+        .badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; user-select: none; }
+        .badge.clickable { cursor: pointer; }
         .badge-red { background: #dc2626; color: white; }
         .badge-yellow { background: #ca8a04; color: white; }
         .badge-green { background: #16a34a; color: white; }
@@ -74,10 +111,13 @@
             border-radius: 10px;
             padding: 12px 20px;
             margin: 15px 20px 0;
-            display: flex;
+            display: none;
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
+        }
+        .admin-controls.visible {
+            display: flex;
         }
         .control-group {
             display: inline-flex;
@@ -95,15 +135,18 @@
             padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: white;
             display: inline-flex; align-items: center; gap: 8px;
         }
+        .btn-op { background: #2563eb; padding: 6px 12px; font-size: 12px; }
+        .btn-op:hover { background: #1d4ed8; }
+        .btn-exit { background: #334155; padding: 6px 12px; font-size: 12px; }
         .btn-alarm-on { background: #dc2626; }
         .btn-alarm-on:hover { background: #b91c1c; }
         .btn-alarm-yellow { background: #ca8a04; }
         .btn-alarm-yellow:hover { background: #a16207; }
         .btn-alarm-off { background: #16a34a; }
         .btn-alarm-off:hover { background: #15803d; }
-        .btn-geran { background: #ea580c; }
-        .btn-banderol { background: #2563eb; }
-        .btn-jet { background: #dc2626; }
+        .btn-geran { background: #9a3412; }
+        .btn-banderol { background: #1e3a8a; }
+        .btn-jet { background: #991b1b; }
         .btn-rotate { background: #1e293b; border: 1px solid #334155; }
         .btn-rotate:hover { background: #334155; }
         .btn-apply { background: #0284c7; }
@@ -133,9 +176,7 @@
             padding: 4px 6px;
             outline: none;
         }
-        .param-box input:focus {
-            border-color: #facc15;
-        }
+        .param-box input:focus { border-color: #facc15; }
 
         .rotate-box {
             display: inline-flex;
@@ -160,21 +201,24 @@
             color: #facc15;
         }
 
-        .marker-bubble {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
+        .custom-marker {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        .target-icon-wrap {
+            width: 44px;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-            transition: transform 0.1s ease-out, box-shadow 0.15s ease;
-            cursor: grab;
+            transition: transform 0.1s ease-out, filter 0.15s ease;
+            user-select: none;
         }
-        .marker-bubble:active { cursor: grabbing; }
-        .marker-bubble.active-marker {
-            box-shadow: 0 0 0 3px #facc15, 0 4px 14px rgba(0, 0, 0, 0.85);
+        .target-icon-wrap.editable { cursor: grab; }
+        .target-icon-wrap.editable:active { cursor: grabbing; }
+        .target-icon-wrap.active-marker {
+            filter: drop-shadow(0 0 8px #facc15) drop-shadow(0 0 3px #ffffff) !important;
         }
 
         .leaflet-popup-content {
@@ -208,9 +252,20 @@
                 <p>Моніторинг обстановки • Криворізький район</p>
             </div>
         </div>
+
+        <div class="op-access">
+            <span class="role-tag" id="roleTag">Перегляд</span>
+            <input type="password" id="opCodeInput" placeholder="Код оператора" autocomplete="off">
+            <button type="button" class="btn-tool btn-op" id="btnOpUnlock" onclick="unlockOperator()">
+                <i class="fa-solid fa-key"></i> Вхід
+            </button>
+            <button type="button" class="btn-tool btn-exit" id="btnOpLock" onclick="lockOperator()" style="display:none;">
+                <i class="fa-solid fa-lock"></i> Вийти
+            </button>
+        </div>
     </header>
 
-    <div class="admin-controls">
+    <div class="admin-controls" id="adminControls">
         <div class="control-group">
             <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Статус КР:</span>
             <button type="button" class="btn-tool btn-alarm-on" onclick="setKrStatus('red')">
@@ -229,15 +284,21 @@
         <div class="control-group">
             <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Вибери ціль:</span>
             <button type="button" class="btn-tool btn-geran" onclick="selectTool('geran', this)">
-                <svg width="18" height="18" viewBox="0 0 100 100"><path fill="white" d="M44 10 C44 4 56 4 56 10 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 66 L43 66 L43 72 L12 72 L12 60 Z M45 68 L55 68 L53 76 L47 76 Z M49 76 L51 76 L51 81 L49 81 Z M38 81 Q44 79 50 81 Q56 79 62 81 Q56 83 50 81 Q44 83 38 81 Z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L55 83 L45 83 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                </svg>
                 Герань-2
             </button>
             <button type="button" class="btn-tool btn-banderol" onclick="selectTool('banderol', this)">
-                <svg width="18" height="18" viewBox="0 0 100 100"><path fill="white" d="M88 12 L72 18 L58 32 L36 35 L32 45 L46 47 L28 65 L14 68 L10 78 L24 80 L26 92 L36 88 L39 74 L57 56 L59 70 L69 66 L72 44 L86 30 Z"/><path fill="#38bdf8" d="M62 28 L72 38 L76 34 L66 24 Z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
+                </svg>
                 Бандероль
             </button>
             <button type="button" class="btn-tool btn-jet" onclick="selectTool('jet', this)">
-                <svg width="18" height="18" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><path fill="white" d="M44 8 C44 2 56 2 56 8 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 65 L43 65 L43 72 L12 72 L12 60 Z M45 67 L55 67 L55 77 L45 77 Z M43 79 L57 79 L57 85 L43 85 Z"/></g></svg>
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                </svg>
                 Реактивний Шахед
             </button>
         </div>
@@ -247,13 +308,13 @@
         <div class="control-group">
             <div class="param-box">
                 <label for="speedInput">Швидкість (км/год):</label>
-                <input id="speedInput" type="number" min="0" max="2000" step="5" value="420" oninput="syncSelectedParams()">
+                <input id="speedInput" type="number" min="0" max="2000" step="5" value="460">
             </div>
             <div class="param-box">
                 <label for="altitudeInput">Висота (м):</label>
-                <input id="altitudeInput" type="number" min="0" max="25000" step="25" value="1200" oninput="syncSelectedParams()">
+                <input id="altitudeInput" type="number" min="0" max="25000" step="25" value="1500">
             </div>
-            <button type="button" class="btn-tool btn-apply" onclick="applyParamsToSelected(true)" title="Оновити швидкість і висоту обраної цілі">
+            <button type="button" class="btn-tool btn-apply" onclick="applyParamsToSelected(true)">
                 <i class="fa-solid fa-check"></i> Застосувати
             </button>
         </div>
@@ -262,13 +323,13 @@
 
         <div class="control-group">
             <span style="font-size: 13px; color: #94a3b8;">Поворот значка:</span>
-            <button type="button" class="btn-tool btn-rotate" onclick="stepRotation(-15)" title="Повернути вліво на 15°">⟲ -15°</button>
-            <button type="button" class="btn-tool btn-rotate" onclick="stepRotation(15)" title="Повернути вправо на 15°">⟳ +15°</button>
+            <button type="button" class="btn-tool btn-rotate" onclick="stepRotation(-15)">⟲ -15°</button>
+            <button type="button" class="btn-tool btn-rotate" onclick="stepRotation(15)">⟳ +15°</button>
             <div class="rotate-box">
                 <input id="angleSlider" type="range" min="-180" max="180" step="1" value="0" oninput="setSelectedRotation(this.value)">
                 <span id="angleLabel" class="angle-readout">0°</span>
             </div>
-            <button type="button" class="btn-tool btn-rotate" onclick="setSelectedRotation(0)" title="Скинути кут">↺ 0°</button>
+            <button type="button" class="btn-tool btn-rotate" onclick="setSelectedRotation(0)">↺ 0°</button>
             <button type="button" class="btn-tool btn-clear" onclick="clearMarkers()">🗑️ Очистити</button>
         </div>
     </div>
@@ -282,15 +343,21 @@
                 <div class="legend-item"><span class="circle green"></span> Відбій тривоги</div>
                 <hr style="border-color: #1f2d45; margin: 10px 0;">
                 <div class="legend-item">
-                    <svg width="18" height="18" viewBox="0 0 100 100"><path fill="#ea580c" d="M44 10 C44 4 56 4 56 10 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 66 L43 66 L43 72 L12 72 L12 60 Z M45 68 L55 68 L53 76 L47 76 Z M38 81 Q44 79 50 81 Q56 79 62 81 Q56 83 50 81 Q44 83 38 81 Z"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 5px rgba(234, 88, 12, 0.85));">
+                        <path fill="#ffffff" stroke="#ea580c" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L55 83 L45 83 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                    </svg>
                     Герань-2
                 </div>
                 <div class="legend-item">
-                    <svg width="18" height="18" viewBox="0 0 100 100"><path fill="#38bdf8" d="M88 12 L72 18 L58 32 L36 35 L32 45 L46 47 L28 65 L14 68 L10 78 L24 80 L26 92 L36 88 L39 74 L57 56 L59 70 L69 66 L72 44 L86 30 Z"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.85));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
+                    </svg>
                     Бандероль
                 </div>
                 <div class="legend-item">
-                    <svg width="18" height="18" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><path fill="#ef4444" d="M44 8 C44 2 56 2 56 8 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 65 L43 65 L43 72 L12 72 L12 60 Z M45 67 L55 67 L55 77 L45 77 Z M43 79 L57 79 L57 85 L43 85 Z"/></g></svg>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.9));">
+                        <path fill="#ffffff" stroke="#dc2626" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                    </svg>
                     Реактивний Шахед
                 </div>
             </div>
@@ -313,7 +380,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Тривога — КР</div>
-                    <div class="feed-desc">Вкажи швидкість і висоту та натисни на значок цілі</div>
+                    <div class="feed-desc">Моніторинг запущено</div>
                 </div>
             </div>
         </div>
@@ -324,6 +391,90 @@
     </footer>
 
     <script>
+        // 1. Вставь сюда данные из Firebase Realtime Database
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // 2. Придумай ваш общий код оператора (для тебя и напарника)
+        const OPERATOR_CODE = "KR2026";
+
+        const firebaseConfigured = !firebaseConfig.apiKey.startsWith("YOUR_");
+        let db = null;
+        let isOperator = !firebaseConfigured;
+
+        if (firebaseConfigured) {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+        }
+
+        function updateRoleUI() {
+            const tag = document.getElementById('roleTag');
+            const controls = document.getElementById('adminControls');
+            const krBadge = document.getElementById('badgeKr');
+            const input = document.getElementById('opCodeInput');
+            const btnUnlock = document.getElementById('btnOpUnlock');
+            const btnLock = document.getElementById('btnOpLock');
+
+            if (isOperator) {
+                tag.textContent = 'Оператор';
+                tag.classList.add('active');
+                controls.classList.add('visible');
+                krBadge.classList.add('clickable');
+                if (firebaseConfigured) {
+                    input.style.display = 'none';
+                    btnUnlock.style.display = 'none';
+                    btnLock.style.display = 'inline-flex';
+                }
+            } else {
+                tag.textContent = 'Перегляд';
+                tag.classList.remove('active');
+                controls.classList.remove('visible');
+                krBadge.classList.remove('clickable');
+                input.style.display = 'inline-block';
+                btnUnlock.style.display = 'inline-flex';
+                btnLock.style.display = 'none';
+            }
+
+            markers.forEach(item => {
+                if (item.marker.dragging) {
+                    if (isOperator) item.marker.dragging.enable();
+                    else item.marker.dragging.disable();
+                }
+                applyMarkerTransform(item);
+            });
+        }
+
+        function unlockOperator() {
+            const val = document.getElementById('opCodeInput').value.trim();
+            if (val === OPERATOR_CODE) {
+                isOperator = true;
+                sessionStorage.setItem('kr_op_ok', '1');
+                document.getElementById('opCodeInput').value = '';
+                updateRoleUI();
+            } else {
+                alert('Невірний код');
+            }
+        }
+
+        function lockOperator() {
+            isOperator = false;
+            sessionStorage.removeItem('kr_op_ok');
+            selectedTargetKey = null;
+            document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
+            updateRoleUI();
+        }
+
+        if (firebaseConfigured && sessionStorage.getItem('kr_op_ok') === '1') {
+            isOperator = true;
+        }
+
         const map = L.map('map').setView([47.92, 33.85], 9);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -340,164 +491,10 @@
         const krGeoJson = {
             "type": "FeatureCollection",
             "features": [
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [33.4840501, 48.4011644],
-                            [33.4722501, 48.3745213],
-                            [33.4580901, 48.3588423],
-                            [33.4722501, 48.329039],
-                            [33.5147302, 48.330608],
-                            [33.5100102, 48.2835161],
-                            [33.5359703, 48.2568114],
-                            [33.5501303, 48.2348088],
-                            [33.5288903, 48.2222316],
-                            [33.5076502, 48.2269484],
-                            [33.4982102, 48.2190869],
-                            [33.4982102, 48.2096514],
-                            [33.4887702, 48.2002142],
-                            [33.4675301, 48.1923485]
-                        ]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [33.4604501, 48.197068],
-                            [33.44393, 48.1923485],
-                            [33.43213, 48.1718921],
-                            [33.3188497, 48.1561508],
-                            [33.2999696, 48.149853],
-                            [33.3164897, 48.1230784],
-                            [33.2999696, 48.1041704],
-                            [33.2858096, 48.1025944],
-                            [33.2763695, 48.1545764],
-                            [33.2504095, 48.1514275],
-                            [33.2480495, 48.1718921],
-                            [33.2150094, 48.1734659],
-                            [33.2173694, 48.1592994],
-                            [33.2268094, 48.1561508],
-                            [33.2315294, 48.1372549],
-                            [33.1866893, 48.121503],
-                            [33.1866893, 48.1088981],
-                            [33.2220894, 48.1152009],
-                            [33.2338894, 48.0947137],
-                            [33.1583692, 48.0852554],
-                            [33.1418491, 48.0821022],
-                            [33.1512892, 48.0489821],
-                            [33.1324091, 48.0663334],
-                            [33.1111691, 48.0647562],
-                            [33.101729, 48.0474045],
-                            [33.0380088, 48.0332032],
-                            [33.0238488, 47.9937347],
-                            [33.0073288, 47.9905759],
-                            [33.0002487, 47.9241967],
-                            [33.0073288, 47.9131252],
-                            [33.075769, 47.9241967],
-                            [33.087569, 47.8925576],
-                            [33.0686889, 47.8830621],
-                            [33.078129, 47.8434788],
-                            [33.0545289, 47.83239],
-                            [33.0639689, 47.7895969],
-                            [33.0545289, 47.7816684],
-                            [33.0545289, 47.7689803],
-                            [33.0710489, 47.7499422],
-                            [33.0191288, 47.7324846],
-                            [32.9790087, 47.7261349],
-                            [32.9931687, 47.622844],
-                            [32.9624886, 47.5989786],
-                            [33.087569, 47.5989786],
-                            [33.0976024, 47.5766584],
-                            [33.1943627, 47.5702897],
-                            [33.2297628, 47.5782504],
-                            [33.2274028, 47.5464004],
-                            [33.2179628, 47.5368416],
-                            [33.284043, 47.5511791],
-                            [33.288763, 47.5304681],
-                            [33.3760832, 47.5304681],
-                            [33.4752035, 47.5416212],
-                            [33.4752035, 47.5830263],
-                            [33.5672438, 47.5973512],
-                            [33.5932039, 47.5623278]
-                        ]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [33.5837639, 47.571882],
-                            [33.5932039, 47.5081547],
-                            [33.633324, 47.5177187],
-                            [33.642764, 47.4938054],
-                            [33.9306849, 47.5177187],
-                            [33.9424849, 47.4603084],
-                            [34.1407255, 47.4778571],
-                            [34.2894059, 47.5129369],
-                            [34.327166, 47.5209063],
-                            [34.4451664, 47.5320615],
-                            [34.5324866, 47.5575501],
-                            [34.5938468, 47.5607353],
-                            [34.6245269, 47.5639203],
-                            [34.6858871, 47.5511791],
-                            [34.7330872, 47.5384348],
-                            [34.7755673, 47.5384348],
-                            [34.8558076, 47.5193126],
-                            [34.9572879, 47.5336549],
-                            [34.9478478, 47.5734741],
-                            [34.9289678, 47.600534],
-                            [34.9384078, 47.6291703],
-                            [34.9171677, 47.6403024],
-                            [34.8982877, 47.6720953],
-                            [34.9407678, 47.6800406],
-                            [34.9313278, 47.7054571],
-                            [34.9596479, 47.7102213],
-                            [34.9572879, 47.7641855],
-                            [34.9053677, 47.7641855],
-                            [34.8864876, 47.8149241],
-                            [34.9053677, 47.8339384],
-                            [34.8912077, 47.8529456],
-                            [34.8817676, 47.8545293],
-                            [34.8581676, 47.873529],
-                            [34.8109674, 47.8624467],
-                            [34.7968074, 47.9130894],
-                            [34.8440075, 47.9241609],
-                            [34.8487275, 47.9383922],
-                            [34.8699676, 47.9447159],
-                            [34.8912077, 47.9304864],
-                            [34.9100877, 47.9399732],
-                            [34.9030077, 47.9842219],
-                            [34.8817676, 47.9858016],
-                            [34.8605276, 48.007911],
-                            [34.8487275, 48.015805],
-                            [34.8463675, 48.0394796],
-                            [34.8487275, 48.0521016],
-                            [34.8628876, 48.0536791],
-                            [34.8534476, 48.1372192],
-                            [34.8516686, 48.1347038]
-                        ]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [33.474289, 48.4029864],
-                            [34.8551718, 48.1323638],
-                            [34.8551718, 48.1370418]
-                        ]
-                    }
-                }
+                { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[33.4840501, 48.4011644], [33.4722501, 48.3745213], [33.4580901, 48.3588423], [33.4722501, 48.329039], [33.5147302, 48.330608], [33.5100102, 48.2835161], [33.5359703, 48.2568114], [33.5501303, 48.2348088], [33.5288903, 48.2222316], [33.5076502, 48.2269484], [33.4982102, 48.2190869], [33.4982102, 48.2096514], [33.4887702, 48.2002142], [33.4675301, 48.1923485]] } },
+                { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[33.4604501, 48.197068], [33.44393, 48.1923485], [33.43213, 48.1718921], [33.3188497, 48.1561508], [33.2999696, 48.149853], [33.3164897, 48.1230784], [33.2999696, 48.1041704], [33.2858096, 48.1025944], [33.2763695, 48.1545764], [33.2504095, 48.1514275], [33.2480495, 48.1718921], [33.2150094, 48.1734659], [33.2173694, 48.1592994], [33.2268094, 48.1561508], [33.2315294, 48.1372549], [33.1866893, 48.121503], [33.1866893, 48.1088981], [33.2220894, 48.1152009], [33.2338894, 48.0947137], [33.1583692, 48.0852554], [33.1418491, 48.0821022], [33.1512892, 48.0489821], [33.1324091, 48.0663334], [33.1111691, 48.0647562], [33.101729, 48.0474045], [33.0380088, 48.0332032], [33.0238488, 47.9937347], [33.0073288, 47.9905759], [33.0002487, 47.9241967], [33.0073288, 47.9131252], [33.075769, 47.9241967], [33.087569, 47.8925576], [33.0686889, 47.8830621], [33.078129, 47.8434788], [33.0545289, 47.83239], [33.0639689, 47.7895969], [33.0545289, 47.7816684], [33.0545289, 47.7689803], [33.0710489, 47.7499422], [33.0191288, 47.7324846], [32.9790087, 47.7261349], [32.9931687, 47.622844], [32.9624886, 47.5989786], [33.087569, 47.5989786], [33.0976024, 47.5766584], [33.1943627, 47.5702897], [33.2297628, 47.5782504], [33.2274028, 47.5464004], [33.2179628, 47.5368416], [33.284043, 47.5511791], [33.288763, 47.5304681], [33.3760832, 47.5304681], [33.4752035, 47.5416212], [33.4752035, 47.5830263], [33.5672438, 47.5973512], [33.5932039, 47.5623278]] } },
+                { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[33.5837639, 47.571882], [33.5932039, 47.5081547], [33.633324, 47.5177187], [33.642764, 47.4938054], [33.9306849, 47.5177187], [33.9424849, 47.4603084], [34.1407255, 47.4778571], [34.2894059, 47.5129369], [34.327166, 47.5209063], [34.4451664, 47.5320615], [34.5324866, 47.5575501], [34.5938468, 47.5607353], [34.6245269, 47.5639203], [34.6858871, 47.5511791], [34.7330872, 47.5384348], [34.7755673, 47.5384348], [34.8558076, 47.5193126], [34.9572879, 47.5336549], [34.9478478, 47.5734741], [34.9289678, 47.600534], [34.9384078, 47.6291703], [34.9171677, 47.6403024], [34.8982877, 47.6720953], [34.9407678, 47.6800406], [34.9313278, 47.7054571], [34.9596479, 47.7102213], [34.9572879, 47.7641855], [34.9053677, 47.7641855], [34.8864876, 47.8149241], [34.9053677, 47.8339384], [34.8912077, 47.8529456], [34.8817676, 47.8545293], [34.8581676, 47.873529], [34.8109674, 47.8624467], [34.7968074, 47.9130894], [34.8440075, 47.9241609], [34.8487275, 47.9383922], [34.8699676, 47.9447159], [34.8912077, 47.9304864], [34.9100877, 47.9399732], [34.9030077, 47.9842219], [34.8817676, 47.9858016], [34.8605276, 48.007911], [34.8487275, 48.015805], [34.8463675, 48.0394796], [34.8487275, 48.0521016], [34.8628876, 48.0536791], [34.8534476, 48.1372192], [34.8516686, 48.1347038]] } },
+                { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[33.474289, 48.4029864], [34.8551718, 48.1323638], [34.8551718, 48.1370418]] } }
             ]
         };
 
@@ -508,69 +505,35 @@
 
             if (!segments.length) return [];
 
-            const distSq = (a, b) => {
-                const dLat = a[0] - b[0];
-                const dLng = a[1] - b[1];
-                return dLat * dLat + dLng * dLng;
-            };
-
+            const distSq = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
             const ordered = [...segments[0]];
             const used = new Set([0]);
 
             while (used.size < segments.length) {
                 const currentEnd = ordered[ordered.length - 1];
-                let bestIdx = -1;
-                let bestReverse = false;
-                let bestDist = Infinity;
+                let bestIdx = -1, bestReverse = false, bestDist = Infinity;
 
                 for (let i = 0; i < segments.length; i++) {
-                    if (used.has(i)) continue;
+                    if (used.has(i) || !segments[i].length) continue;
                     const seg = segments[i];
-                    if (!seg.length) continue;
-
                     const dStart = distSq(currentEnd, seg[0]);
-                    if (dStart < bestDist) {
-                        bestDist = dStart;
-                        bestIdx = i;
-                        bestReverse = false;
-                    }
-
+                    if (dStart < bestDist) { bestDist = dStart; bestIdx = i; bestReverse = false; }
                     const dEnd = distSq(currentEnd, seg[seg.length - 1]);
-                    if (dEnd < bestDist) {
-                        bestDist = dEnd;
-                        bestIdx = i;
-                        bestReverse = true;
-                    }
+                    if (dEnd < bestDist) { bestDist = dEnd; bestIdx = i; bestReverse = true; }
                 }
 
                 if (bestIdx === -1) break;
                 used.add(bestIdx);
                 const chosen = bestReverse ? [...segments[bestIdx]].reverse() : [...segments[bestIdx]];
-                if (distSq(ordered[ordered.length - 1], chosen[0]) < 1e-12) {
-                    chosen.shift();
-                }
+                if (distSq(ordered[ordered.length - 1], chosen[0]) < 1e-12) chosen.shift();
                 ordered.push(...chosen);
             }
-
             return ordered;
         }
 
         const solidContour = buildContinuousPolygon(krGeoJson);
-
-        const krBorder = L.polyline(solidContour, {
-            pane: 'borderPane',
-            color: '#ef4444',
-            weight: 3,
-            opacity: 0.95
-        }).addTo(map);
-
-        const krZone = L.polygon(solidContour, {
-            pane: 'zonePane',
-            color: '#ef4444',
-            fillColor: '#dc2626',
-            fillOpacity: 0.45,
-            weight: 1.5
-        }).addTo(map);
+        const krBorder = L.polyline(solidContour, { pane: 'borderPane', color: '#ef4444', weight: 3, opacity: 0.95 }).addTo(map);
+        const krZone = L.polygon(solidContour, { pane: 'zonePane', color: '#ef4444', fillColor: '#dc2626', fillOpacity: 0.45, weight: 1.5 }).addTo(map);
 
         if (solidContour.length > 0) {
             map.fitBounds(krBorder.getBounds(), { padding: [25, 25] });
@@ -597,165 +560,106 @@
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLng = (lng2 - lng1) * Math.PI / 180;
-            const a =
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
         function resolveLocationName(latlng) {
-            let closest = null;
-            let minDist = Infinity;
-
+            let closest = null, minDist = Infinity;
             for (const place of settlements) {
                 const d = distanceKm(latlng.lat, latlng.lng, place.lat, place.lng);
-                if (d < minDist) {
-                    minDist = d;
-                    closest = place;
-                }
+                if (d < minDist) { minDist = d; closest = place; }
             }
-
             if (!closest) return 'сектор КР';
-            if (minDist <= closest.radiusKm) {
-                return closest.name;
-            }
-            return `р-н ${closest.name}`;
+            return minDist <= closest.radiusKm ? closest.name : `р-н ${closest.name}`;
         }
 
-        function getCurrentSpeed() {
-            const val = Number(document.getElementById('speedInput').value);
-            return Number.isFinite(val) && val >= 0 ? Math.round(val) : 0;
-        }
-
-        function getCurrentAltitude() {
-            const val = Number(document.getElementById('altitudeInput').value);
-            return Number.isFinite(val) && val >= 0 ? Math.round(val) : 0;
-        }
-
-        function buildMarkerPopupHtml(itemObj) {
-            const loc = resolveLocationName(itemObj.marker.getLatLng());
-            const angleFormatted = `${itemObj.angle > 0 ? '+' : ''}${itemObj.angle}°`;
-            return `
-                <div>
-                    <b>${itemObj.target.name}</b> — ${loc}<br>
-                    <b>Висота:</b> ${itemObj.altitude} м<br>
-                    <b>Швидкість:</b> ${itemObj.speed} км/год<br>
-                    <b>Курс:</b> ${angleFormatted}<br>
-                    <small>Фіксація: ${itemObj.timeStr}</small>
-                </div>
-            `;
-        }
-
-        function pushTargetFeed(targetName, latlng, speed, altitude, actionText = 'зафіксовано в н.п.') {
+        function nowTimeStr() {
             const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            const locationName = resolveLocationName(latlng);
+            return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        }
+
+        function appendFeedEntry(entry) {
             const feed = document.getElementById('feedList');
-            const feedEntry = document.createElement('div');
-            feedEntry.className = 'feed-item yellow-line';
-            feedEntry.innerHTML = `
-                <div class="feed-time">${timeStr}</div>
-                <div class="feed-title" style="color: #facc15;">${targetName} — ${locationName}</div>
-                <div class="feed-desc">Ціль ${actionText}: ${locationName} • Висота: ${altitude} м • Швидкість: ${speed} км/год</div>
-            `;
-            feed.prepend(feedEntry);
-            return locationName;
+            const div = document.createElement('div');
+            div.className = `feed-item ${entry.feedClass || ''}`;
+            div.innerHTML = `<div class="feed-time">${entry.timeStr}</div><div class="feed-title" style="color:${entry.titleColor || '#ffffff'};">${entry.title}</div><div class="feed-desc">${entry.desc}</div>`;
+            feed.prepend(div);
+        }
+
+        function saveFeedEntry(entry) {
+            appendFeedEntry(entry);
+            if (firebaseConfigured && db && isOperator) {
+                db.ref('monitoring/feed').push(entry).catch(e => console.error(e));
+            }
         }
 
         const statusPalette = {
-            red: {
-                fill: '#dc2626',
-                stroke: '#ef4444',
-                opacity: 0.48,
-                text: 'Тривога',
-                badgeClass: 'badge badge-red',
-                feedClass: ''
-            },
-            yellow: {
-                fill: '#ca8a04',
-                stroke: '#eab308',
-                opacity: 0.45,
-                text: 'Загроза',
-                badgeClass: 'badge badge-yellow',
-                feedClass: 'yellow-line'
-            },
-            green: {
-                fill: '#16a34a',
-                stroke: '#22c55e',
-                opacity: 0.42,
-                text: 'Відбій',
-                badgeClass: 'badge badge-green',
-                feedClass: 'green-line'
-            }
+            red: { fill: '#dc2626', stroke: '#ef4444', opacity: 0.48, text: 'Тривога', badgeClass: 'badge badge-red', feedClass: '', color: '#f87171' },
+            yellow: { fill: '#ca8a04', stroke: '#eab308', opacity: 0.45, text: 'Загроза', badgeClass: 'badge badge-yellow', feedClass: 'yellow-line', color: '#facc15' },
+            green: { fill: '#16a34a', stroke: '#22c55e', opacity: 0.42, text: 'Відбій', badgeClass: 'badge badge-green', feedClass: 'green-line', color: '#4ade80' }
         };
 
         let krStatus = 'red';
 
-        function setKrStatus(nextStatus) {
-            if (!statusPalette[nextStatus]) return;
-            krStatus = nextStatus;
-            updateKrUI();
+        function applyStatusVisuals(statusKey) {
+            const cfg = statusPalette[statusKey] || statusPalette.red;
+            const badge = document.getElementById('badgeKr');
+            badge.className = `badge ${cfg.badgeClass.split(' ')[1]} ${isOperator ? 'clickable' : ''}`;
+            badge.innerText = cfg.text;
+            krZone.setStyle({ color: cfg.stroke, fillColor: cfg.fill, fillOpacity: cfg.opacity });
+            krBorder.setStyle({ color: cfg.stroke, opacity: 0.95 });
         }
 
-        function changeKrStatus() {
-            if (krStatus === 'red') {
-                setKrStatus('yellow');
-            } else if (krStatus === 'yellow') {
-                setKrStatus('green');
-            } else {
-                setKrStatus('red');
+        function setKrStatus(nextStatus, fromRemote = false) {
+            if (!statusPalette[nextStatus]) return;
+            if (!fromRemote && firebaseConfigured && !isOperator) return;
+            krStatus = nextStatus;
+            applyStatusVisuals(krStatus);
+
+            if (!fromRemote) {
+                const cfg = statusPalette[krStatus];
+                if (firebaseConfigured && db) {
+                    db.ref('monitoring/status').set(krStatus);
+                }
+                saveFeedEntry({
+                    timeStr: nowTimeStr(),
+                    title: 'Криворізький р-н (КР)',
+                    desc: `Статус: ${cfg.text}`,
+                    feedClass: cfg.feedClass,
+                    titleColor: cfg.color
+                });
             }
         }
 
-        function updateKrUI() {
-            const cfg = statusPalette[krStatus] || statusPalette.red;
-            const badge = document.getElementById('badgeKr');
-
-            badge.className = cfg.badgeClass;
-            badge.innerText = cfg.text;
-
-            krZone.setStyle({
-                color: cfg.stroke,
-                fillColor: cfg.fill,
-                fillOpacity: cfg.opacity
-            });
-
-            krBorder.setStyle({
-                color: cfg.stroke,
-                opacity: 0.95
-            });
-
-            const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            const feed = document.getElementById('feedList');
-            const item = document.createElement('div');
-            item.className = `feed-item ${cfg.feedClass}`;
-            item.innerHTML = `<div class="feed-time">${timeStr}</div><div class="feed-title">Криворізький р-н (КР)</div><div class="feed-desc">Статус: ${cfg.text}</div>`;
-            feed.prepend(item);
+        function changeKrStatus() {
+            if (firebaseConfigured && !isOperator) return;
+            if (krStatus === 'red') setKrStatus('yellow');
+            else if (krStatus === 'yellow') setKrStatus('green');
+            else setKrStatus('red');
         }
 
         const targetsData = {
             geran: {
                 name: 'Герань-2',
-                color: '#ea580c',
+                glow: 'drop-shadow(0 0 8px rgba(234, 88, 12, 0.95)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85))',
                 defaultSpeed: 185,
                 defaultAltitude: 800,
-                svg: `<svg width="22" height="22" viewBox="0 0 100 100"><path fill="white" d="M44 10 C44 4 56 4 56 10 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 66 L43 66 L43 72 L12 72 L12 60 Z M45 68 L55 68 L53 76 L47 76 Z M49 76 L51 76 L51 81 L49 81 Z M38 81 Q44 79 50 81 Q56 79 62 81 Q56 83 50 81 Q44 83 38 81 Z"/></svg>`
+                svg: `<svg width="34" height="34" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#ea580c" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L55 83 L45 83 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/></svg>`
             },
             banderol: {
                 name: 'Бандероль',
-                color: '#2563eb',
+                glow: 'drop-shadow(0 0 8px rgba(56, 189, 248, 0.95)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.9))',
                 defaultSpeed: 520,
                 defaultAltitude: 2500,
-                svg: `<svg width="22" height="22" viewBox="0 0 100 100"><path fill="white" stroke="#0b111e" stroke-width="4" d="M88 12 L72 18 L58 32 L36 35 L32 45 L46 47 L28 65 L14 68 L10 78 L24 80 L26 92 L36 88 L39 74 L57 56 L59 70 L69 66 L72 44 L86 30 Z"/><path fill="#00a8e8" d="M62 28 L72 38 L76 34 L66 24 Z"/></svg>`
+                svg: `<svg width="34" height="34" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/></svg>`
             },
             jet: {
                 name: 'Реактивний Шахед',
-                color: '#dc2626',
+                glow: 'drop-shadow(0 0 9px rgba(239, 68, 68, 0.95)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85))',
                 defaultSpeed: 460,
                 defaultAltitude: 1500,
-                svg: `<svg width="22" height="22" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><path fill="white" d="M44 8 C44 2 56 2 56 8 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 65 L43 65 L43 72 L12 72 L12 60 Z M45 67 L55 67 L55 77 L45 77 Z M43 79 L57 79 L57 85 L43 85 Z"/></g></svg>`
+                svg: `<svg width="34" height="34" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#dc2626" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/></svg>`
             }
         };
 
@@ -764,6 +668,7 @@
         let activeMarkerItem = null;
 
         function selectTool(key, btnElement) {
+            if (firebaseConfigured && !isOperator) return;
             selectedTargetKey = key;
             document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
             btnElement.classList.add('selected');
@@ -781,12 +686,29 @@
             return Math.round(angle);
         }
 
+        function buildMarkerPopupHtml(itemObj) {
+            const loc = resolveLocationName(itemObj.marker.getLatLng());
+            const angleFormatted = `${itemObj.angle > 0 ? '+' : ''}${itemObj.angle}°`;
+            return `
+                <div>
+                    <b>${itemObj.target.name}</b> — ${loc}<br>
+                    <b>Висота:</b> ${itemObj.altitude} м<br>
+                    <b>Швидкість:</b> ${itemObj.speed} км/год<br>
+                    <b>Курс:</b> ${angleFormatted}<br>
+                    <small>Фіксація: ${itemObj.timeStr}</small>
+                </div>
+            `;
+        }
+
         function applyMarkerTransform(item) {
             if (!item || !item.marker._icon) return;
-            const bubble = item.marker._icon.querySelector('.marker-bubble');
-            if (!bubble) return;
-            bubble.style.transform = `rotate(${item.angle}deg)`;
-            bubble.classList.toggle('active-marker', activeMarkerItem === item);
+            const iconEl = item.marker._icon.querySelector('.target-icon-wrap');
+            if (!iconEl) return;
+            const isSelected = activeMarkerItem === item && isOperator;
+            iconEl.style.transform = `rotate(${item.angle}deg)`;
+            iconEl.style.filter = isSelected ? '' : item.target.glow;
+            iconEl.classList.toggle('active-marker', isSelected);
+            iconEl.classList.toggle('editable', isOperator);
         }
 
         function syncRotationUI(angle) {
@@ -804,133 +726,228 @@
             activeMarkerItem = item;
             applyMarkerTransform(item);
             syncRotationUI(item ? item.angle : 0);
-            if (item) {
+            if (item && isOperator) {
                 document.getElementById('speedInput').value = item.speed;
                 document.getElementById('altitudeInput').value = item.altitude;
             }
         }
 
-        function syncSelectedParams() {
-            if (!activeMarkerItem) return;
-            activeMarkerItem.speed = getCurrentSpeed();
-            activeMarkerItem.altitude = getCurrentAltitude();
-            activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
+        function syncMarkersToFirebase() {
+            if (!firebaseConfigured || !db || !isOperator) return;
+            const payload = {};
+            markers.forEach(item => {
+                const latlng = item.marker.getLatLng();
+                payload[item.id] = {
+                    targetKey: item.targetKey,
+                    lat: latlng.lat,
+                    lng: latlng.lng,
+                    angle: item.angle,
+                    speed: item.speed,
+                    altitude: item.altitude,
+                    timeStr: item.timeStr
+                };
+            });
+            db.ref('monitoring/markers').set(payload);
         }
 
         function applyParamsToSelected(logToFeed = false) {
+            if (firebaseConfigured && !isOperator) return;
             if (!activeMarkerItem) return;
-            activeMarkerItem.speed = getCurrentSpeed();
-            activeMarkerItem.altitude = getCurrentAltitude();
+            const speedVal = Number(document.getElementById('speedInput').value);
+            const altVal = Number(document.getElementById('altitudeInput').value);
+            activeMarkerItem.speed = Number.isFinite(speedVal) && speedVal >= 0 ? Math.round(speedVal) : 0;
+            activeMarkerItem.altitude = Number.isFinite(altVal) && altVal >= 0 ? Math.round(altVal) : 0;
             activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
             activeMarkerItem.marker.openPopup();
+            syncMarkersToFirebase();
+
             if (logToFeed) {
-                pushTargetFeed(
-                    activeMarkerItem.target.name,
-                    activeMarkerItem.marker.getLatLng(),
-                    activeMarkerItem.speed,
-                    activeMarkerItem.altitude,
-                    'оновлено параметри в'
-                );
+                const loc = resolveLocationName(activeMarkerItem.marker.getLatLng());
+                saveFeedEntry({
+                    timeStr: nowTimeStr(),
+                    title: `${activeMarkerItem.target.name} — ${loc}`,
+                    desc: `Оновлено в ${loc} • Висота: ${activeMarkerItem.altitude} м • Швидкість: ${activeMarkerItem.speed} км/год`,
+                    feedClass: 'yellow-line',
+                    titleColor: '#facc15'
+                });
             }
         }
 
-        function setSelectedRotation(newAngle) {
+        function setSelectedRotation(newAngle, fromRemote = false) {
+            if (!fromRemote && firebaseConfigured && !isOperator) return;
             const normalized = normalizeAngle(newAngle);
             syncRotationUI(normalized);
             if (!activeMarkerItem) return;
             activeMarkerItem.angle = normalized;
             applyMarkerTransform(activeMarkerItem);
             activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
+            if (!fromRemote) syncMarkersToFirebase();
         }
 
         function stepRotation(delta) {
+            if (firebaseConfigured && !isOperator) return;
             const current = activeMarkerItem ? activeMarkerItem.angle : Number(document.getElementById('angleSlider').value);
             setSelectedRotation(current + delta);
         }
 
-        map.on('click', function(e) {
-            if (!selectedTargetKey) {
-                selectMarkerItem(null);
-                return;
+        function createOrUpdateMarkerFromData(id, data, shouldSelect = false) {
+            const target = targetsData[data.targetKey] || targetsData.geran;
+            const latlng = L.latLng(data.lat, data.lng);
+            const angle = normalizeAngle(data.angle || 0);
+            const speed = Number(data.speed) || target.defaultSpeed;
+            const altitude = Number(data.altitude) || target.defaultAltitude;
+            const timeStr = data.timeStr || nowTimeStr();
+
+            let existing = markers.find(m => m.id === id);
+            if (existing) {
+                existing.target = target;
+                existing.targetKey = data.targetKey;
+                existing.angle = angle;
+                existing.speed = speed;
+                existing.altitude = altitude;
+                existing.timeStr = timeStr;
+                existing.marker.setLatLng(latlng);
+                existing.marker.setPopupContent(buildMarkerPopupHtml(existing));
+                applyMarkerTransform(existing);
+                return existing;
             }
-            const target = targetsData[selectedTargetKey];
-            const initialAngle = 0;
-            const speed = getCurrentSpeed();
-            const altitude = getCurrentAltitude();
 
             const customIcon = L.divIcon({
-                html: `<div class="marker-bubble active-marker" style="background: ${target.color}; transform: rotate(${initialAngle}deg);">${target.svg}</div>`,
+                html: `<div class="target-icon-wrap ${isOperator ? 'editable' : ''}" style="filter: ${target.glow}; transform: rotate(${angle}deg);">${target.svg}</div>`,
                 className: 'custom-marker',
-                iconSize: [38, 38],
-                iconAnchor: [19, 19]
+                iconSize: [44, 44],
+                iconAnchor: [22, 22]
             });
 
-            const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            const locationName = resolveLocationName(e.latlng);
-
-            const marker = L.marker(e.latlng, { icon: customIcon, draggable: true }).addTo(map);
-            const itemObj = {
-                marker,
-                target,
-                angle: initialAngle,
-                speed,
-                altitude,
-                timeStr,
-                lastLocation: locationName
-            };
+            const marker = L.marker(latlng, { icon: customIcon, draggable: isOperator }).addTo(map);
+            const itemObj = { id, targetKey: data.targetKey || 'geran', marker, target, angle, speed, altitude, timeStr };
             markers.push(itemObj);
 
             marker.bindPopup(buildMarkerPopupHtml(itemObj));
 
             marker.on('click', function(ev) {
                 L.DomEvent.stopPropagation(ev);
-                selectMarkerItem(itemObj);
+                if (isOperator) selectMarkerItem(itemObj);
                 marker.setPopupContent(buildMarkerPopupHtml(itemObj));
                 marker.openPopup();
             });
 
             marker.on('dragstart', function() {
-                selectMarkerItem(itemObj);
+                if (isOperator) selectMarkerItem(itemObj);
             });
 
             marker.on('dragend', function() {
+                if (!isOperator) return;
                 applyMarkerTransform(itemObj);
-                const updatedLoc = pushTargetFeed(
-                    itemObj.target.name,
-                    itemObj.marker.getLatLng(),
-                    itemObj.speed,
-                    itemObj.altitude,
-                    'змістилась у'
-                );
-                itemObj.lastLocation = updatedLoc;
-                marker.setPopupContent(buildMarkerPopupHtml(itemObj));
+                itemObj.marker.setPopupContent(buildMarkerPopupHtml(itemObj));
+                syncMarkersToFirebase();
+                const loc = resolveLocationName(itemObj.marker.getLatLng());
+                saveFeedEntry({
+                    timeStr: nowTimeStr(),
+                    title: `${itemObj.target.name} — ${loc}`,
+                    desc: `Ціль змістилась у ${loc} • Висота: ${itemObj.altitude} м • Швидкість: ${itemObj.speed} км/год`,
+                    feedClass: 'yellow-line',
+                    titleColor: '#facc15'
+                });
             });
 
             marker.on('add', function() {
                 applyMarkerTransform(itemObj);
             });
 
-            selectMarkerItem(itemObj);
-            marker.openPopup();
+            if (shouldSelect && isOperator) {
+                selectMarkerItem(itemObj);
+            }
 
-            const feed = document.getElementById('feedList');
-            const feedEntry = document.createElement('div');
-            feedEntry.className = 'feed-item yellow-line';
-            feedEntry.innerHTML = `
-                <div class="feed-time">${timeStr}</div>
-                <div class="feed-title" style="color: #facc15;">${target.name} — ${locationName}</div>
-                <div class="feed-desc">Ціль додано в н.п. ${locationName} • Висота: ${altitude} м • Швидкість: ${speed} км/год</div>
-            `;
-            feed.prepend(feedEntry);
+            return itemObj;
+        }
+
+        map.on('click', function(e) {
+            if (firebaseConfigured && !isOperator) return;
+            if (!selectedTargetKey) {
+                selectMarkerItem(null);
+                return;
+            }
+
+            const target = targetsData[selectedTargetKey];
+            const speedVal = Number(document.getElementById('speedInput').value);
+            const altVal = Number(document.getElementById('altitudeInput').value);
+            const speed = Number.isFinite(speedVal) && speedVal >= 0 ? Math.round(speedVal) : target.defaultSpeed;
+            const altitude = Number.isFinite(altVal) && altVal >= 0 ? Math.round(altVal) : target.defaultAltitude;
+            const timeStr = nowTimeStr();
+            const id = 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+
+            const itemObj = createOrUpdateMarkerFromData(id, {
+                targetKey: selectedTargetKey,
+                lat: e.latlng.lat,
+                lng: e.latlng.lng,
+                angle: 0,
+                speed,
+                altitude,
+                timeStr
+            }, true);
+
+            itemObj.marker.openPopup();
+            syncMarkersToFirebase();
+
+            const locationName = resolveLocationName(e.latlng);
+            saveFeedEntry({
+                timeStr,
+                title: `${target.name} — ${locationName}`,
+                desc: `Ціль додано в н.п. ${locationName} • Висота: ${altitude} м • Швидкість: ${speed} км/год`,
+                feedClass: 'yellow-line',
+                titleColor: '#facc15'
+            });
         });
 
-        function clearMarkers() {
+        function clearMarkers(fromRemote = false) {
+            if (!fromRemote && firebaseConfigured && !isOperator) return;
             markers.forEach(m => map.removeLayer(m.marker));
             markers = [];
             activeMarkerItem = null;
             syncRotationUI(0);
+            if (!fromRemote && firebaseConfigured && db) {
+                db.ref('monitoring/markers').remove();
+            }
         }
+
+        if (firebaseConfigured && db) {
+            db.ref('monitoring/status').on('value', snap => {
+                const val = snap.val();
+                if (val && statusPalette[val]) {
+                    krStatus = val;
+                    applyStatusVisuals(krStatus);
+                }
+            });
+
+            db.ref('monitoring/markers').on('value', snap => {
+                const remoteMap = snap.val() || {};
+                const remoteIds = new Set(Object.keys(remoteMap));
+
+                markers = markers.filter(item => {
+                    if (!remoteIds.has(item.id)) {
+                        map.removeLayer(item.marker);
+                        if (activeMarkerItem === item) activeMarkerItem = null;
+                        return false;
+                    }
+                    return true;
+                });
+
+                for (const id of remoteIds) {
+                    createOrUpdateMarkerFromData(id, remoteMap[id], false);
+                }
+            });
+
+            const seenFeedKeys = new Set();
+            db.ref('monitoring/feed').limitToLast(30).on('child_added', snap => {
+                if (seenFeedKeys.has(snap.key)) return;
+                seenFeedKeys.add(snap.key);
+                const val = snap.val();
+                if (val) appendFeedEntry(val);
+            });
+        }
+
+        updateRoleUI();
     </script>
 </body>
 </html>
