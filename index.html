@@ -73,7 +73,7 @@
             border: 1px solid #2b3f63;
             border-radius: 10px;
             padding: 12px 20px;
-            margin: 0 20px 15px;
+            margin: 15px 20px 0;
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
@@ -81,12 +81,13 @@
         }
         .btn-tool {
             padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: white;
+            display: inline-flex; align-items: center; gap: 8px;
         }
-        .btn-shahed { background: #ea580c; }
-        .btn-rocket { background: #dc2626; }
+        .btn-geran { background: #ea580c; }
         .btn-banderol { background: #2563eb; }
+        .btn-jet { background: #dc2626; }
         .btn-clear { background: #475569; }
-        .btn-tool.selected { outline: 2px solid #facc15; }
+        .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
         .feed-item { border-left: 3px solid #ef4444; padding-left: 10px; margin-bottom: 12px; }
         .feed-item.yellow-line { border-color: #eab308; }
         .feed-time { font-size: 11px; color: #94a3b8; }
@@ -114,10 +115,19 @@
     </header>
 
     <div class="admin-controls">
-        <span style="font-size: 13px; color: #94a3b8; margin-right: 5px;">Ціль для карти:</span>
-        <button class="btn-tool btn-shahed" onclick="selectTool('Шахед / БпЛА', '✈️', '#ea580c')">✈️ Шахед</button>
-        <button class="btn-tool btn-rocket" onclick="selectTool('Ракета', '🚀', '#dc2626')">🚀 Ракета</button>
-        <button class="btn-tool btn-banderol" onclick="selectTool('Розвідник', '🛸', '#2563eb')">🛸 Бандероль</button>
+        <span style="font-size: 13px; color: #94a3b8; margin-right: 5px;">Вибери ціль:</span>
+        <button class="btn-tool btn-geran" onclick="selectTool('geran', this)">
+            <svg width="18" height="18" viewBox="0 0 100 100"><path fill="white" d="M44 10 C44 4 56 4 56 10 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 66 L43 66 L43 72 L12 72 L12 60 Z M45 68 L55 68 L53 76 L47 76 Z M49 76 L51 76 L51 81 L49 81 Z M38 81 Q44 79 50 81 Q56 79 62 81 Q56 83 50 81 Q44 83 38 81 Z"/></svg>
+            Герань-2
+        </button>
+        <button class="btn-tool btn-banderol" onclick="selectTool('banderol', this)">
+            <svg width="18" height="18" viewBox="0 0 100 100"><path fill="white" d="M88 12 L72 18 L58 32 L36 35 L32 45 L46 47 L28 65 L14 68 L10 78 L24 80 L26 92 L36 88 L39 74 L57 56 L59 70 L69 66 L72 44 L86 30 Z"/><path fill="#38bdf8" d="M62 28 L72 38 L76 34 L66 24 Z"/></svg>
+            Бандероль
+        </button>
+        <button class="btn-tool btn-jet" onclick="selectTool('jet', this)">
+            <svg width="18" height="18" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><path fill="white" d="M44 8 C44 2 56 2 56 8 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 65 L43 65 L43 72 L12 72 L12 60 Z M45 67 L55 67 L55 77 L45 77 Z M43 79 L57 79 L57 85 L43 85 Z"/></g></svg>
+            Реактивний Шахед
+        </button>
         <button class="btn-tool btn-clear" onclick="clearMarkers()">🗑️ Очистити</button>
     </div>
 
@@ -128,6 +138,19 @@
                 <div class="legend-item"><span class="circle red"></span> Повітряна тривога</div>
                 <div class="legend-item"><span class="circle yellow"></span> Загроза</div>
                 <div class="legend-item"><span class="circle green"></span> Відбій тривоги</div>
+                <hr style="border-color: #1f2d45; margin: 10px 0;">
+                <div class="legend-item">
+                    <svg width="18" height="18" viewBox="0 0 100 100"><path fill="#ea580c" d="M44 10 C44 4 56 4 56 10 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 66 L43 66 L43 72 L12 72 L12 60 Z M45 68 L55 68 L53 76 L47 76 Z M38 81 Q44 79 50 81 Q56 79 62 81 Q56 83 50 81 Q44 83 38 81 Z"/></svg>
+                    Герань-2
+                </div>
+                <div class="legend-item">
+                    <svg width="18" height="18" viewBox="0 0 100 100"><path fill="#38bdf8" d="M88 12 L72 18 L58 32 L36 35 L32 45 L46 47 L28 65 L14 68 L10 78 L24 80 L26 92 L36 88 L39 74 L57 56 L59 70 L69 66 L72 44 L86 30 Z"/></svg>
+                    Бандероль
+                </div>
+                <div class="legend-item">
+                    <svg width="18" height="18" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><path fill="#ef4444" d="M44 8 C44 2 56 2 56 8 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 65 L43 65 L43 72 L12 72 L12 60 Z M45 67 L55 67 L55 77 L45 77 Z M43 79 L57 79 L57 85 L43 85 Z"/></g></svg>
+                    Реактивний Шахед
+                </div>
             </div>
             <div>
                 <div class="panel-title">Статус регіону</div>
@@ -156,7 +179,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Система активна</div>
-                    <div class="feed-desc">Контури оновлено</div>
+                    <div class="feed-desc">Нові іконки цілей підключено</div>
                 </div>
             </div>
         </div>
@@ -174,7 +197,6 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Детальні контури Дніпропетровської області
         const dniproCoords = [
             [48.52, 33.50], [48.80, 33.45], [49.05, 33.70], [49.30, 34.20],
             [49.25, 34.90], [49.05, 35.40], [48.75, 35.80], [48.45, 36.30],
@@ -183,7 +205,6 @@
             [48.30, 33.42], [48.52, 33.50]
         ];
 
-        // Детальні контури Кіровоградської області
         const kirovoCoords = [
             [48.65, 31.05], [49.00, 31.10], [49.30, 31.50], [49.50, 32.10],
             [49.30, 32.80], [49.05, 33.40], [48.60, 33.70], [48.20, 33.45],
@@ -191,7 +212,6 @@
             [48.65, 31.05]
         ];
 
-        // Детальні контури Херсонської області
         const khersonCoords = [
             [47.45, 32.30], [47.80, 32.60], [47.90, 33.30], [47.70, 33.90],
             [47.45, 34.45], [47.25, 35.10], [46.85, 35.55], [46.40, 35.40],
@@ -199,14 +219,13 @@
             [46.90, 32.05], [47.20, 32.15], [47.45, 32.30]
         ];
 
-        // Створюємо маркери міст для краси
         L.marker([48.46, 35.04], {icon: L.divIcon({html: '<div style="color:white; font-size:11px; font-weight:bold; text-shadow: 1px 1px 2px black;">📍 Дніпро</div>', className: ''})}).addTo(map);
         L.marker([48.51, 32.26], {icon: L.divIcon({html: '<div style="color:white; font-size:11px; font-weight:bold; text-shadow: 1px 1px 2px black;">📍 Кропивницький</div>', className: ''})}).addTo(map);
         L.marker([46.63, 32.61], {icon: L.divIcon({html: '<div style="color:white; font-size:11px; font-weight:bold; text-shadow: 1px 1px 2px black;">📍 Херсон</div>', className: ''})}).addTo(map);
 
-        const dniproPolygon = L.polygon(dniproCoords, { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
-        const kirovoPolygon = L.polygon(kirovoCoords, { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
-        const khersonPolygon = L.polygon(khersonCoords, { color: '#a16207', fillColor: '#ca8a04', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
+        const dniproPolygon = L.polygon(dniproCoords, { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
+        const kirovoPolygon = L.polygon(kirovoCoords, { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
+        const khersonPolygon = L.polygon(khersonCoords, { color: '#a16207', fillColor: '#ca8a04', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
 
         let statuses = { dnipro: 'red', kirovo: 'red', kherson: 'yellow' };
 
@@ -234,7 +253,7 @@
 
             badge.className = badgeClass;
             badge.innerText = statusText;
-            polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.5 });
+            polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.45 });
         }
 
         function badgeId(region) {
@@ -249,30 +268,59 @@
             return khersonPolygon;
         }
 
-        let selectedType = null, selectedIconSymbol = '', selectedColor = '', markers = [];
+        // Налаштування твоїх 3-х іконок цілей
+        const targetsData = {
+            geran: {
+                name: 'Герань-2',
+                color: '#ea580c',
+                svg: `<svg width="22" height="22" viewBox="0 0 100 100"><path fill="white" d="M44 10 C44 4 56 4 56 10 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 66 L43 66 L43 72 L12 72 L12 60 Z M45 68 L55 68 L53 76 L47 76 Z M49 76 L51 76 L51 81 L49 81 Z M38 81 Q44 79 50 81 Q56 79 62 81 Q56 83 50 81 Q44 83 38 81 Z"/></svg>`
+            },
+            banderol: {
+                name: 'Бандероль',
+                color: '#2563eb',
+                svg: `<svg width="22" height="22" viewBox="0 0 100 100"><path fill="white" stroke="#0b111e" stroke-width="4" d="M88 12 L72 18 L58 32 L36 35 L32 45 L46 47 L28 65 L14 68 L10 78 L24 80 L26 92 L36 88 L39 74 L57 56 L59 70 L69 66 L72 44 L86 30 Z"/><path fill="#00a8e8" d="M62 28 L72 38 L76 34 L66 24 Z"/></svg>`
+            },
+            jet: {
+                name: 'Реактивний Шахед',
+                color: '#dc2626',
+                svg: `<svg width="22" height="22" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><path fill="white" d="M44 8 C44 2 56 2 56 8 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 65 L43 65 L43 72 L12 72 L12 60 Z M45 67 L55 67 L55 77 L45 77 Z M43 79 L57 79 L57 85 L43 85 Z"/></g></svg>`
+            }
+        };
 
-        function selectTool(type, symbol, color) {
-            selectedType = type;
-            selectedIconSymbol = symbol;
-            selectedColor = color;
+        let selectedTargetKey = null;
+        let markers = [];
+
+        function selectTool(key, btnElement) {
+            selectedTargetKey = key;
             document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
+            btnElement.classList.add('selected');
         }
 
         map.on('click', function(e) {
-            if (!selectedType) {
-                alert('Вибери ціль зверху (Шахед, Ракета...)!');
+            if (!selectedTargetKey) {
+                alert('Спочатку вибери ціль зверху: Герань-2, Бандероль або Реактивний Шахед!');
                 return;
             }
+            const target = targetsData[selectedTargetKey];
             const customIcon = L.divIcon({
-                html: `<div style="background: ${selectedColor}; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid white;">${selectedIconSymbol}</div>`,
+                html: `<div style="background: ${target.color}; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.6);">${target.svg}</div>`,
                 className: 'custom-marker',
-                iconSize: [34, 34],
-                iconAnchor: [17, 17]
+                iconSize: [38, 38],
+                iconAnchor: [19, 19]
             });
+
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
             const marker = L.marker(e.latlng, { icon: customIcon }).addTo(map)
-                .bindPopup(`<b>${selectedType}</b>`).openPopup();
+                .bindPopup(`<b>${target.name}</b><br>Час фіксації: ${timeStr}`).openPopup();
             markers.push(marker);
+
+            const feed = document.getElementById('feedList');
+            const item = document.createElement('div');
+            item.className = 'feed-item yellow-line';
+            item.innerHTML = `<div class="feed-time">${timeStr}</div><div class="feed-title" style="color: #facc15;">${target.name}</div><div class="feed-desc">Ціль зафіксовано на мапі</div>`;
+            feed.prepend(item);
         });
 
         function clearMarkers() {
