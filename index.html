@@ -147,6 +147,7 @@
         .btn-geran { background: #9a3412; }
         .btn-banderol { background: #1e3a8a; }
         .btn-jet { background: #991b1b; }
+        .btn-recon { background: #854d0e; }
         .btn-rotate { background: #1e293b; border: 1px solid #334155; }
         .btn-rotate:hover { background: #334155; }
         .btn-apply { background: #0284c7; }
@@ -303,6 +304,12 @@
                 </svg>
                 Реактивний Шахед
             </button>
+            <button type="button" class="btn-tool btn-recon" onclick="selectTool('recon', this)">
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
+                </svg>
+                Розвідник
+            </button>
         </div>
 
         <div class="divider"></div>
@@ -363,6 +370,12 @@
                         <path fill="#ffffff" stroke="#dc2626" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
                     </svg>
                     Реактивний Шахед
+                </div>
+                <div class="legend-item">
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 6px rgba(234, 179, 8, 0.9));">
+                        <path fill="#ffffff" stroke="#ca8a04" stroke-width="4" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
+                    </svg>
+                    Розвідник
                 </div>
             </div>
             <div>
@@ -671,6 +684,15 @@
                 defaultAltitude: 1500,
                 svg: `<svg width="36" height="36" viewBox="0 0 100 100">
                     <path fill="#ffffff" stroke="#dc2626" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                </svg>`
+            },
+            recon: {
+                name: 'Розвідник',
+                glow: 'drop-shadow(0 0 8px rgba(234, 179, 8, 0.95)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.9))',
+                defaultSpeed: 110,
+                defaultAltitude: 1500,
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#ca8a04" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
                 </svg>`
             }
         };
