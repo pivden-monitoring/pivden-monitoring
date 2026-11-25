@@ -165,7 +165,7 @@
             <div class="trident"><i class="fa-solid fa-shield-halved"></i></div>
             <div class="title">
                 <h1>КРИВИЙ РІГ <span>MONITORING</span></h1>
-                <p>Моніторинг обстановки • Криворізький район</p>
+                <p>Моніторинг обстановки • Криворізький район (v2)</p>
             </div>
         </div>
     </header>
@@ -242,7 +242,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Тривога — КР</div>
-                    <div class="feed-desc">Зону завантажено з GeoJSON</div>
+                    <div class="feed-desc">Контур зібрано з твого GeoJSON</div>
                 </div>
             </div>
         </div>
@@ -430,19 +430,30 @@
             ]
         };
 
-        const lineRings = krGeoJson.features
+        const rawLines = krGeoJson.features
             .filter(f => f.geometry && f.geometry.type === 'LineString')
             .map(f => f.geometry.coordinates.map(([lng, lat]) => [lat, lng]));
 
-        const krBorder = L.polyline(lineRings, {
+        const polygonLoop = [];
+        if (rawLines.length > 0) {
+            polygonLoop.push(...rawLines[0]);
+            if (rawLines[1]) polygonLoop.push(...rawLines[1]);
+            if (rawLines[2]) polygonLoop.push(...rawLines[2]);
+            if (rawLines[3]) {
+                polygonLoop.push([rawLines[3][1], rawLines[3][2], rawLines[3][0]]);
+            }
+        }
+
+        const flatLoop = polygonLoop.flat(1).filter(Boolean);
+
+        const krBorder = L.polyline(rawLines, {
             pane: 'borderPane',
             color: '#ef4444',
             weight: 3,
             opacity: 0.95
         }).addTo(map);
 
-        const allLatLngs = lineRings.flat();
-        const krZone = L.polygon(allLatLngs, {
+        const krZone = L.polygon(flatLoop, {
             pane: 'zonePane',
             color: '#ef4444',
             fillColor: '#dc2626',
@@ -450,7 +461,7 @@
             weight: 1.5
         }).addTo(map);
 
-        if (allLatLngs.length > 0) {
+        if (flatLoop.length > 0) {
             map.fitBounds(krBorder.getBounds(), { padding: [25, 25] });
         }
 
