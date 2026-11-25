@@ -53,19 +53,19 @@
         .badge-red { background: #dc2626; color: white; }
         .badge-yellow { background: #ca8a04; color: white; }
         .badge-green { background: #16a34a; color: white; }
-
-        #map-container {
-            position: relative;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid #1f2d45;
+        
+        #map-container { 
+            position: relative; 
+            border-radius: 10px; 
+            overflow: hidden; 
+            border: 1px solid #1f2d45; 
             min-height: 500px;
             height: 100%;
         }
-        #map {
-            width: 100%;
-            height: 500px;
-            background: #05080f;
+        #map { 
+            width: 100%; 
+            height: 500px; 
+            background: #090d16; 
         }
 
         .admin-controls {
@@ -90,7 +90,6 @@
         .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
         .feed-item { border-left: 3px solid #ef4444; padding-left: 10px; margin-bottom: 12px; }
         .feed-item.yellow-line { border-color: #eab308; }
-        .feed-item.green-line { border-color: #22c55e; }
         .feed-time { font-size: 11px; color: #94a3b8; }
         .feed-title { font-size: 13px; font-weight: 700; }
         .feed-desc { font-size: 12px; color: #cbd5e1; }
@@ -110,7 +109,7 @@
             <div class="trident"><i class="fa-solid fa-shield-halved"></i></div>
             <div class="title">
                 <h1>ПІВДЕНЬ <span>MONITORING</span></h1>
-                <p>Дніпропетровщина • Запоріжжя • Кіровоградщина • Херсонщина</p>
+                <p>Дніпропетровщина • Кіровоградщина • Херсонщина</p>
             </div>
         </div>
     </header>
@@ -160,10 +159,6 @@
                     <span id="badgeDnipro" class="badge badge-red" onclick="changeRegionStatus('dnipro')">Тривога</span>
                 </div>
                 <div class="region-row">
-                    <span>Запорізька обл.</span>
-                    <span id="badgeZaporizhzhia" class="badge badge-red" onclick="changeRegionStatus('zaporizhzhia')">Тривога</span>
-                </div>
-                <div class="region-row">
                     <span>Кіровоградська обл.</span>
                     <span id="badgeKirovo" class="badge badge-red" onclick="changeRegionStatus('kirovo')">Тривога</span>
                 </div>
@@ -184,7 +179,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Система активна</div>
-                    <div class="feed-desc">Вся Україна затемнена, залишено 4 області</div>
+                    <div class="feed-desc">Нові іконки цілей підключено</div>
                 </div>
             </div>
         </div>
@@ -195,59 +190,19 @@
     </footer>
 
     <script>
-        const map = L.map('map').setView([47.8, 33.8], 7);
+        const map = L.map('map').setView([47.8, 33.5], 7);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        map.createPane('blackoutPane');
-        map.getPane('blackoutPane').style.zIndex = 400;
-
-        map.createPane('bordersPane');
-        map.getPane('bordersPane').style.zIndex = 415;
-
-        map.createPane('regionsPane');
-        map.getPane('regionsPane').style.zIndex = 425;
-
-        // Твої сегменти контуру з GeoJSON (переведені у [lat, lng])
-        const outerGeoJsonRaw = [
-            [[29.7858779, 45.2190974], [29.4680891, 45.36493], [29.3055544, 45.3763356], [29.0218777, 45.2901815], [28.9464355, 45.2291792], [28.6932774, 45.1548786], [28.470417, 45.2607693], [28.4172428, 45.4574301], [28.5301978, 45.6327235], [28.7549828, 45.8373631], [28.952967, 45.9835963], [29.0474019, 46.1774125], [28.9035614, 46.2893472], [28.9721511, 46.4149809], [29.1461224, 46.4948465], [29.1952038, 46.4978402], [29.2174041, 46.4442285], [29.2255116, 46.3677536]],
-            [[29.1928739, 46.3657494], [29.2873185, 46.404499], [29.482807, 46.4161291], [29.59988, 46.3899961], [29.9374015, 46.3744007], [30.0663008, 46.3811501], [29.9779382, 46.4640407], [29.9446629, 46.6043536], [29.9323931, 46.7348981], [29.7980626, 46.8234275], [29.7238622, 46.9071639], [29.6374844, 46.9464426], [29.5484398, 47.1608272], [29.4679587, 47.2880617], [29.3943783, 47.3499388], [29.2618592, 47.3428788], [29.1006249, 47.4328656], [29.1155599, 47.6781377], [29.1380656, 47.7671946], [29.1228192, 47.8872535], [29.0836015, 47.9291893], [28.9475695, 47.9330923], [28.7804579, 47.9131666], [28.8082809, 47.9587019], [28.703248, 48.063497], [28.5027938, 48.1165428], [28.3988584, 48.1217989], [28.280957, 48.1040609], [28.2024543, 48.1659629], [28.0121615, 48.2306502], [27.9569, 48.2495946], [27.8615424, 48.2994742]],
-            [[27.9155693, 48.3535698], [27.8514606, 48.4165841], [27.7716353, 48.4478388], [27.5326448, 48.4668345], [27.1366554, 48.3774002], [27.0093634, 48.3757456], [26.7064762, 48.3817911]],
-            [[26.6435039, 48.3596238], [26.6143554, 48.2851761], [26.537195, 48.2204151], [26.4108467, 48.1969227], [26.2554344, 48.1092222], [26.1941928, 48.0550365], [26.1498266, 47.9800002], [25.2790627, 47.9042596], [25.1886872, 47.8165744], [25.048842, 47.758987], [24.923642, 47.722915], [24.7712661, 47.7905267], [24.6862066, 47.8619744], [24.6023723, 47.91214], [24.344928, 47.9005663], [22.9967655, 48.0771246], [22.8502273, 48.0583811], [22.1555011, 48.3464471], [22.3325862, 48.7769909], [22.5090295, 48.969717], [22.7972091, 48.9634182], [22.7320532, 49.1965299], [22.6700545, 49.3977956], [22.6718061, 49.505544], [23.1791375, 50.035305], [23.3534986, 50.1396717], [23.5765485, 50.2672147], [23.7004704, 50.3689924], [23.9694148, 50.4113048], [24.0502536, 50.7268148], [23.9319084, 50.8415969], [24.0194153, 50.8337977], [23.9135023, 50.9816906], [23.8499888, 51.0662434]],
-            [[23.7629617, 50.9962025], [23.4633497, 51.5699359], [23.5781159, 51.5953182], [23.7662609, 51.5722275], [23.9847563, 51.5705972], [24.3332343, 51.7474785], [24.3037298, 51.8592023], [24.4879177, 51.8655481], [24.6551316, 51.8710877], [24.8721974, 51.8779647], [25.0683453, 51.9247946], [25.4523398, 51.9252588], [25.6858586, 51.92101], [25.868425, 51.9253928], [26.1350822, 51.9109444], [26.2536732, 51.872643], [26.4550978, 51.8256908], [26.6370666, 51.8188675], [26.8352743, 51.8120664], [27.1843175, 51.7359346], [27.3351935, 51.6566203], [27.385465, 51.6267722], [27.6013765, 51.5277314], [27.6669238, 51.5182742], [28.0395859, 51.6035886], [28.186348, 51.6146796], [28.5303367, 51.52429], [28.6279168, 51.5346267], [29.100814, 51.626316], [29.3421795, 51.4513181], [29.4062861, 51.4003491], [29.5532589, 51.4500552], [29.6028337, 51.4902182], [29.831355, 51.5183181], [29.9778579, 51.5168648], [30.1240611, 51.5051107], [30.2993219, 51.4015936], [30.3939981, 51.3293772], [30.4901154, 51.2975922], [30.5793626, 51.4787025], [30.5358554, 51.6010713], [30.6227991, 51.7114053], [30.8483282, 51.9415242], [31.0707256, 52.0699813], [31.4707204, 52.0927658], [31.6874748, 52.0982597], [32.1721071, 52.1069176], [32.421279, 52.2638582], [32.6793982, 52.31802], [33.0432838, 52.2454139], [33.2552138, 52.3206157], [33.4099957, 52.3359476], [33.8328954, 52.3105403], [34.1518251, 52.1437751], [34.212517, 51.9663865], [34.3364802, 51.8788932], [34.4969152, 51.8101954], [34.5132577, 51.6860467], [34.1206942, 51.6620522], [34.3659539, 51.4769186], [34.3509363, 51.3647055], [34.3414973, 51.2933216], [34.5127977, 51.2229646], [35.0283819, 51.1769356], [35.1810419, 51.0660633], [35.2542474, 50.9900827], [35.3836722, 50.838785], [35.4687857, 50.7309271], [35.4643829, 50.5869256], [35.4691347, 50.5042056], [35.4920444, 50.4306987], [35.5647677, 50.3541499], [35.5935437, 50.3214522], [35.7264653, 50.3132591], [35.8173037, 50.3592222], [35.9100338, 50.4153792], [36.1194763, 50.3502148], [36.2923563, 50.2662529], [36.6173428, 50.1536334], [36.6005244, 50.1548401]],
-            [[36.4694612, 50.2943793], [36.7556617, 50.383674], [37.1962788, 50.4400144], [37.3658595, 50.5060804], [37.5865585, 50.2432735], [38.0395901, 50.011018], [38.141443, 50.075972], [38.3103774, 50.1078262], [38.5436051, 50.0082095], [38.7933226, 49.9299256], [38.9755523, 49.8720161], [39.1441578, 49.8918724]],
-            [[39.095173, 49.9341874], [39.325214, 49.8225022], [39.6200818, 49.6877595], [39.8531309, 49.6621394], [40.0158295, 49.5831394], [40.172463, 49.4172539], [40.1613512, 49.2440294], [40.0710718, 49.1267736], [39.7709993, 49.0892548], [39.7038281, 49.0688326], [39.6806855, 48.9395939], [39.9745564, 48.8908519], [40.0404049, 48.8895171], [39.9338085, 48.7512905], [39.7720493, 48.797589], [39.7337326, 48.6904108], [39.7256417, 48.5605251], [39.8685436, 48.4823436], [39.9464706, 48.1461463], [39.7171805, 47.7750428], [38.9665958, 47.8529677], [38.6893949, 47.685295], [38.4652559, 47.6232756], [38.2725305, 47.496339], [38.2226913, 47.3360102], [38.189225, 47.1969251], [36.9946348, 46.8338539], [36.6824665, 46.7566228], [36.4485035, 46.7114637], [36.1521896, 46.6649149], [35.9487848, 46.6619665], [35.6405751, 46.4952536], [35.2063329, 46.3771947], [34.9613918, 46.2414201], [34.7794615, 46.1065672], [34.9590649, 45.560157], [35.1505589, 45.3803406], [35.2135262, 45.3384051], [35.3996315, 45.2885763], [35.7194938, 45.3716283], [35.9035025, 45.3860268], [35.9649021, 45.387114], [36.6087027, 45.4288635], [36.5794909, 45.3089123], [36.4279233, 45.1983074], [35.7268301, 45.0556127], [35.238449, 44.9994644], [35.1050305, 44.8531076], [34.8447543, 44.8451527], [34.123744, 44.441269], [33.878754, 44.4192515], [33.6753869, 44.4873722], [33.6036575, 44.6944418], [33.6511431, 44.9836009], [33.6097981, 45.179577], [33.465052, 45.260629], [33.3591581, 45.200654], [33.1682006, 45.2570854], [32.5094852, 45.3531233], [32.7554373, 45.455351], [33.2355014, 45.5906065], [33.601015, 45.78292], [33.667352, 45.9818848], [33.6118533, 46.1098629], [33.3399409, 46.1518258], [33.0566293, 46.1163777], [32.8487707, 46.1275829], [32.5137533, 46.1205165], [32.1989255, 46.2336683], [31.9702122, 46.2638704], [31.5687054, 46.4985539], [31.4305894, 46.5663581], [30.6796557, 46.4428921], [30.5609327, 46.3239939], [30.5232281, 46.2218815], [30.4157681, 46.1473802], [30.3160644, 46.0067976], [30.156881, 45.8053267], [30.1417008, 45.792959]],
-            [[30.0960482, 45.7952451], [29.9735127, 45.7123296], [29.8250201, 45.5503415], [29.7932068, 45.1943045]]
-        ];
-
-        const leafletOuterLines = outerGeoJsonRaw.map(line => line.map(([lng, lat]) => [lat, lng]));
-
-        // Рисуем чёткие линии твоего контура
-        leafletOuterLines.forEach(latLngs => {
-            L.polyline(latLngs, {
-                pane: 'bordersPane',
-                color: '#facc15',
-                weight: 2,
-                opacity: 0.95
-            }).addTo(map);
-        });
-
-        // 4 области мониторинга (Днепропетровская, Запорожская, Кировоградская, Херсонская)
         const dniproCoords = [
             [48.52, 33.50], [48.80, 33.45], [49.05, 33.70], [49.30, 34.20],
             [49.25, 34.90], [49.05, 35.40], [48.75, 35.80], [48.45, 36.30],
             [48.15, 36.70], [47.75, 36.65], [47.45, 36.35], [47.30, 35.80],
             [47.20, 35.10], [47.35, 34.40], [47.60, 33.90], [48.00, 33.40],
             [48.30, 33.42], [48.52, 33.50]
-        ];
-
-        const zaporizhzhiaCoords = [
-            [47.95, 34.60], [48.10, 35.20], [47.85, 36.10], [47.65, 36.75],
-            [47.25, 37.05], [46.85, 36.85], [46.60, 36.10], [46.65, 35.25],
-            [47.05, 34.95], [47.45, 34.85], [47.75, 34.55], [47.95, 34.60]
         ];
 
         const kirovoCoords = [
@@ -264,52 +219,15 @@
             [46.90, 32.05], [47.20, 32.15], [47.45, 32.30]
         ];
 
-        // Сплошная чёрная маска по всей Украине с вырезом под наши 4 области (без дыр и чужих названий)
-        const ukraineBlackoutRing = [
-            [52.60, 21.80], [52.60, 40.50], [44.20, 40.50], [44.20, 21.80], [52.60, 21.80]
-        ];
+        L.marker([48.46, 35.04], {icon: L.divIcon({html: '<div style="color:white; font-size:11px; font-weight:bold; text-shadow: 1px 1px 2px black;">📍 Дніпро</div>', className: ''})}).addTo(map);
+        L.marker([48.51, 32.26], {icon: L.divIcon({html: '<div style="color:white; font-size:11px; font-weight:bold; text-shadow: 1px 1px 2px black;">📍 Кропивницький</div>', className: ''})}).addTo(map);
+        L.marker([46.63, 32.61], {icon: L.divIcon({html: '<div style="color:white; font-size:11px; font-weight:bold; text-shadow: 1px 1px 2px black;">📍 Херсон</div>', className: ''})}).addTo(map);
 
-        L.polygon(
-            [ukraineBlackoutRing, dniproCoords, zaporizhzhiaCoords, kirovoCoords, khersonCoords],
-            {
-                pane: 'blackoutPane',
-                color: '#05080f',
-                weight: 1.5,
-                fillColor: '#05080f',
-                fillOpacity: 1
-            }
-        ).addTo(map);
+        const dniproPolygon = L.polygon(dniproCoords, { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
+        const kirovoPolygon = L.polygon(kirovoCoords, { color: '#b91c1c', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
+        const khersonPolygon = L.polygon(khersonCoords, { color: '#a16207', fillColor: '#ca8a04', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
 
-        // Активные 4 области с подсветкой статусов
-        const dniproPolygon = L.polygon(dniproCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
-        const zaporizhzhiaPolygon = L.polygon(zaporizhzhiaCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
-        const kirovoPolygon = L.polygon(kirovoCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
-        const khersonPolygon = L.polygon(khersonCoords, { pane: 'regionsPane', color: '#facc15', fillColor: '#ca8a04', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
-
-        // Подписи городов только в наших 4 областях
-        const cities = [
-            { name: 'Дніпро', coords: [48.46, 35.04] },
-            { name: 'Запоріжжя', coords: [47.84, 35.14] },
-            { name: 'Кропивницький', coords: [48.51, 32.26] },
-            { name: 'Херсон', coords: [46.63, 32.61] }
-        ];
-
-        cities.forEach(city => {
-            L.marker(city.coords, {
-                interactive: false,
-                icon: L.divIcon({
-                    html: `<div style="color:#ffffff; font-size:11px; font-weight:700; white-space:nowrap; text-shadow: 0 1px 4px rgba(0,0,0,0.95); transform: translate(-10%, -50%);">• ${city.name}</div>`,
-                    className: ''
-                })
-            }).addTo(map);
-        });
-
-        let statuses = {
-            dnipro: 'red',
-            zaporizhzhia: 'red',
-            kirovo: 'red',
-            kherson: 'yellow'
-        };
+        let statuses = { dnipro: 'red', kirovo: 'red', kherson: 'yellow' };
 
         function changeRegionStatus(region) {
             if (statuses[region] === 'red') {
@@ -325,48 +243,32 @@
         function updateRegionUI(region) {
             let badge = document.getElementById(badgeId(region));
             let polygon = getPolygon(region);
-            let colorHex = '#16a34a', borderHex = '#4ade80', statusText = 'Відбій', badgeClass = 'badge badge-green';
+            let colorHex = '#16a34a', borderHex = '#15803d', statusText = 'Відбій', badgeClass = 'badge badge-green';
 
             if (statuses[region] === 'red') {
-                colorHex = '#dc2626'; borderHex = '#f87171'; statusText = 'Тривога'; badgeClass = 'badge badge-red';
+                colorHex = '#dc2626'; borderHex = '#b91c1c'; statusText = 'Тривога'; badgeClass = 'badge badge-red';
             } else if (statuses[region] === 'yellow') {
-                colorHex = '#ca8a04'; borderHex = '#facc15'; statusText = 'Загроза'; badgeClass = 'badge badge-yellow';
+                colorHex = '#ca8a04'; borderHex = '#a16207'; statusText = 'Загроза'; badgeClass = 'badge badge-yellow';
             }
 
             badge.className = badgeClass;
             badge.innerText = statusText;
-            polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.5 });
-
-            const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            const feed = document.getElementById('feedList');
-            const item = document.createElement('div');
-            item.className = `feed-item ${statuses[region] === 'yellow' ? 'yellow-line' : statuses[region] === 'green' ? 'green-line' : ''}`;
-            item.innerHTML = `<div class="feed-time">${timeStr}</div><div class="feed-title">${regionName(region)}</div><div class="feed-desc">Статус: ${statusText}</div>`;
-            feed.prepend(item);
+            polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.45 });
         }
 
         function badgeId(region) {
             if (region === 'dnipro') return 'badgeDnipro';
-            if (region === 'zaporizhzhia') return 'badgeZaporizhzhia';
             if (region === 'kirovo') return 'badgeKirovo';
             return 'badgeKherson';
         }
 
         function getPolygon(region) {
             if (region === 'dnipro') return dniproPolygon;
-            if (region === 'zaporizhzhia') return zaporizhzhiaPolygon;
             if (region === 'kirovo') return kirovoPolygon;
             return khersonPolygon;
         }
 
-        function regionName(region) {
-            if (region === 'dnipro') return 'Дніпропетровська обл.';
-            if (region === 'zaporizhzhia') return 'Запорізька обл.';
-            if (region === 'kirovo') return 'Кіровоградська обл.';
-            return 'Херсонська обл.';
-        }
-
+        // Налаштування твоїх 3-х іконок цілей
         const targetsData = {
             geran: {
                 name: 'Герань-2',
