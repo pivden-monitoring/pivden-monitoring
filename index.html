@@ -97,6 +97,8 @@
         }
         .btn-alarm-on { background: #dc2626; }
         .btn-alarm-on:hover { background: #b91c1c; }
+        .btn-alarm-yellow { background: #ca8a04; }
+        .btn-alarm-yellow:hover { background: #a16207; }
         .btn-alarm-off { background: #16a34a; }
         .btn-alarm-off:hover { background: #15803d; }
         .btn-geran { background: #ea580c; }
@@ -176,11 +178,14 @@
 
     <div class="admin-controls">
         <div class="control-group">
-            <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Тривога КР:</span>
-            <button type="button" class="btn-tool btn-alarm-on" onclick="setKrAlarm(true)">
+            <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Статус КР:</span>
+            <button type="button" class="btn-tool btn-alarm-on" onclick="setKrStatus('red')">
                 <i class="fa-solid fa-bell"></i> Увімкнути тривогу
             </button>
-            <button type="button" class="btn-tool btn-alarm-off" onclick="setKrAlarm(false)">
+            <button type="button" class="btn-tool btn-alarm-yellow" onclick="setKrStatus('yellow')">
+                <i class="fa-solid fa-triangle-exclamation"></i> Загроза
+            </button>
+            <button type="button" class="btn-tool btn-alarm-off" onclick="setKrStatus('green')">
                 <i class="fa-solid fa-bell-slash"></i> Вимкнути тривогу
             </button>
         </div>
@@ -258,7 +263,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Тривога — КР</div>
-                    <div class="feed-desc">Керування тривогою увімкнено</div>
+                    <div class="feed-desc">Керування рівнями тривоги готове</div>
                 </div>
             </div>
         </div>
@@ -473,7 +478,7 @@
             pane: 'zonePane',
             color: '#ef4444',
             fillColor: '#dc2626',
-            fillOpacity: 0.42,
+            fillOpacity: 0.45,
             weight: 1.5
         }).addTo(map);
 
@@ -481,54 +486,73 @@
             map.fitBounds(krBorder.getBounds(), { padding: [25, 25] });
         }
 
+        const statusPalette = {
+            red: {
+                fill: '#dc2626',
+                stroke: '#ef4444',
+                opacity: 0.48,
+                text: 'Тривога',
+                badgeClass: 'badge badge-red',
+                feedClass: ''
+            },
+            yellow: {
+                fill: '#ca8a04',
+                stroke: '#eab308',
+                opacity: 0.45,
+                text: 'Загроза',
+                badgeClass: 'badge badge-yellow',
+                feedClass: 'yellow-line'
+            },
+            green: {
+                fill: '#16a34a',
+                stroke: '#22c55e',
+                opacity: 0.42,
+                text: 'Відбій',
+                badgeClass: 'badge badge-green',
+                feedClass: 'green-line'
+            }
+        };
+
         let krStatus = 'red';
 
-        function setKrAlarm(enabled) {
-            krStatus = enabled ? 'red' : 'green';
+        function setKrStatus(nextStatus) {
+            if (!statusPalette[nextStatus]) return;
+            krStatus = nextStatus;
             updateKrUI();
         }
 
         function changeKrStatus() {
             if (krStatus === 'red') {
-                krStatus = 'yellow';
+                setKrStatus('yellow');
             } else if (krStatus === 'yellow') {
-                krStatus = 'green';
+                setKrStatus('green');
             } else {
-                krStatus = 'red';
+                setKrStatus('red');
             }
-            updateKrUI();
         }
 
         function updateKrUI() {
+            const cfg = statusPalette[krStatus] || statusPalette.red;
             const badge = document.getElementById('badgeKr');
-            let colorHex = '#16a34a';
-            let borderHex = '#22c55e';
-            let statusText = 'Відбій';
-            let badgeClass = 'badge badge-green';
 
-            if (krStatus === 'red') {
-                colorHex = '#dc2626';
-                borderHex = '#ef4444';
-                statusText = 'Тривога';
-                badgeClass = 'badge badge-red';
-            } else if (krStatus === 'yellow') {
-                colorHex = '#ca8a04';
-                borderHex = '#eab308';
-                statusText = 'Загроза';
-                badgeClass = 'badge badge-yellow';
-            }
-
-            badge.className = badgeClass;
-            badge.innerText = statusText;
-            krZone.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.42 });
-            krBorder.setStyle({ color: borderHex });
+            badge.className = cfg.badgeClass;
+            badge.innerText = cfg.text;
+            krZone.setStyle({
+                color: cfg.stroke,
+                fillColor: cfg.fill,
+                fillOpacity: cfg.opacity
+            });
+            krBorder.setStyle({
+                color: cfg.stroke,
+                opacity: 0.95
+            });
 
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             const feed = document.getElementById('feedList');
             const item = document.createElement('div');
-            item.className = `feed-item ${krStatus === 'yellow' ? 'yellow-line' : krStatus === 'green' ? 'green-line' : ''}`;
-            item.innerHTML = `<div class="feed-time">${timeStr}</div><div class="feed-title">Криворізький р-н (КР)</div><div class="feed-desc">Статус: ${statusText}</div>`;
+            item.className = `feed-item ${cfg.feedClass}`;
+            item.innerHTML = `<div class="feed-time">${timeStr}</div><div class="feed-title">Криворізький р-н (КР)</div><div class="feed-desc">Статус: ${cfg.text}</div>`;
             feed.prepend(item);
         }
 
