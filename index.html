@@ -152,6 +152,9 @@
         .btn-rotate:hover { background: #334155; }
         .btn-apply { background: #0284c7; }
         .btn-apply:hover { background: #0369a1; }
+        .btn-autofly { background: #334155; border: 1px solid #475569; }
+        .btn-autofly:hover { background: #475569; }
+        .btn-autofly.active { background: #0d9488; border-color: #2dd4bf; box-shadow: 0 0 10px rgba(45, 212, 191, 0.35); }
         .btn-clear { background: #475569; }
         .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
 
@@ -326,6 +329,9 @@
             <button type="button" class="btn-tool btn-apply" onclick="applyParamsToSelected(true)">
                 <i class="fa-solid fa-check"></i> Застосувати
             </button>
+            <button type="button" class="btn-tool btn-autofly" id="btnAutoFly" onclick="toggleAutoFlySelected()">
+                <i class="fa-solid fa-paper-plane"></i> Автополёт: вимк
+            </button>
         </div>
 
         <div class="divider"></div>
@@ -466,6 +472,7 @@
                 }
                 applyMarkerTransform(item);
             });
+            syncAutoFlyUI();
         }
 
         function unlockOperator() {
@@ -700,6 +707,7 @@
         let selectedTargetKey = null;
         let markers = [];
         let activeMarkerItem = null;
+        let lastRemoteSyncAt = 0;
 
         function selectTool(key, btnElement) {
             if (firebaseConfigured && !isOperator) return;
@@ -749,6 +757,17 @@
             document.getElementById('angleLabel').textContent = `${val > 0 ? '+' : ''}${val}°`;
         }
 
+        function syncAutoFlyUI() {
+            const btn = document.getElementById('btnAutoFly');
+            if (!btn) return;
+            const enabled = Boolean(activeMarkerItem && activeMarkerItem.autoFly);
+            btn.classList.toggle('active', enabled);
+            btn.disabled = !activeMarkerItem || !isOperator;
+            btn.innerHTML = enabled
+                ? '<i class="fa-solid fa-paper-plane"></i> Автополёт: увімк'
+                : '<i class="fa-solid fa-paper-plane"></i> Автополёт: вимк';
+        }
+
         function selectMarkerItem(item) {
             if (activeMarkerItem && activeMarkerItem !== item) {
                 const prev = activeMarkerItem;
@@ -758,6 +777,7 @@
             activeMarkerItem = item;
             applyMarkerTransform(item);
             syncRotationUI(item ? item.angle : 0);
+            syncAutoFlyUI();
             if (item && isOperator) {
                 document.getElementById('speedInput').value = item.speed;
                 document.getElementById('altitudeInput').value = item.altitude;
@@ -776,10 +796,20 @@
                     angle: item.angle,
                     speed: item.speed,
                     altitude: item.altitude,
+                    autoFly: Boolean(item.autoFly),
                     timeStr: item.timeStr
                 };
             });
+            lastRemoteSyncAt = Date.now();
             db.ref('monitoring/markers').set(payload);
+        }
+
+        function toggleAutoFlySelected() {
+            if (firebaseConfigured && !isOperator) return;
+            if (!activeMarkerItem) return;
+            activeMarkerItem.autoFly = !activeMarkerItem.autoFly;
+            syncAutoFlyUI();
+            syncMarkersToFirebase();
         }
 
         function applyParamsToSelected(logToFeed = false) {
@@ -822,12 +852,57 @@
             setSelectedRotation(current + delta);
         }
 
+        function moveLatLngByCourse(lat, lng, speedKmh, angleDeg, dtSeconds) {
+            const distanceMeters = (Math.max(0, Number(speedKmh) || 0) * 1000 / 3600) * dtSeconds;
+            if (distanceMeters <= 0) return { lat, lng };
+            const earthRadiusMeters = 6378137;
+            const bearingRad = (Number(angleDeg) || 0) * Math.PI / 180;
+            const dLat = (distanceMeters * Math.cos(bearingRad)) / earthRadiusMeters;
+            const cosLat = Math.max(0.1, Math.cos(lat * Math.PI / 180));
+            const dLng = (distanceMeters * Math.sin(bearingRad)) / (earthRadiusMeters * cosLat);
+            return {
+                lat: lat + (dLat * 180 / Math.PI),
+                lng: lng + (dLng * 180 / Math.PI)
+            };
+        }
+
+        const AUTO_FLY_STEP_MS = 250;
+        const FIREBASE_SYNC_INTERVAL_MS = 1600;
+        let lastAutoFlyTickAt = Date.now();
+
+        setInterval(() => {
+            const now = Date.now();
+            const dtSec = Math.min(2, (now - lastAutoFlyTickAt) / 1000);
+            lastAutoFlyTickAt = now;
+            if (dtSec <= 0) return;
+
+            let anyMoved = false;
+            markers.forEach(item => {
+                if (!item.autoFly || !item.marker) return;
+                if (item.marker._dragging && item.marker._dragging._draggable && item.marker._dragging._draggable._moving) return;
+                const pos = item.marker.getLatLng();
+                const nextPos = moveLatLngByCourse(pos.lat, pos.lng, item.speed, item.angle, dtSec);
+                if (nextPos.lat !== pos.lat || nextPos.lng !== pos.lng) {
+                    item.marker.setLatLng([nextPos.lat, nextPos.lng]);
+                    if (item.marker.isPopupOpen()) {
+                        item.marker.setPopupContent(buildMarkerPopupHtml(item));
+                    }
+                    anyMoved = true;
+                }
+            });
+
+            if (anyMoved && isOperator && firebaseConfigured && db && (now - lastRemoteSyncAt >= FIREBASE_SYNC_INTERVAL_MS)) {
+                syncMarkersToFirebase();
+            }
+        }, AUTO_FLY_STEP_MS);
+
         function createOrUpdateMarkerFromData(id, data, shouldSelect = false) {
             const target = targetsData[data.targetKey] || targetsData.geran;
             const latlng = L.latLng(data.lat, data.lng);
             const angle = normalizeAngle(data.angle || 0);
             const speed = Number(data.speed) || target.defaultSpeed;
             const altitude = Number(data.altitude) || target.defaultAltitude;
+            const autoFly = Boolean(data.autoFly);
             const timeStr = data.timeStr || nowTimeStr();
 
             let existing = markers.find(m => m.id === id);
@@ -837,10 +912,12 @@
                 existing.angle = angle;
                 existing.speed = speed;
                 existing.altitude = altitude;
+                existing.autoFly = autoFly;
                 existing.timeStr = timeStr;
                 existing.marker.setLatLng(latlng);
                 existing.marker.setPopupContent(buildMarkerPopupHtml(existing));
                 applyMarkerTransform(existing);
+                if (activeMarkerItem === existing) syncAutoFlyUI();
                 return existing;
             }
 
@@ -852,7 +929,7 @@
             });
 
             const marker = L.marker(latlng, { icon: customIcon, draggable: isOperator }).addTo(map);
-            const itemObj = { id, targetKey: data.targetKey || 'geran', marker, target, angle, speed, altitude, timeStr };
+            const itemObj = { id, targetKey: data.targetKey || 'geran', marker, target, angle, speed, altitude, autoFly, timeStr };
             markers.push(itemObj);
 
             marker.bindPopup(buildMarkerPopupHtml(itemObj));
@@ -916,6 +993,7 @@
                 angle: 0,
                 speed,
                 altitude,
+                autoFly: false,
                 timeStr
             }, true);
 
@@ -934,10 +1012,14 @@
 
         function clearMarkers(fromRemote = false) {
             if (!fromRemote && firebaseConfigured && !isOperator) return;
-            markers.forEach(m => map.removeLayer(m.marker));
+            markers.forEach(m => {
+                m.autoFly = false;
+                map.removeLayer(m.marker);
+            });
             markers = [];
             activeMarkerItem = null;
             syncRotationUI(0);
+            syncAutoFlyUI();
             if (!fromRemote && firebaseConfigured && db) {
                 db.ref('monitoring/markers').remove();
             }
@@ -958,8 +1040,12 @@
 
                 markers = markers.filter(item => {
                     if (!remoteIds.has(item.id)) {
+                        item.autoFly = false;
                         map.removeLayer(item.marker);
-                        if (activeMarkerItem === item) activeMarkerItem = null;
+                        if (activeMarkerItem === item) {
+                            activeMarkerItem = null;
+                            syncAutoFlyUI();
+                        }
                         return false;
                     }
                     return true;
