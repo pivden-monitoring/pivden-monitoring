@@ -285,7 +285,9 @@
             <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Вибери ціль:</span>
             <button type="button" class="btn-tool btn-geran" onclick="selectTool('geran', this)">
                 <svg width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L55 83 L45 83 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                    <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+                    <rect x="34" y="84" width="32" height="4.5" rx="2" fill="#facc15" stroke="#0f172a" stroke-width="1.5"/>
                 </svg>
                 Герань-2
             </button>
@@ -344,7 +346,9 @@
                 <hr style="border-color: #1f2d45; margin: 10px 0;">
                 <div class="legend-item">
                     <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 5px rgba(234, 88, 12, 0.85));">
-                        <path fill="#ffffff" stroke="#ea580c" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L55 83 L45 83 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                        <path fill="#ffffff" stroke="#ea580c" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                        <rect x="48" y="78" width="4" height="7" fill="#ffffff"/>
+                        <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#facc15" stroke="#ea580c" stroke-width="1.5"/>
                     </svg>
                     Герань-2
                 </div>
@@ -645,21 +649,29 @@
                 glow: 'drop-shadow(0 0 8px rgba(234, 88, 12, 0.95)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85))',
                 defaultSpeed: 185,
                 defaultAltitude: 800,
-                svg: `<svg width="34" height="34" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#ea580c" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L55 83 L45 83 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/></svg>`
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#ea580c" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                    <rect x="48" y="78" width="4" height="7" fill="#ffffff"/>
+                    <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#facc15" stroke="#ea580c" stroke-width="1.5"/>
+                </svg>`
             },
             banderol: {
                 name: 'Бандероль',
                 glow: 'drop-shadow(0 0 8px rgba(56, 189, 248, 0.95)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.9))',
                 defaultSpeed: 520,
                 defaultAltitude: 2500,
-                svg: `<svg width="34" height="34" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/></svg>`
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
+                </svg>`
             },
             jet: {
                 name: 'Реактивний Шахед',
                 glow: 'drop-shadow(0 0 9px rgba(239, 68, 68, 0.95)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85))',
                 defaultSpeed: 460,
                 defaultAltitude: 1500,
-                svg: `<svg width="34" height="34" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#dc2626" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/></svg>`
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#dc2626" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                </svg>`
             }
         };
 
