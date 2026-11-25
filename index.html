@@ -194,15 +194,15 @@
 
         <div class="control-group">
             <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Вибери ціль:</span>
-            <button class="btn-tool btn-geran" onclick="selectTool('geran', this)">
+            <button type="button" class="btn-tool btn-geran" onclick="selectTool('geran', this)">
                 <svg width="18" height="18" viewBox="0 0 100 100"><path fill="white" d="M44 10 C44 4 56 4 56 10 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 66 L43 66 L43 72 L12 72 L12 60 Z M45 68 L55 68 L53 76 L47 76 Z M49 76 L51 76 L51 81 L49 81 Z M38 81 Q44 79 50 81 Q56 79 62 81 Q56 83 50 81 Q44 83 38 81 Z"/></svg>
                 Герань-2
             </button>
-            <button class="btn-tool btn-banderol" onclick="selectTool('banderol', this)">
+            <button type="button" class="btn-tool btn-banderol" onclick="selectTool('banderol', this)">
                 <svg width="18" height="18" viewBox="0 0 100 100"><path fill="white" d="M88 12 L72 18 L58 32 L36 35 L32 45 L46 47 L28 65 L14 68 L10 78 L24 80 L26 92 L36 88 L39 74 L57 56 L59 70 L69 66 L72 44 L86 30 Z"/><path fill="#38bdf8" d="M62 28 L72 38 L76 34 L66 24 Z"/></svg>
                 Бандероль
             </button>
-            <button class="btn-tool btn-jet" onclick="selectTool('jet', this)">
+            <button type="button" class="btn-tool btn-jet" onclick="selectTool('jet', this)">
                 <svg width="18" height="18" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><path fill="white" d="M44 8 C44 2 56 2 56 8 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 65 L43 65 L43 72 L12 72 L12 60 Z M45 67 L55 67 L55 77 L45 77 Z M43 79 L57 79 L57 85 L43 85 Z"/></g></svg>
                 Реактивний Шахед
             </button>
@@ -263,7 +263,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Тривога — КР</div>
-                    <div class="feed-desc">Керування рівнями тривоги готове</div>
+                    <div class="feed-desc">Моніторинг готовий до роботи</div>
                 </div>
             </div>
         </div>
@@ -274,6 +274,16 @@
     </footer>
 
     <script>
+        window.onerror = function(msg, url, line) {
+            const feed = document.getElementById('feedList');
+            if (feed) {
+                const errItem = document.createElement('div');
+                errItem.className = 'feed-item';
+                errItem.innerHTML = `<div class="feed-time">Помилка</div><div class="feed-title" style="color:#f87171;">${msg}</div><div class="feed-desc">Рядок: ${line}</div>`;
+                feed.prepend(errItem);
+            }
+        };
+
         const map = L.map('map').setView([47.92, 33.85], 9);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -451,39 +461,29 @@
             ]
         };
 
-        const rawLines = krGeoJson.features
+        const krBorderLayer = L.geoJSON(krGeoJson, {
+            pane: 'borderPane',
+            style: {
+                color: '#ef4444',
+                weight: 3,
+                opacity: 0.95
+            }
+        }).addTo(map);
+
+        const polyLatLngs = krGeoJson.features
             .filter(f => f.geometry && f.geometry.type === 'LineString')
             .map(f => f.geometry.coordinates.map(([lng, lat]) => [lat, lng]));
 
-        const polygonLoop = [];
-        if (rawLines.length > 0) {
-            polygonLoop.push(...rawLines[0]);
-            if (rawLines[1]) polygonLoop.push(...rawLines[1]);
-            if (rawLines[2]) polygonLoop.push(...rawLines[2]);
-            if (rawLines[3]) {
-                polygonLoop.push([rawLines[3][1], rawLines[3][2], rawLines[3][0]]);
-            }
-        }
-
-        const flatLoop = polygonLoop.flat(1).filter(Boolean);
-
-        const krBorder = L.polyline(rawLines, {
-            pane: 'borderPane',
-            color: '#ef4444',
-            weight: 3,
-            opacity: 0.95
-        }).addTo(map);
-
-        const krZone = L.polygon(flatLoop, {
+        const krZone = L.polygon(polyLatLngs, {
             pane: 'zonePane',
             color: '#ef4444',
             fillColor: '#dc2626',
-            fillOpacity: 0.45,
+            fillOpacity: 0.48,
             weight: 1.5
         }).addTo(map);
 
-        if (flatLoop.length > 0) {
-            map.fitBounds(krBorder.getBounds(), { padding: [25, 25] });
+        if (krBorderLayer.getBounds().isValid()) {
+            map.fitBounds(krBorderLayer.getBounds(), { padding: [25, 25] });
         }
 
         const statusPalette = {
@@ -537,12 +537,14 @@
 
             badge.className = cfg.badgeClass;
             badge.innerText = cfg.text;
+
             krZone.setStyle({
                 color: cfg.stroke,
                 fillColor: cfg.fill,
                 fillOpacity: cfg.opacity
             });
-            krBorder.setStyle({
+
+            krBorderLayer.setStyle({
                 color: cfg.stroke,
                 opacity: 0.95
             });
