@@ -254,7 +254,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Система активна</div>
-                    <div class="feed-desc">Значки можна перетягувати та крутити вліво/вправо</div>
+                    <div class="feed-desc">Заливка чітко по контурах твоїх ліній</div>
                 </div>
             </div>
         </div>
@@ -273,12 +273,12 @@
         }).addTo(map);
 
         map.createPane('zonesPane');
-        map.getPane('zonesPane').style.zIndex = 390;
+        map.getPane('zonesPane').style.zIndex = 395;
 
         map.createPane('bordersPane');
         map.getPane('bordersPane').style.zIndex = 415;
 
-        // Твої сегменти кордонів з GeoJSON (переведені у [lat, lng]) — НЕ ЧІПАЄМО
+        // Твої сегменти кордонів з GeoJSON [lng, lat] -> [lat, lng]
         const rawGeoJsonLines = [
             [[32.5880566, 48.9849693], [32.3376816, 49.0824331], [32.1186036, 48.9387356], [31.7899865, 48.9335959], [31.4457209, 48.7533721], [30.655475, 48.763688], [30.5302876, 48.5828525], [29.9512955, 48.4688521], [29.7556901, 48.3077795], [29.8730534, 48.1983761], [30.25644, 48.1514173], [30.4598696, 47.6267567], [30.7571899, 47.6478452], [30.8980258, 47.3359264], [30.9371468, 47.2616398], [31.124928, 47.2775672], [31.124928, 47.176613], [31.2501155, 47.1712943], [31.2579397, 47.054148], [31.0232132, 46.9527686], [31.1327523, 46.8030167], [31.1718733, 46.6743253], [31.9777677, 46.6850613], [32.2281426, 46.7923042], [32.5489355, 46.8351416], [32.9244979, 46.8351416], [33.1279275, 47.0967764], [32.9557947, 47.0594784], [33.1435759, 47.2244573], [33.1122791, 47.5423176], [32.963619, 47.595108], [33.0183885, 48.005048], [32.6662987, 47.9579123], [32.6506503, 47.8215007], [32.2829121, 47.8004824], [32.134252, 47.7741975], [32.0794825, 47.8004824], [31.8917013, 47.784713], [31.8525802, 47.8057377], [31.8917013, 47.8372588], [31.8838771, 47.8687607], [31.8525802, 47.9212214], [31.8291075, 47.9579123], [31.7665138, 47.9474319], [31.7352169, 47.9945771], [31.7665138, 48.0416794], [31.774338, 48.0678287], [31.7352169, 48.114864], [31.5083147, 48.0835119], [31.484842, 48.1253105], [31.4300725, 48.1305329], [31.3674788, 48.1253105], [31.3361819, 48.1253105], [31.2657639, 48.1409761], [31.2266429, 48.1566371], [31.1796972, 48.182728], [31.2031702, 48.182728], [31.1562249, 48.2140195]],
             [[31.1249276, 48.2244458], [30.9371464, 48.182728], [30.7806621, 48.1775109], [30.2955607, 48.1566371], [30.2955607, 48.1670751]],
@@ -290,7 +290,7 @@
 
         const leafletLines = rawGeoJsonLines.map(line => line.map(([lng, lat]) => [lat, lng]));
 
-        // Малюємо твої лінії без змін
+        // Рисуем строго твои линии контуров
         leafletLines.forEach(latLngs => {
             L.polyline(latLngs, {
                 pane: 'bordersPane',
@@ -300,32 +300,52 @@
             }).addTo(map);
         });
 
-        // Зони тривоги по контурах 4 областей
-        const dniproZone = L.polygon([
-            [48.52, 33.50], [48.80, 33.45], [49.05, 33.70], [49.30, 34.20],
-            [49.25, 34.90], [49.05, 35.40], [48.75, 35.80], [48.45, 36.30],
-            [48.15, 36.70], [47.75, 36.65], [47.45, 36.35], [47.30, 35.80],
-            [47.20, 35.10], [47.35, 34.40], [47.60, 33.90], [48.00, 33.40]
-        ], { pane: 'zonesPane', color: '#ef4444', fillColor: '#dc2626', fillOpacity: 0.35, weight: 1.5 }).addTo(map);
+        // Строим зоны заливки строго по точкам твоих линий (без выхода за контур)
+        const kirovoExactZone = L.polygon([
+            ...leafletLines[0],
+            ...leafletLines[1]
+        ], {
+            pane: 'zonesPane',
+            color: '#ef4444',
+            fillColor: '#dc2626',
+            fillOpacity: 0.42,
+            weight: 1.5
+        }).addTo(map);
 
-        const zaporizhzhiaZone = L.polygon([
-            [47.95, 34.60], [48.10, 35.20], [47.85, 36.10], [47.65, 36.75],
-            [47.25, 37.05], [46.85, 36.85], [46.60, 36.10], [46.65, 35.25],
-            [47.05, 34.95], [47.45, 34.85], [47.75, 34.55]
-        ], { pane: 'zonesPane', color: '#ef4444', fillColor: '#dc2626', fillOpacity: 0.35, weight: 1.5 }).addTo(map);
+        const dniproExactZone = L.polygon([
+            ...leafletLines[2],
+            ...leafletLines[3].slice(0, 32)
+        ], {
+            pane: 'zonesPane',
+            color: '#ef4444',
+            fillColor: '#dc2626',
+            fillOpacity: 0.42,
+            weight: 1.5
+        }).addTo(map);
 
-        const kirovoZone = L.polygon([
-            [48.65, 31.05], [49.00, 31.10], [49.30, 31.50], [49.50, 32.10],
-            [49.30, 32.80], [49.05, 33.40], [48.60, 33.70], [48.20, 33.45],
-            [47.85, 32.90], [47.75, 32.20], [48.00, 31.60], [48.30, 31.15]
-        ], { pane: 'zonesPane', color: '#ef4444', fillColor: '#dc2626', fillOpacity: 0.35, weight: 1.5 }).addTo(map);
+        const zaporizhzhiaExactZone = L.polygon([
+            ...leafletLines[3].slice(8, 30),
+            ...leafletLines[4]
+        ], {
+            pane: 'zonesPane',
+            color: '#ef4444',
+            fillColor: '#dc2626',
+            fillOpacity: 0.42,
+            weight: 1.5
+        }).addTo(map);
 
-        const khersonZone = L.polygon([
-            [47.45, 32.30], [47.80, 32.60], [47.90, 33.30], [47.70, 33.90],
-            [47.45, 34.45], [47.25, 35.10], [46.85, 35.55], [46.40, 35.40],
-            [46.10, 34.80], [46.00, 33.90], [46.15, 33.10], [46.50, 32.40],
-            [46.90, 32.05], [47.20, 32.15]
-        ], { pane: 'zonesPane', color: '#eab308', fillColor: '#ca8a04', fillOpacity: 0.35, weight: 1.5 }).addTo(map);
+        const khersonExactZone = L.polygon([
+            ...leafletLines[0].slice(22, 34),
+            ...leafletLines[3].slice(0, 9),
+            ...leafletLines[4].slice(0, 14),
+            ...leafletLines[5].slice().reverse()
+        ], {
+            pane: 'zonesPane',
+            color: '#eab308',
+            fillColor: '#ca8a04',
+            fillOpacity: 0.42,
+            weight: 1.5
+        }).addTo(map);
 
         let statuses = {
             dnipro: 'red',
@@ -358,7 +378,7 @@
 
             badge.className = badgeClass;
             badge.innerText = statusText;
-            zone.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.35 });
+            zone.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.42 });
 
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
@@ -377,10 +397,10 @@
         }
 
         function getZone(region) {
-            if (region === 'dnipro') return dniproZone;
-            if (region === 'zaporizhzhia') return zaporizhzhiaZone;
-            if (region === 'kirovo') return kirovoZone;
-            return khersonZone;
+            if (region === 'dnipro') return dniproExactZone;
+            if (region === 'zaporizhzhia') return zaporizhzhiaExactZone;
+            if (region === 'kirovo') return kirovoExactZone;
+            return khersonExactZone;
         }
 
         function regionName(region) {
