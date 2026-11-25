@@ -184,7 +184,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Система активна</div>
-                    <div class="feed-desc">Зовнішні області замасковано чорним шаром</div>
+                    <div class="feed-desc">Вся Україна затемнена, залишено 4 області</div>
                 </div>
             </div>
         </div>
@@ -195,7 +195,7 @@
     </footer>
 
     <script>
-        const map = L.map('map').setView([47.75, 33.8], 7);
+        const map = L.map('map').setView([47.8, 33.8], 7);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
@@ -205,10 +205,13 @@
         map.createPane('blackoutPane');
         map.getPane('blackoutPane').style.zIndex = 400;
 
-        map.createPane('regionsPane');
-        map.getPane('regionsPane').style.zIndex = 420;
+        map.createPane('bordersPane');
+        map.getPane('bordersPane').style.zIndex = 415;
 
-        // Твої координати зовнішніх кордонів / областей (переведені у [lat, lng])
+        map.createPane('regionsPane');
+        map.getPane('regionsPane').style.zIndex = 425;
+
+        // Твої сегменти контуру з GeoJSON (переведені у [lat, lng])
         const outerGeoJsonRaw = [
             [[29.7858779, 45.2190974], [29.4680891, 45.36493], [29.3055544, 45.3763356], [29.0218777, 45.2901815], [28.9464355, 45.2291792], [28.6932774, 45.1548786], [28.470417, 45.2607693], [28.4172428, 45.4574301], [28.5301978, 45.6327235], [28.7549828, 45.8373631], [28.952967, 45.9835963], [29.0474019, 46.1774125], [28.9035614, 46.2893472], [28.9721511, 46.4149809], [29.1461224, 46.4948465], [29.1952038, 46.4978402], [29.2174041, 46.4442285], [29.2255116, 46.3677536]],
             [[29.1928739, 46.3657494], [29.2873185, 46.404499], [29.482807, 46.4161291], [29.59988, 46.3899961], [29.9374015, 46.3744007], [30.0663008, 46.3811501], [29.9779382, 46.4640407], [29.9446629, 46.6043536], [29.9323931, 46.7348981], [29.7980626, 46.8234275], [29.7238622, 46.9071639], [29.6374844, 46.9464426], [29.5484398, 47.1608272], [29.4679587, 47.2880617], [29.3943783, 47.3499388], [29.2618592, 47.3428788], [29.1006249, 47.4328656], [29.1155599, 47.6781377], [29.1380656, 47.7671946], [29.1228192, 47.8872535], [29.0836015, 47.9291893], [28.9475695, 47.9330923], [28.7804579, 47.9131666], [28.8082809, 47.9587019], [28.703248, 48.063497], [28.5027938, 48.1165428], [28.3988584, 48.1217989], [28.280957, 48.1040609], [28.2024543, 48.1659629], [28.0121615, 48.2306502], [27.9569, 48.2495946], [27.8615424, 48.2994742]],
@@ -222,20 +225,17 @@
 
         const leafletOuterLines = outerGeoJsonRaw.map(line => line.map(([lng, lat]) => [lat, lng]));
 
-        // Щільне чорне замальовування зовнішніх полігонів / зон
+        // Рисуем чёткие линии твоего контура
         leafletOuterLines.forEach(latLngs => {
-            if (latLngs.length >= 3) {
-                L.polygon(latLngs, {
-                    pane: 'blackoutPane',
-                    color: '#05080f',
-                    weight: 1.5,
-                    fillColor: '#05080f',
-                    fillOpacity: 1
-                }).addTo(map);
-            }
+            L.polyline(latLngs, {
+                pane: 'bordersPane',
+                color: '#facc15',
+                weight: 2,
+                opacity: 0.95
+            }).addTo(map);
         });
 
-        // 4 області моніторингу (Дніпропетровська, Запорізька, Кіровоградська, Херсонська)
+        // 4 области мониторинга (Днепропетровская, Запорожская, Кировоградская, Херсонская)
         const dniproCoords = [
             [48.52, 33.50], [48.80, 33.45], [49.05, 33.70], [49.30, 34.20],
             [49.25, 34.90], [49.05, 35.40], [48.75, 35.80], [48.45, 36.30],
@@ -264,11 +264,29 @@
             [46.90, 32.05], [47.20, 32.15], [47.45, 32.30]
         ];
 
-        const dniproPolygon = L.polygon(dniproCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
-        const zaporizhzhiaPolygon = L.polygon(zaporizhzhiaCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
-        const kirovoPolygon = L.polygon(kirovoCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
-        const khersonPolygon = L.polygon(khersonCoords, { pane: 'regionsPane', color: '#facc15', fillColor: '#ca8a04', fillOpacity: 0.45, weight: 2.5 }).addTo(map);
+        // Сплошная чёрная маска по всей Украине с вырезом под наши 4 области (без дыр и чужих названий)
+        const ukraineBlackoutRing = [
+            [52.60, 21.80], [52.60, 40.50], [44.20, 40.50], [44.20, 21.80], [52.60, 21.80]
+        ];
 
+        L.polygon(
+            [ukraineBlackoutRing, dniproCoords, zaporizhzhiaCoords, kirovoCoords, khersonCoords],
+            {
+                pane: 'blackoutPane',
+                color: '#05080f',
+                weight: 1.5,
+                fillColor: '#05080f',
+                fillOpacity: 1
+            }
+        ).addTo(map);
+
+        // Активные 4 области с подсветкой статусов
+        const dniproPolygon = L.polygon(dniproCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
+        const zaporizhzhiaPolygon = L.polygon(zaporizhzhiaCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
+        const kirovoPolygon = L.polygon(kirovoCoords, { pane: 'regionsPane', color: '#f87171', fillColor: '#dc2626', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
+        const khersonPolygon = L.polygon(khersonCoords, { pane: 'regionsPane', color: '#facc15', fillColor: '#ca8a04', fillOpacity: 0.5, weight: 2.5 }).addTo(map);
+
+        // Подписи городов только в наших 4 областях
         const cities = [
             { name: 'Дніпро', coords: [48.46, 35.04] },
             { name: 'Запоріжжя', coords: [47.84, 35.14] },
@@ -317,7 +335,7 @@
 
             badge.className = badgeClass;
             badge.innerText = statusText;
-            polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.45 });
+            polygon.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.5 });
 
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
