@@ -254,7 +254,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Система активна</div>
-                    <div class="feed-desc">Усі 4 області зафарбовані рівно та без просвітів</div>
+                    <div class="feed-desc">Зони та лінії оновлено</div>
                 </div>
             </div>
         </div>
@@ -300,26 +300,17 @@
             }).addTo(map);
         });
 
-        // Ровные замкнутые контуры каждой из 4 областей в строгом порядке [lat, lng]
-        const zoneOpts = {
-            pane: 'zonesPane',
-            color: '#ef4444',
-            fillColor: '#dc2626',
-            fillOpacity: 0.52,
-            fillRule: 'nonzero',
-            weight: 1.5
-        };
-
+        // Чёткие полигоны по контурам 4 областей [lat, lng]
         const kirovoZone = L.polygon([
             [48.985, 32.588], [49.082, 32.338], [48.939, 32.119], [48.934, 31.790],
             [48.753, 31.446], [48.764, 30.655], [48.583, 30.530], [48.469, 29.951],
-            [48.308, 29.756], [48.198, 29.873], [48.151, 30.256], [48.183, 30.937],
+            [48.308, 29.756], [48.198, 29.873], [48.151, 30.256], [48.178, 30.781],
             [48.224, 31.125], [48.183, 31.203], [48.125, 31.367], [48.115, 31.735],
             [48.042, 31.767], [47.921, 31.853], [47.785, 31.892], [47.800, 32.283],
             [47.822, 32.651], [47.958, 32.666], [48.005, 33.018], [48.136, 33.292],
             [48.240, 33.527], [48.557, 33.511], [48.681, 33.770], [48.795, 33.637],
             [48.939, 33.816], [48.980, 32.823]
-        ], zoneOpts).addTo(map);
+        ], { pane: 'zonesPane', color: '#ef4444', fillColor: '#dc2626', fillOpacity: 0.45, weight: 1.5 }).addTo(map);
 
         const dniproZone = L.polygon([
             [49.241, 32.878], [49.164, 32.807], [48.795, 33.637], [48.681, 33.770],
@@ -334,7 +325,7 @@
             [48.964, 35.992], [48.928, 35.788], [49.062, 35.366], [49.139, 35.170],
             [49.169, 34.802], [49.026, 34.356], [48.743, 34.302], [48.836, 34.098],
             [48.939, 33.816], [48.975, 33.629], [48.980, 33.292]
-        ], zoneOpts).addTo(map);
+        ], { pane: 'zonesPane', color: '#ef4444', fillColor: '#dc2626', fillOpacity: 0.45, weight: 1.5 }).addTo(map);
 
         const zaporizhzhiaZone = L.polygon([
             [47.505, 34.215], [47.542, 34.575], [47.542, 34.920], [47.732, 34.951],
@@ -347,7 +338,7 @@
             [46.340, 35.053], [46.239, 34.885], [46.124, 34.731], [46.152, 34.335],
             [46.282, 34.133], [46.572, 34.740], [46.696, 34.654], [46.798, 34.779],
             [46.969, 34.724], [47.166, 34.528], [47.304, 34.435], [47.272, 34.317]
-        ], zoneOpts).addTo(map);
+        ], { pane: 'zonesPane', color: '#ef4444', fillColor: '#dc2626', fillOpacity: 0.45, weight: 1.5 }).addTo(map);
 
         const khersonZone = L.polygon([
             [47.627, 30.460], [47.648, 30.757], [47.336, 30.898], [47.262, 30.937],
@@ -363,7 +354,7 @@
             [47.516, 34.153], [47.526, 33.934], [47.579, 33.590], [47.505, 33.308],
             [47.569, 33.058], [47.542, 33.112], [47.224, 33.144], [47.059, 32.956],
             [47.097, 33.128], [46.835, 32.924], [46.835, 32.549], [46.792, 32.228]
-        ], zoneOpts).addTo(map);
+        ], { pane: 'zonesPane', color: '#ef4444', fillColor: '#dc2626', fillOpacity: 0.45, weight: 1.5 }).addTo(map);
 
         let statuses = {
             dnipro: 'red',
@@ -396,7 +387,7 @@
 
             badge.className = badgeClass;
             badge.innerText = statusText;
-            zone.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.52 });
+            zone.setStyle({ color: borderHex, fillColor: colorHex, fillOpacity: 0.45 });
 
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
