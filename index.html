@@ -263,7 +263,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Тривога — КР</div>
-                    <div class="feed-desc">Моніторинг готовий до роботи</div>
+                    <div class="feed-desc">Суцільна заливка та керування статусом увімкнено</div>
                 </div>
             </div>
         </div>
@@ -274,16 +274,6 @@
     </footer>
 
     <script>
-        window.onerror = function(msg, url, line) {
-            const feed = document.getElementById('feedList');
-            if (feed) {
-                const errItem = document.createElement('div');
-                errItem.className = 'feed-item';
-                errItem.innerHTML = `<div class="feed-time">Помилка</div><div class="feed-title" style="color:#f87171;">${msg}</div><div class="feed-desc">Рядок: ${line}</div>`;
-                feed.prepend(errItem);
-            }
-        };
-
         const map = L.map('map').setView([47.92, 33.85], 9);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -461,29 +451,80 @@
             ]
         };
 
-        const krBorderLayer = L.geoJSON(krGeoJson, {
-            pane: 'borderPane',
-            style: {
-                color: '#ef4444',
-                weight: 3,
-                opacity: 0.95
+        // Собираем непрерывный контур из всех LineString по ближайшим концам, чтобы заливка была сплошной
+        function buildContinuousPolygon(geoJson) {
+            const segments = geoJson.features
+                .filter(f => f.geometry && f.geometry.type === 'LineString' && Array.isArray(f.geometry.coordinates))
+                .map(f => f.geometry.coordinates.map(([lng, lat]) => [lat, lng]));
+
+            if (!segments.length) return [];
+
+            const distSq = (a, b) => {
+                const dLat = a[0] - b[0];
+                const dLng = a[1] - b[1];
+                return dLat * dLat + dLng * dLng;
+            };
+
+            const ordered = [...segments[0]];
+            const used = new Set([0]);
+
+            while (used.size < segments.length) {
+                const currentEnd = ordered[ordered.length - 1];
+                let bestIdx = -1;
+                let bestReverse = false;
+                let bestDist = Infinity;
+
+                for (let i = 0; i < segments.length; i++) {
+                    if (used.has(i)) continue;
+                    const seg = segments[i];
+                    if (!seg.length) continue;
+
+                    const dStart = distSq(currentEnd, seg[0]);
+                    if (dStart < bestDist) {
+                        bestDist = dStart;
+                        bestIdx = i;
+                        bestReverse = false;
+                    }
+
+                    const dEnd = distSq(currentEnd, seg[seg.length - 1]);
+                    if (dEnd < bestDist) {
+                        bestDist = dEnd;
+                        bestIdx = i;
+                        bestReverse = true;
+                    }
+                }
+
+                if (bestIdx === -1) break;
+                used.add(bestIdx);
+                const chosen = bestReverse ? [...segments[bestIdx]].reverse() : [...segments[bestIdx]];
+                if (distSq(ordered[ordered.length - 1], chosen[0]) < 1e-12) {
+                    chosen.shift();
+                }
+                ordered.push(...chosen);
             }
+
+            return ordered;
+        }
+
+        const solidContour = buildContinuousPolygon(krGeoJson);
+
+        const krBorder = L.polyline(solidContour, {
+            pane: 'borderPane',
+            color: '#ef4444',
+            weight: 3,
+            opacity: 0.95
         }).addTo(map);
 
-        const polyLatLngs = krGeoJson.features
-            .filter(f => f.geometry && f.geometry.type === 'LineString')
-            .map(f => f.geometry.coordinates.map(([lng, lat]) => [lat, lng]));
-
-        const krZone = L.polygon(polyLatLngs, {
+        const krZone = L.polygon(solidContour, {
             pane: 'zonePane',
             color: '#ef4444',
             fillColor: '#dc2626',
-            fillOpacity: 0.48,
+            fillOpacity: 0.45,
             weight: 1.5
         }).addTo(map);
 
-        if (krBorderLayer.getBounds().isValid()) {
-            map.fitBounds(krBorderLayer.getBounds(), { padding: [25, 25] });
+        if (solidContour.length > 0) {
+            map.fitBounds(krBorder.getBounds(), { padding: [25, 25] });
         }
 
         const statusPalette = {
@@ -544,7 +585,7 @@
                 fillOpacity: cfg.opacity
             });
 
-            krBorderLayer.setStyle({
+            krBorder.setStyle({
                 color: cfg.stroke,
                 opacity: 0.95
             });
