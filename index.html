@@ -700,13 +700,11 @@
 
         function buildMarkerPopupHtml(itemObj) {
             const loc = resolveLocationName(itemObj.marker.getLatLng());
-            const angleFormatted = `${itemObj.angle > 0 ? '+' : ''}${itemObj.angle}°`;
             return `
                 <div>
                     <b>${itemObj.target.name}</b> — ${loc}<br>
                     <b>Висота:</b> ${itemObj.altitude} м<br>
                     <b>Швидкість:</b> ${itemObj.speed} км/год<br>
-                    <b>Курс:</b> ${angleFormatted}<br>
                     <small>Фіксація: ${itemObj.timeStr}</small>
                 </div>
             `;
