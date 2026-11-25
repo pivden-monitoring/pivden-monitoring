@@ -106,8 +106,36 @@
         .btn-jet { background: #dc2626; }
         .btn-rotate { background: #1e293b; border: 1px solid #334155; }
         .btn-rotate:hover { background: #334155; }
+        .btn-apply { background: #0284c7; }
+        .btn-apply:hover { background: #0369a1; }
         .btn-clear { background: #475569; }
         .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
+
+        .param-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #0f172a;
+            border: 1px solid #2b3f63;
+            border-radius: 6px;
+            padding: 5px 9px;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+        .param-box input {
+            width: 78px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 6px;
+            outline: none;
+        }
+        .param-box input:focus {
+            border-color: #facc15;
+        }
 
         .rotate-box {
             display: inline-flex;
@@ -147,6 +175,12 @@
         .marker-bubble:active { cursor: grabbing; }
         .marker-bubble.active-marker {
             box-shadow: 0 0 0 3px #facc15, 0 4px 14px rgba(0, 0, 0, 0.85);
+        }
+
+        .leaflet-popup-content {
+            color: #0f172a;
+            font-size: 13px;
+            line-height: 1.45;
         }
 
         .feed-item { border-left: 3px solid #ef4444; padding-left: 10px; margin-bottom: 12px; }
@@ -211,6 +245,22 @@
         <div class="divider"></div>
 
         <div class="control-group">
+            <div class="param-box">
+                <label for="speedInput">Швидкість (км/год):</label>
+                <input id="speedInput" type="number" min="0" max="2000" step="5" value="420" oninput="syncSelectedParams()">
+            </div>
+            <div class="param-box">
+                <label for="altitudeInput">Висота (м):</label>
+                <input id="altitudeInput" type="number" min="0" max="25000" step="25" value="1200" oninput="syncSelectedParams()">
+            </div>
+            <button type="button" class="btn-tool btn-apply" onclick="applyParamsToSelected(true)" title="Оновити швидкість і висоту обраної цілі">
+                <i class="fa-solid fa-check"></i> Застосувати
+            </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="control-group">
             <span style="font-size: 13px; color: #94a3b8;">Поворот значка:</span>
             <button type="button" class="btn-tool btn-rotate" onclick="stepRotation(-15)" title="Повернути вліво на 15°">⟲ -15°</button>
             <button type="button" class="btn-tool btn-rotate" onclick="stepRotation(15)" title="Повернути вправо на 15°">⟳ +15°</button>
@@ -263,7 +313,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Тривога — КР</div>
-                    <div class="feed-desc">Визначення населених пунктів увімкнено</div>
+                    <div class="feed-desc">Вкажи швидкість і висоту та натисни на значок цілі</div>
                 </div>
             </div>
         </div>
@@ -526,7 +576,6 @@
             map.fitBounds(krBorder.getBounds(), { padding: [25, 25] });
         }
 
-        // Опорные населённые пункты и локации Криворожского района и ближайших направлений
         const settlements = [
             { name: 'Радушне', lat: 47.8065, lng: 33.4285, radiusKm: 6 },
             { name: 'Кривий Ріг', lat: 47.9105, lng: 33.3918, radiusKm: 13 },
@@ -574,7 +623,31 @@
             return `р-н ${closest.name}`;
         }
 
-        function pushTargetFeed(targetName, latlng, actionText = 'зафіксовано в н.п.') {
+        function getCurrentSpeed() {
+            const val = Number(document.getElementById('speedInput').value);
+            return Number.isFinite(val) && val >= 0 ? Math.round(val) : 0;
+        }
+
+        function getCurrentAltitude() {
+            const val = Number(document.getElementById('altitudeInput').value);
+            return Number.isFinite(val) && val >= 0 ? Math.round(val) : 0;
+        }
+
+        function buildMarkerPopupHtml(itemObj) {
+            const loc = resolveLocationName(itemObj.marker.getLatLng());
+            const angleFormatted = `${itemObj.angle > 0 ? '+' : ''}${itemObj.angle}°`;
+            return `
+                <div>
+                    <b>${itemObj.target.name}</b> — ${loc}<br>
+                    <b>Висота:</b> ${itemObj.altitude} м<br>
+                    <b>Швидкість:</b> ${itemObj.speed} км/год<br>
+                    <b>Курс:</b> ${angleFormatted}<br>
+                    <small>Фіксація: ${itemObj.timeStr}</small>
+                </div>
+            `;
+        }
+
+        function pushTargetFeed(targetName, latlng, speed, altitude, actionText = 'зафіксовано в н.п.') {
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             const locationName = resolveLocationName(latlng);
@@ -584,7 +657,7 @@
             feedEntry.innerHTML = `
                 <div class="feed-time">${timeStr}</div>
                 <div class="feed-title" style="color: #facc15;">${targetName} — ${locationName}</div>
-                <div class="feed-desc">Ціль ${actionText}: ${locationName}</div>
+                <div class="feed-desc">Ціль ${actionText}: ${locationName} • Висота: ${altitude} м • Швидкість: ${speed} км/год</div>
             `;
             feed.prepend(feedEntry);
             return locationName;
@@ -666,16 +739,22 @@
             geran: {
                 name: 'Герань-2',
                 color: '#ea580c',
+                defaultSpeed: 185,
+                defaultAltitude: 800,
                 svg: `<svg width="22" height="22" viewBox="0 0 100 100"><path fill="white" d="M44 10 C44 4 56 4 56 10 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 66 L43 66 L43 72 L12 72 L12 60 Z M45 68 L55 68 L53 76 L47 76 Z M49 76 L51 76 L51 81 L49 81 Z M38 81 Q44 79 50 81 Q56 79 62 81 Q56 83 50 81 Q44 83 38 81 Z"/></svg>`
             },
             banderol: {
                 name: 'Бандероль',
                 color: '#2563eb',
+                defaultSpeed: 520,
+                defaultAltitude: 2500,
                 svg: `<svg width="22" height="22" viewBox="0 0 100 100"><path fill="white" stroke="#0b111e" stroke-width="4" d="M88 12 L72 18 L58 32 L36 35 L32 45 L46 47 L28 65 L14 68 L10 78 L24 80 L26 92 L36 88 L39 74 L57 56 L59 70 L69 66 L72 44 L86 30 Z"/><path fill="#00a8e8" d="M62 28 L72 38 L76 34 L66 24 Z"/></svg>`
             },
             jet: {
                 name: 'Реактивний Шахед',
                 color: '#dc2626',
+                defaultSpeed: 460,
+                defaultAltitude: 1500,
                 svg: `<svg width="22" height="22" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><path fill="white" d="M44 8 C44 2 56 2 56 8 L56 26 L44 26 Z M43 28 L57 28 L88 60 L88 72 L57 72 L57 65 L43 65 L43 72 L12 72 L12 60 Z M45 67 L55 67 L55 77 L45 77 Z M43 79 L57 79 L57 85 L43 85 Z"/></g></svg>`
             }
         };
@@ -688,6 +767,11 @@
             selectedTargetKey = key;
             document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
             btnElement.classList.add('selected');
+            const target = targetsData[key];
+            if (target && !activeMarkerItem) {
+                document.getElementById('speedInput').value = target.defaultSpeed;
+                document.getElementById('altitudeInput').value = target.defaultAltitude;
+            }
         }
 
         function normalizeAngle(deg) {
@@ -720,6 +804,34 @@
             activeMarkerItem = item;
             applyMarkerTransform(item);
             syncRotationUI(item ? item.angle : 0);
+            if (item) {
+                document.getElementById('speedInput').value = item.speed;
+                document.getElementById('altitudeInput').value = item.altitude;
+            }
+        }
+
+        function syncSelectedParams() {
+            if (!activeMarkerItem) return;
+            activeMarkerItem.speed = getCurrentSpeed();
+            activeMarkerItem.altitude = getCurrentAltitude();
+            activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
+        }
+
+        function applyParamsToSelected(logToFeed = false) {
+            if (!activeMarkerItem) return;
+            activeMarkerItem.speed = getCurrentSpeed();
+            activeMarkerItem.altitude = getCurrentAltitude();
+            activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
+            activeMarkerItem.marker.openPopup();
+            if (logToFeed) {
+                pushTargetFeed(
+                    activeMarkerItem.target.name,
+                    activeMarkerItem.marker.getLatLng(),
+                    activeMarkerItem.speed,
+                    activeMarkerItem.altitude,
+                    'оновлено параметри в'
+                );
+            }
         }
 
         function setSelectedRotation(newAngle) {
@@ -728,10 +840,7 @@
             if (!activeMarkerItem) return;
             activeMarkerItem.angle = normalized;
             applyMarkerTransform(activeMarkerItem);
-            const loc = resolveLocationName(activeMarkerItem.marker.getLatLng());
-            activeMarkerItem.marker.setPopupContent(
-                `<b>${activeMarkerItem.target.name}</b> — ${loc}<br>Кут: ${normalized > 0 ? '+' : ''}${normalized}°<br><small>Тягни значок або крути повзунком</small>`
-            );
+            activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
         }
 
         function stepRotation(delta) {
@@ -746,6 +855,8 @@
             }
             const target = targetsData[selectedTargetKey];
             const initialAngle = 0;
+            const speed = getCurrentSpeed();
+            const altitude = getCurrentAltitude();
 
             const customIcon = L.divIcon({
                 html: `<div class="marker-bubble active-marker" style="background: ${target.color}; transform: rotate(${initialAngle}deg);">${target.svg}</div>`,
@@ -759,14 +870,23 @@
             const locationName = resolveLocationName(e.latlng);
 
             const marker = L.marker(e.latlng, { icon: customIcon, draggable: true }).addTo(map);
-            const itemObj = { marker, target, angle: initialAngle, lastLocation: locationName };
+            const itemObj = {
+                marker,
+                target,
+                angle: initialAngle,
+                speed,
+                altitude,
+                timeStr,
+                lastLocation: locationName
+            };
             markers.push(itemObj);
 
-            marker.bindPopup(`<b>${target.name}</b> — ${locationName}<br>Час фіксації: ${timeStr}<br><small>Тягни значок або крути вліво/вправо</small>`);
+            marker.bindPopup(buildMarkerPopupHtml(itemObj));
 
             marker.on('click', function(ev) {
                 L.DomEvent.stopPropagation(ev);
                 selectMarkerItem(itemObj);
+                marker.setPopupContent(buildMarkerPopupHtml(itemObj));
                 marker.openPopup();
             });
 
@@ -776,11 +896,15 @@
 
             marker.on('dragend', function() {
                 applyMarkerTransform(itemObj);
-                const updatedLoc = pushTargetFeed(itemObj.target.name, itemObj.marker.getLatLng(), 'змістилась у');
-                itemObj.lastLocation = updatedLoc;
-                marker.setPopupContent(
-                    `<b>${itemObj.target.name}</b> — ${updatedLoc}<br>Кут: ${itemObj.angle > 0 ? '+' : ''}${itemObj.angle}°<br><small>Тягни значок або крути вліво/вправо</small>`
+                const updatedLoc = pushTargetFeed(
+                    itemObj.target.name,
+                    itemObj.marker.getLatLng(),
+                    itemObj.speed,
+                    itemObj.altitude,
+                    'змістилась у'
                 );
+                itemObj.lastLocation = updatedLoc;
+                marker.setPopupContent(buildMarkerPopupHtml(itemObj));
             });
 
             marker.on('add', function() {
@@ -788,11 +912,16 @@
             });
 
             selectMarkerItem(itemObj);
+            marker.openPopup();
 
             const feed = document.getElementById('feedList');
             const feedEntry = document.createElement('div');
             feedEntry.className = 'feed-item yellow-line';
-            feedEntry.innerHTML = `<div class="feed-time">${timeStr}</div><div class="feed-title" style="color: #facc15;">${target.name} — ${locationName}</div><div class="feed-desc">Ціль додано в н.п. ${locationName}</div>`;
+            feedEntry.innerHTML = `
+                <div class="feed-time">${timeStr}</div>
+                <div class="feed-title" style="color: #facc15;">${target.name} — ${locationName}</div>
+                <div class="feed-desc">Ціль додано в н.п. ${locationName} • Висота: ${altitude} м • Швидкість: ${speed} км/год</div>
+            `;
             feed.prepend(feedEntry);
         });
 
