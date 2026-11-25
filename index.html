@@ -95,6 +95,10 @@
             padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: white;
             display: inline-flex; align-items: center; gap: 8px;
         }
+        .btn-alarm-on { background: #dc2626; }
+        .btn-alarm-on:hover { background: #b91c1c; }
+        .btn-alarm-off { background: #16a34a; }
+        .btn-alarm-off:hover { background: #15803d; }
         .btn-geran { background: #ea580c; }
         .btn-banderol { background: #2563eb; }
         .btn-jet { background: #dc2626; }
@@ -165,12 +169,24 @@
             <div class="trident"><i class="fa-solid fa-shield-halved"></i></div>
             <div class="title">
                 <h1>КРИВИЙ РІГ <span>MONITORING</span></h1>
-                <p>Моніторинг обстановки • Криворізький район (v2)</p>
+                <p>Моніторинг обстановки • Криворізький район</p>
             </div>
         </div>
     </header>
 
     <div class="admin-controls">
+        <div class="control-group">
+            <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Тривога КР:</span>
+            <button type="button" class="btn-tool btn-alarm-on" onclick="setKrAlarm(true)">
+                <i class="fa-solid fa-bell"></i> Увімкнути тривогу
+            </button>
+            <button type="button" class="btn-tool btn-alarm-off" onclick="setKrAlarm(false)">
+                <i class="fa-solid fa-bell-slash"></i> Вимкнути тривогу
+            </button>
+        </div>
+
+        <div class="divider"></div>
+
         <div class="control-group">
             <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Вибери ціль:</span>
             <button class="btn-tool btn-geran" onclick="selectTool('geran', this)">
@@ -242,7 +258,7 @@
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
                     <div class="feed-title" style="color: #f87171;">Тривога — КР</div>
-                    <div class="feed-desc">Контур зібрано з твого GeoJSON</div>
+                    <div class="feed-desc">Керування тривогою увімкнено</div>
                 </div>
             </div>
         </div>
@@ -466,6 +482,11 @@
         }
 
         let krStatus = 'red';
+
+        function setKrAlarm(enabled) {
+            krStatus = enabled ? 'red' : 'green';
+            updateKrUI();
+        }
 
         function changeKrStatus() {
             if (krStatus === 'red') {
