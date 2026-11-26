@@ -365,7 +365,7 @@
             <button type="button" class="btn-tool btn-rotate" onclick="stepRotation(-15)">⟲ -15°</button>
             <button type="button" class="btn-tool btn-rotate" onclick="stepRotation(15)">⟳ +15°</button>
             <div class="rotate-box">
-                <input id="angleSlider" type="range" min="-180" max="180" step="1" value="0" oninput="setSelectedRotation(this.value)">
+                <input id="angleSlider" type="range" min="-180" max="180" step="1" value="0" oninput="setSelectedRotation(this.value)" onchange="commitRotationChange()">
                 <span id="angleLabel" class="angle-readout">0°</span>
             </div>
             <button type="button" class="btn-tool btn-rotate" onclick="setSelectedRotation(0)">↺ 0°</button>
@@ -508,6 +508,7 @@
                     else item.marker.dragging.disable();
                 }
                 applyMarkerTransform(item);
+                updateCourseLine(item);
             });
             syncAutoFlyUI();
         }
@@ -554,6 +555,9 @@
 
         map.createPane('borderPane');
         map.getPane('borderPane').style.zIndex = 415;
+
+        map.createPane('courseLinePane');
+        map.getPane('courseLinePane').style.zIndex = 430;
 
         // Границы Криворожского района (не трогаем)
         const krGeoJson = {
@@ -930,7 +934,17 @@
             { name: 'Покров', lat: 47.6514, lng: 34.0939, radiusKm: 8 },
             { name: 'Синельникове', lat: 48.3167, lng: 35.5167, radiusKm: 9 },
             { name: 'П’ятихатки', lat: 48.4106, lng: 33.7044, radiusKm: 8 },
-            { name: 'Жовті Води', lat: 48.3472, lng: 33.5044, radiusKm: 7 }
+            { name: 'Жовті Води', lat: 48.3472, lng: 33.5044, radiusKm: 7 },
+            { name: 'Запоріжжя', lat: 47.8388, lng: 35.1396, radiusKm: 18 },
+            { name: 'Вільнянськ', lat: 47.9453, lng: 35.4306, radiusKm: 8 },
+            { name: 'Оріхів', lat: 47.5656, lng: 35.7833, radiusKm: 8 },
+            { name: 'Гуляйполе', lat: 47.6561, lng: 36.2625, radiusKm: 8 },
+            { name: 'Василівка', lat: 47.4369, lng: 35.2764, radiusKm: 8 },
+            { name: 'Енергодар', lat: 47.4989, lng: 34.6558, radiusKm: 8 },
+            { name: 'Кропивницький', lat: 48.5079, lng: 32.2623, radiusKm: 14 },
+            { name: 'Олександрія', lat: 48.6686, lng: 33.1156, radiusKm: 10 },
+            { name: 'Миколаїв', lat: 46.9750, lng: 31.9946, radiusKm: 16 },
+            { name: 'Херсон', lat: 46.6354, lng: 32.6169, radiusKm: 15 }
         ];
 
         function distanceKm(lat1, lng1, lat2, lng2) {
@@ -939,6 +953,59 @@
             const dLng = (lng2 - lng1) * Math.PI / 180;
             const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function bearingDeg(lat1, lng1, lat2, lng2) {
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δλ = (lng2 - lng1) * Math.PI / 180;
+            const y = Math.sin(Δλ) * Math.cos(φ2);
+            const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+            return Math.atan2(y, x) * 180 / Math.PI;
+        }
+
+        function angleDiffDeg(a, b) {
+            let diff = ((a - b + 540) % 360) - 180;
+            return Math.abs(diff);
+        }
+
+        function resolveCourseTargetName(lat, lng, angleDeg) {
+            const normAngle = ((Number(angleDeg) || 0) % 360 + 360) % 360;
+            let bestPlace = null;
+            let bestScore = Infinity;
+
+            for (const place of settlements) {
+                const dist = distanceKm(lat, lng, place.lat, place.lng);
+                if (dist < 4) continue;
+                const brg = (bearingDeg(lat, lng, place.lat, place.lng) + 360) % 360;
+                const diff = angleDiffDeg(normAngle, brg);
+                const maxCone = dist < 45 ? 28 : 22;
+                if (diff <= maxCone) {
+                    const score = diff * 2.2 + dist * 0.08;
+                    if (score < bestScore) {
+                        bestScore = score;
+                        bestPlace = place.name;
+                    }
+                }
+            }
+
+            if (bestPlace) return `на ${bestPlace}`;
+
+            const sectors = [
+                { min: 337.5, max: 360, label: 'північний курс' },
+                { min: 0, max: 22.5, label: 'північний курс' },
+                { min: 22.5, max: 67.5, label: 'північно-східний курс' },
+                { min: 67.5, max: 112.5, label: 'східний курс' },
+                { min: 112.5, max: 157.5, label: 'південно-східний курс' },
+                { min: 157.5, max: 202.5, label: 'південний курс' },
+                { min: 202.5, max: 247.5, label: 'південно-західний курс' },
+                { min: 247.5, max: 292.5, label: 'західний курс' },
+                { min: 292.5, max: 337.5, label: 'північно-західний курс' }
+            ];
+            for (const s of sectors) {
+                if (normAngle >= s.min && normAngle < s.max) return s.label;
+            }
+            return 'курс уточнюється';
         }
 
         function resolveLocationName(latlng) {
@@ -1131,11 +1198,51 @@
             return Math.round(angle);
         }
 
+        function computeCourseTip(lat, lng, angleDeg) {
+            const vectorMeters = 26000;
+            const earthRadiusMeters = 6378137;
+            const bearingRad = (Number(angleDeg) || 0) * Math.PI / 180;
+            const dLat = (vectorMeters * Math.cos(bearingRad)) / earthRadiusMeters;
+            const cosLat = Math.max(0.1, Math.cos(lat * Math.PI / 180));
+            const dLng = (vectorMeters * Math.sin(bearingRad)) / (earthRadiusMeters * cosLat);
+            return [
+                lat + (dLat * 180 / Math.PI),
+                lng + (dLng * 180 / Math.PI)
+            ];
+        }
+
+        function updateCourseLine(item) {
+            if (!item || !item.marker) return;
+            const pos = item.marker.getLatLng();
+            const tip = computeCourseTip(pos.lat, pos.lng, item.angle);
+            const isSelected = activeMarkerItem === item && isOperator;
+
+            if (!item.courseLine) {
+                item.courseLine = L.polyline([[pos.lat, pos.lng], tip], {
+                    pane: 'courseLinePane',
+                    color: isSelected ? '#facc15' : '#ef4444',
+                    weight: isSelected ? 3.5 : 2.5,
+                    opacity: 0.92,
+                    interactive: false
+                }).addTo(map);
+            } else {
+                item.courseLine.setLatLngs([[pos.lat, pos.lng], tip]);
+                item.courseLine.setStyle({
+                    color: isSelected ? '#facc15' : '#ef4444',
+                    weight: isSelected ? 3.5 : 2.5,
+                    opacity: 0.92
+                });
+            }
+        }
+
         function buildMarkerPopupHtml(itemObj) {
-            const loc = resolveLocationName(itemObj.marker.getLatLng());
+            const pos = itemObj.marker.getLatLng();
+            const loc = resolveLocationName(pos);
+            const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle);
             return `
                 <div>
                     <b>${itemObj.target.name}</b> — ${loc}<br>
+                    <b>Курс:</b> ${courseLabel} (${itemObj.angle}°)<br>
                     <b>Висота:</b> ${itemObj.altitude} м<br>
                     <b>Швидкість:</b> ${itemObj.speed} км/год<br>
                     <small>Фіксація: ${itemObj.timeStr}</small>
@@ -1144,7 +1251,9 @@
         }
 
         function applyMarkerTransform(item) {
-            if (!item || !item.marker._icon) return;
+            if (!item) return;
+            updateCourseLine(item);
+            if (!item.marker._icon) return;
             const iconEl = item.marker._icon.querySelector('.target-icon-wrap');
             if (!iconEl) return;
             const isSelected = activeMarkerItem === item && isOperator;
@@ -1228,15 +1337,36 @@
             syncMarkersToFirebase();
 
             if (logToFeed) {
-                const loc = resolveLocationName(activeMarkerItem.marker.getLatLng());
+                const pos = activeMarkerItem.marker.getLatLng();
+                const loc = resolveLocationName(pos);
+                const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, activeMarkerItem.angle);
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
                     title: `${activeMarkerItem.target.name} — ${loc}`,
-                    desc: `Оновлено в ${loc} • Висота: ${activeMarkerItem.altitude} м • Швидкість: ${activeMarkerItem.speed} км/год`,
+                    desc: `Курс ${courseLabel} (${activeMarkerItem.angle}°) • Висота: ${activeMarkerItem.altitude} м • Швидкість: ${activeMarkerItem.speed} км/год`,
                     feedClass: 'yellow-line',
                     titleColor: '#facc15'
                 });
             }
+        }
+
+        let lastLoggedCourseKey = '';
+
+        function logCourseIfChanged(item) {
+            if (!item || !isOperator) return;
+            const pos = item.marker.getLatLng();
+            const loc = resolveLocationName(pos);
+            const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, item.angle);
+            const key = `${item.id}:${courseLabel}`;
+            if (key === lastLoggedCourseKey) return;
+            lastLoggedCourseKey = key;
+            saveFeedEntry({
+                timeStr: nowTimeStr(),
+                title: `${item.target.name} — курс ${courseLabel}`,
+                desc: `Район: ${loc} • Кут: ${item.angle}° • Швидкість: ${item.speed} км/год`,
+                feedClass: 'yellow-line',
+                titleColor: '#facc15'
+            });
         }
 
         function setSelectedRotation(newAngle, fromRemote = false) {
@@ -1250,10 +1380,17 @@
             if (!fromRemote) syncMarkersToFirebase();
         }
 
+        function commitRotationChange() {
+            if (!activeMarkerItem || !isOperator) return;
+            syncMarkersToFirebase();
+            logCourseIfChanged(activeMarkerItem);
+        }
+
         function stepRotation(delta) {
             if (firebaseConfigured && !isOperator) return;
             const current = activeMarkerItem ? activeMarkerItem.angle : Number(document.getElementById('angleSlider').value);
             setSelectedRotation(current + delta);
+            if (activeMarkerItem) logCourseIfChanged(activeMarkerItem);
         }
 
         function moveLatLngByCourse(lat, lng, speedKmh, angleDeg, dtSeconds) {
@@ -1290,6 +1427,7 @@
                     const nextPos = moveLatLngByCourse(pos.lat, pos.lng, item.speed, item.angle, dtSec);
                     if (nextPos.lat !== pos.lat || nextPos.lng !== pos.lng) {
                         item.marker.setLatLng([nextPos.lat, nextPos.lng]);
+                        updateCourseLine(item);
                         if (refreshPopup && item.marker.isPopupOpen()) {
                             item.marker.setPopupContent(buildMarkerPopupHtml(item));
                         }
@@ -1343,8 +1481,9 @@
             });
 
             const marker = L.marker(latlng, { icon: customIcon, draggable: isOperator }).addTo(map);
-            const itemObj = { id, targetKey: data.targetKey || 'geran', marker, target, angle, speed, altitude, autoFly, timeStr };
+            const itemObj = { id, targetKey: data.targetKey || 'geran', marker, target, angle, speed, altitude, autoFly, timeStr, courseLine: null };
             markers.push(itemObj);
+            updateCourseLine(itemObj);
 
             marker.bindPopup(buildMarkerPopupHtml(itemObj));
 
@@ -1353,6 +1492,10 @@
                 if (isOperator) selectMarkerItem(itemObj);
                 marker.setPopupContent(buildMarkerPopupHtml(itemObj));
                 marker.openPopup();
+            });
+
+            marker.on('drag', function() {
+                updateCourseLine(itemObj);
             });
 
             marker.on('dragstart', function() {
@@ -1364,11 +1507,13 @@
                 applyMarkerTransform(itemObj);
                 itemObj.marker.setPopupContent(buildMarkerPopupHtml(itemObj));
                 syncMarkersToFirebase();
-                const loc = resolveLocationName(itemObj.marker.getLatLng());
+                const pos = itemObj.marker.getLatLng();
+                const loc = resolveLocationName(pos);
+                const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle);
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
                     title: `${itemObj.target.name} — ${loc}`,
-                    desc: `Ціль змістилась у ${loc} • Висота: ${itemObj.altitude} м • Швидкість: ${itemObj.speed} км/год`,
+                    desc: `Курс ${courseLabel} (${itemObj.angle}°) • Висота: ${itemObj.altitude} м • Швидкість: ${itemObj.speed} км/год`,
                     feedClass: 'yellow-line',
                     titleColor: '#facc15'
                 });
@@ -1415,10 +1560,11 @@
             syncMarkersToFirebase();
 
             const locationName = resolveLocationName(e.latlng);
+            const courseLabel = resolveCourseTargetName(e.latlng.lat, e.latlng.lng, itemObj.angle);
             saveFeedEntry({
                 timeStr,
                 title: `${target.name} — ${locationName}`,
-                desc: `Ціль додано в н.п. ${locationName} • Висота: ${altitude} м • Швидкість: ${speed} км/год`,
+                desc: `Ціль додано в н.п. ${locationName} • Курс ${courseLabel} • Висота: ${altitude} м • Швидкість: ${speed} км/год`,
                 feedClass: 'yellow-line',
                 titleColor: '#facc15'
             });
@@ -1428,10 +1574,12 @@
             if (!fromRemote && firebaseConfigured && !isOperator) return;
             markers.forEach(m => {
                 m.autoFly = false;
+                if (m.courseLine) map.removeLayer(m.courseLine);
                 map.removeLayer(m.marker);
             });
             markers = [];
             activeMarkerItem = null;
+            lastLoggedCourseKey = '';
             syncRotationUI(0);
             syncAutoFlyUI();
             if (!fromRemote && firebaseConfigured && db) {
@@ -1463,6 +1611,7 @@
                 markers = markers.filter(item => {
                     if (!remoteIds.has(item.id)) {
                         item.autoFly = false;
+                        if (item.courseLine) map.removeLayer(item.courseLine);
                         map.removeLayer(item.marker);
                         if (activeMarkerItem === item) {
                             activeMarkerItem = null;
