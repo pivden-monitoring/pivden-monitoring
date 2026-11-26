@@ -193,6 +193,10 @@
             padding: 4px 6px;
             outline: none;
         }
+        .param-box input.count-input {
+            width: 54px;
+            color: #facc15;
+        }
         .param-box input:focus { border-color: #facc15; }
 
         .rotate-box {
@@ -224,6 +228,16 @@
             will-change: transform;
         }
 
+        .marker-slot {
+            position: relative;
+            width: 56px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
         .target-icon-wrap {
             width: 44px;
             height: 44px;
@@ -238,6 +252,22 @@
         .target-icon-wrap.editable:active { cursor: grabbing; }
         .target-icon-wrap.active-marker {
             filter: drop-shadow(0 0 16px rgba(239, 68, 68, 1)) drop-shadow(0 0 8px rgba(220, 38, 38, 1)) drop-shadow(0 0 3px rgba(255, 255, 255, 1)) !important;
+        }
+
+        .group-count-badge {
+            position: absolute;
+            top: -4px;
+            right: -2px;
+            background: #dc2626;
+            color: #ffffff;
+            border: 1.5px solid #ffffff;
+            border-radius: 999px;
+            padding: 1px 5px;
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1.25;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.75);
+            pointer-events: none;
         }
 
         .leaflet-popup-content {
@@ -354,6 +384,10 @@
         <div class="divider"></div>
 
         <div class="control-group">
+            <div class="param-box">
+                <label for="countInput">Кількість:</label>
+                <input id="countInput" class="count-input" type="number" min="1" max="99" step="1" value="1">
+            </div>
             <div class="param-box">
                 <label for="speedInput">Швидкість (км/год):</label>
                 <input id="speedInput" type="number" min="0" max="10000" step="5" value="460">
@@ -980,6 +1014,17 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
+        function sanitizeCount(val) {
+            const n = Math.round(Number(val));
+            if (!Number.isFinite(n) || n < 1) return 1;
+            return Math.min(99, n);
+        }
+
+        function formatTargetTitle(targetName, count) {
+            const c = sanitizeCount(count);
+            return c > 1 ? `${targetName} (${c}x)` : targetName;
+        }
+
         function formatEtaText(distKm, speedKmh) {
             const speed = Number(speedKmh);
             if (!Number.isFinite(distKm) || distKm <= 0.1) return 'на місці (< 1 хв)';
@@ -1368,12 +1413,13 @@
         function buildMarkerPopupHtml(itemObj) {
             const pos = itemObj.marker.getLatLng();
             const loc = resolveLocationName(pos);
+            const titleWithCount = formatTargetTitle(itemObj.target.name, itemObj.count);
             const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
             const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, itemObj.destLat, itemObj.destLng);
             const etaRow = etaSummary ? `<b>До цілі:</b> ${etaSummary}<br>` : '';
             return `
                 <div>
-                    <b>${itemObj.target.name}</b> — ${loc}<br>
+                    <b>${titleWithCount}</b> — ${loc}<br>
                     <b>Курс:</b> ${courseLabel} (${itemObj.angle}°)<br>
                     ${etaRow}<b>Висота:</b> ${itemObj.altitude} м<br>
                     <b>Швидкість:</b> ${itemObj.speed} км/год<br>
@@ -1394,6 +1440,24 @@
             iconEl.style.filter = isSelected ? '' : item.target.glow;
             iconEl.classList.toggle('active-marker', isSelected);
             iconEl.classList.toggle('editable', isOperator);
+
+            const badgeEl = item.marker._icon.querySelector('.group-count-badge');
+            const c = sanitizeCount(item.count);
+            if (c > 1) {
+                if (badgeEl) {
+                    badgeEl.textContent = `${c}x`;
+                } else {
+                    const slotEl = item.marker._icon.querySelector('.marker-slot');
+                    if (slotEl) {
+                        const span = document.createElement('span');
+                        span.className = 'group-count-badge';
+                        span.textContent = `${c}x`;
+                        slotEl.appendChild(span);
+                    }
+                }
+            } else if (badgeEl) {
+                badgeEl.remove();
+            }
         }
 
         function syncRotationUI(angle) {
@@ -1457,6 +1521,7 @@
             syncAimClickUI();
             syncDeleteSelectedUI();
             if (item && isOperator) {
+                document.getElementById('countInput').value = sanitizeCount(item.count);
                 document.getElementById('speedInput').value = item.speed;
                 document.getElementById('altitudeInput').value = item.altitude;
             }
@@ -1477,6 +1542,7 @@
             const item = markers[idx];
             const pos = item.marker.getLatLng();
             const loc = resolveLocationName(pos);
+            const titleWithCount = formatTargetTitle(item.target.name, item.count);
             item.autoFly = false;
             removeMarkerLayers(item);
             markers.splice(idx, 1);
@@ -1496,7 +1562,7 @@
                 }
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
-                    title: `${item.target.name} — знято з супроводу`,
+                    title: `${titleWithCount} — знято з супроводу`,
                     desc: `Ціль видалено в р-ні ${loc}`,
                     feedClass: 'green-line',
                     titleColor: '#4ade80'
@@ -1516,6 +1582,7 @@
                 const latlng = item.marker.getLatLng();
                 payload[item.id] = {
                     targetKey: item.targetKey,
+                    count: sanitizeCount(item.count),
                     lat: latlng.lat,
                     lng: latlng.lng,
                     angle: item.angle,
@@ -1544,10 +1611,14 @@
         function applyParamsToSelected(logToFeed = false) {
             if (firebaseConfigured && !isOperator) return;
             if (!activeMarkerItem) return;
+            const countVal = sanitizeCount(document.getElementById('countInput').value);
             const speedVal = Number(document.getElementById('speedInput').value);
             const altVal = Number(document.getElementById('altitudeInput').value);
+            activeMarkerItem.count = countVal;
+            document.getElementById('countInput').value = countVal;
             activeMarkerItem.speed = Number.isFinite(speedVal) && speedVal >= 0 ? Math.round(speedVal) : 0;
             activeMarkerItem.altitude = Number.isFinite(altVal) && altVal >= 0 ? Math.round(altVal) : 0;
+            applyMarkerTransform(activeMarkerItem);
             activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
             activeMarkerItem.marker.openPopup();
             syncMarkersToFirebase();
@@ -1555,12 +1626,13 @@
             if (logToFeed) {
                 const pos = activeMarkerItem.marker.getLatLng();
                 const loc = resolveLocationName(pos);
+                const titleWithCount = formatTargetTitle(activeMarkerItem.target.name, activeMarkerItem.count);
                 const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, activeMarkerItem.angle, activeMarkerItem.destLat, activeMarkerItem.destLng);
                 const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, activeMarkerItem.speed, activeMarkerItem.destLat, activeMarkerItem.destLng);
                 const etaPart = etaSummary ? ` • До цілі: ${etaSummary}` : '';
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
-                    title: `${activeMarkerItem.target.name} — ${loc}`,
+                    title: `${titleWithCount} — ${loc}`,
                     desc: `Курс ${courseLabel} (${activeMarkerItem.angle}°)${etaPart} • Висота: ${activeMarkerItem.altitude} м • Швидкість: ${activeMarkerItem.speed} км/год`,
                     feedClass: 'yellow-line',
                     titleColor: '#facc15'
@@ -1574,15 +1646,16 @@
             if (!item || !isOperator) return;
             const pos = item.marker.getLatLng();
             const loc = resolveLocationName(pos);
+            const titleWithCount = formatTargetTitle(item.target.name, item.count);
             const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, item.angle, item.destLat, item.destLng);
             const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, item.speed, item.destLat, item.destLng);
-            const key = `${item.id}:${courseLabel}:${etaSummary || ''}`;
+            const key = `${item.id}:${courseLabel}:${etaSummary || ''}:${sanitizeCount(item.count)}`;
             if (key === lastLoggedCourseKey) return;
             lastLoggedCourseKey = key;
             const etaPart = etaSummary ? ` • Час до точки: ${etaSummary}` : '';
             saveFeedEntry({
                 timeStr: nowTimeStr(),
-                title: `${item.target.name} — курс ${courseLabel}`,
+                title: `${titleWithCount} — курс ${courseLabel}`,
                 desc: `Район: ${loc}${etaPart} • Кут: ${item.angle}° • Швидкість: ${item.speed} км/год`,
                 feedClass: 'yellow-line',
                 titleColor: '#facc15'
@@ -1727,6 +1800,7 @@
         function createOrUpdateMarkerFromData(id, data, shouldSelect = false) {
             const target = targetsData[data.targetKey] || targetsData.geran;
             const latlng = L.latLng(data.lat, data.lng);
+            const count = sanitizeCount(data.count);
             const angle = normalizeAngle(data.angle || 0);
             const speed = Number(data.speed) || target.defaultSpeed;
             const altitude = Number(data.altitude) || target.defaultAltitude;
@@ -1740,6 +1814,7 @@
             if (existing) {
                 existing.target = target;
                 existing.targetKey = data.targetKey;
+                existing.count = count;
                 existing.angle = angle;
                 existing.speed = speed;
                 existing.altitude = altitude;
@@ -1757,17 +1832,19 @@
                 return existing;
             }
 
+            const badgeHtml = count > 1 ? `<span class="group-count-badge">${count}x</span>` : '';
             const customIcon = L.divIcon({
-                html: `<div class="target-icon-wrap ${isOperator ? 'editable' : ''}" style="filter: ${target.glow}; transform: rotate(${angle}deg);">${target.svg}</div>`,
+                html: `<div class="marker-slot"><div class="target-icon-wrap ${isOperator ? 'editable' : ''}" style="filter: ${target.glow}; transform: rotate(${angle}deg);">${target.svg}</div>${badgeHtml}</div>`,
                 className: 'custom-marker',
-                iconSize: [44, 44],
-                iconAnchor: [22, 22]
+                iconSize: [56, 44],
+                iconAnchor: [28, 22]
             });
 
             const marker = L.marker(latlng, { icon: customIcon, draggable: isOperator }).addTo(map);
             const itemObj = {
                 id,
                 targetKey: data.targetKey || 'geran',
+                count,
                 marker,
                 target,
                 angle,
@@ -1828,12 +1905,13 @@
                 itemObj.marker.setPopupContent(buildMarkerPopupHtml(itemObj));
                 syncMarkersToFirebase();
                 const loc = resolveLocationName(pos);
+                const titleWithCount = formatTargetTitle(itemObj.target.name, itemObj.count);
                 const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
                 const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, itemObj.destLat, itemObj.destLng);
                 const etaPart = etaSummary ? ` • До цілі: ${etaSummary}` : '';
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
-                    title: `${itemObj.target.name} — ${loc}`,
+                    title: `${titleWithCount} — ${loc}`,
                     desc: `Курс ${courseLabel} (${itemObj.angle}°)${etaPart} • Висота: ${itemObj.altitude} м • Швидкість: ${itemObj.speed} км/год`,
                     feedClass: 'yellow-line',
                     titleColor: '#facc15'
@@ -1856,6 +1934,8 @@
 
             if (selectedTargetKey) {
                 const target = targetsData[selectedTargetKey];
+                const countVal = sanitizeCount(document.getElementById('countInput').value);
+                document.getElementById('countInput').value = countVal;
                 const speedVal = Number(document.getElementById('speedInput').value);
                 const altVal = Number(document.getElementById('altitudeInput').value);
                 const speed = Number.isFinite(speedVal) && speedVal >= 0 ? Math.round(speedVal) : target.defaultSpeed;
@@ -1865,6 +1945,7 @@
 
                 const itemObj = createOrUpdateMarkerFromData(id, {
                     targetKey: selectedTargetKey,
+                    count: countVal,
                     lat: e.latlng.lat,
                     lng: e.latlng.lng,
                     angle: 0,
@@ -1882,10 +1963,11 @@
                 syncMarkersToFirebase();
 
                 const locationName = resolveLocationName(e.latlng);
+                const titleWithCount = formatTargetTitle(target.name, countVal);
                 const courseLabel = resolveCourseTargetName(e.latlng.lat, e.latlng.lng, itemObj.angle);
                 saveFeedEntry({
                     timeStr,
-                    title: `${target.name} — ${locationName}`,
+                    title: `${titleWithCount} — ${locationName}`,
                     desc: `Ціль додано в н.п. ${locationName} • Курс ${courseLabel} • Висота: ${altitude} м • Швидкість: ${speed} км/год`,
                     feedClass: 'yellow-line',
                     titleColor: '#facc15'
@@ -1900,6 +1982,14 @@
 
             selectMarkerItem(null, false);
         });
+
+        function removeMarkerLayers(m) {
+            if (m.trailLine) map.removeLayer(m.trailLine);
+            if (m.courseLine) map.removeLayer(m.courseLine);
+            if (m.courseShadowLine) map.removeLayer(m.courseShadowLine);
+            if (m.destMarker) map.removeLayer(m.destMarker);
+            if (m.marker) map.removeLayer(m.marker);
+        }
 
         function clearMarkers(fromRemote = false) {
             if (!fromRemote && firebaseConfigured && !isOperator) return;
