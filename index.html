@@ -84,8 +84,8 @@
         .red { background: #ef4444; }
         .yellow { background: #eab308; }
         .green { background: #22c55e; }
-        .region-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #182338; }
-        .badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; user-select: none; }
+        .region-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 8px 0; border-bottom: 1px solid #182338; gap: 8px; }
+        .badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; user-select: none; white-space: nowrap; }
         .badge.clickable { cursor: pointer; }
         .badge-red { background: #dc2626; color: white; }
         .badge-yellow { background: #ca8a04; color: white; }
@@ -255,7 +255,7 @@
             <div class="trident"><i class="fa-solid fa-shield-halved"></i></div>
             <div class="title">
                 <h1>КРИВИЙ РІГ <span>MONITORING</span></h1>
-                <p>Моніторинг обстановки • Криворізький район та Дніпропетровщина</p>
+                <p>Моніторинг обстановки • Криворізький та Дніпропетровський райони</p>
             </div>
         </div>
 
@@ -275,13 +275,28 @@
         <div class="control-group">
             <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Статус КР:</span>
             <button type="button" class="btn-tool btn-alarm-on" onclick="setKrStatus('red')">
-                <i class="fa-solid fa-bell"></i> Увімкнути тривогу
+                <i class="fa-solid fa-bell"></i> Тривога КР
             </button>
             <button type="button" class="btn-tool btn-alarm-yellow" onclick="setKrStatus('yellow')">
-                <i class="fa-solid fa-triangle-exclamation"></i> Загроза
+                <i class="fa-solid fa-triangle-exclamation"></i> Загроза КР
             </button>
             <button type="button" class="btn-tool btn-alarm-off" onclick="setKrStatus('green')">
-                <i class="fa-solid fa-bell-slash"></i> Вимкнути тривогу
+                <i class="fa-solid fa-bell-slash"></i> Відбій КР
+            </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="control-group">
+            <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Статус Дніпро:</span>
+            <button type="button" class="btn-tool btn-alarm-on" onclick="setDniproStatus('red')">
+                <i class="fa-solid fa-bell"></i> Тривога Дніпро
+            </button>
+            <button type="button" class="btn-tool btn-alarm-yellow" onclick="setDniproStatus('yellow')">
+                <i class="fa-solid fa-triangle-exclamation"></i> Загроза Дніпро
+            </button>
+            <button type="button" class="btn-tool btn-alarm-off" onclick="setDniproStatus('green')">
+                <i class="fa-solid fa-bell-slash"></i> Відбій Дніпро
             </button>
         </div>
 
@@ -387,10 +402,14 @@
                 </div>
             </div>
             <div>
-                <div class="panel-title">Статус Кривого Рогу</div>
+                <div class="panel-title">Статус районів</div>
                 <div class="region-row">
                     <span>Криворізький р-н (КР)</span>
                     <span id="badgeKr" class="badge badge-red" onclick="changeKrStatus()">Тривога</span>
+                </div>
+                <div class="region-row">
+                    <span>Дніпропетровський р-н</span>
+                    <span id="badgeDnipro" class="badge badge-green" onclick="changeDniproStatus()">Відбій</span>
                 </div>
             </div>
         </div>
@@ -443,6 +462,7 @@
             const tag = document.getElementById('roleTag');
             const controls = document.getElementById('adminControls');
             const krBadge = document.getElementById('badgeKr');
+            const dniproBadge = document.getElementById('badgeDnipro');
             const input = document.getElementById('opCodeInput');
             const btnUnlock = document.getElementById('btnOpUnlock');
             const btnLock = document.getElementById('btnOpLock');
@@ -452,6 +472,7 @@
                 tag.classList.add('active');
                 controls.classList.add('visible');
                 krBadge.classList.add('clickable');
+                dniproBadge.classList.add('clickable');
                 if (firebaseConfigured) {
                     input.style.display = 'none';
                     btnUnlock.style.display = 'none';
@@ -462,6 +483,7 @@
                 tag.classList.remove('active');
                 controls.classList.remove('visible');
                 krBadge.classList.remove('clickable');
+                dniproBadge.classList.remove('clickable');
                 input.style.display = 'inline-block';
                 btnUnlock.style.display = 'inline-flex';
                 btnLock.style.display = 'none';
@@ -531,7 +553,7 @@
             ]
         };
 
-        // Границы Днепропетровской области
+        // Границы Днепропетровского района
         const dniproGeoJson = {
             "type": "FeatureCollection",
             "features": [
@@ -846,15 +868,15 @@
         const dniproContour = buildContinuousPolygon(dniproGeoJson);
         const dniproBorder = L.polyline(dniproContour, {
             pane: 'dniproBorderPane',
-            color: '#f59e0b',
+            color: '#22c55e',
             weight: 2.5,
-            opacity: 0.9
+            opacity: 0.92
         }).addTo(map);
         const dniproZone = L.polygon(dniproContour, {
             pane: 'dniproZonePane',
-            color: '#f59e0b',
-            fillColor: '#d97706',
-            fillOpacity: 0.16,
+            color: '#22c55e',
+            fillColor: '#16a34a',
+            fillOpacity: 0.22,
             weight: 1.2
         }).addTo(map);
 
@@ -862,7 +884,10 @@
         const krBorder = L.polyline(solidContour, { pane: 'borderPane', color: '#ef4444', weight: 3, opacity: 0.95 }).addTo(map);
         const krZone = L.polygon(solidContour, { pane: 'zonePane', color: '#ef4444', fillColor: '#dc2626', fillOpacity: 0.45, weight: 1.5 }).addTo(map);
 
-        if (dniproContour.length > 0) {
+        if (dniproContour.length > 0 && solidContour.length > 0) {
+            const combinedBounds = dniproBorder.getBounds().extend(krBorder.getBounds());
+            map.fitBounds(combinedBounds, { padding: [20, 20] });
+        } else if (dniproContour.length > 0) {
             map.fitBounds(dniproBorder.getBounds(), { padding: [20, 20] });
         } else if (solidContour.length > 0) {
             map.fitBounds(krBorder.getBounds(), { padding: [25, 25] });
@@ -934,12 +959,13 @@
         }
 
         const statusPalette = {
-            red: { fill: '#dc2626', stroke: '#ef4444', opacity: 0.48, text: 'Тривога', badgeClass: 'badge badge-red', feedClass: '', color: '#f87171' },
-            yellow: { fill: '#ca8a04', stroke: '#eab308', opacity: 0.45, text: 'Загроза', badgeClass: 'badge badge-yellow', feedClass: 'yellow-line', color: '#facc15' },
-            green: { fill: '#16a34a', stroke: '#22c55e', opacity: 0.42, text: 'Відбій', badgeClass: 'badge badge-green', feedClass: 'green-line', color: '#4ade80' }
+            red: { fill: '#dc2626', stroke: '#ef4444', opacity: 0.48, dniproOpacity: 0.36, text: 'Тривога', badgeClass: 'badge badge-red', feedClass: '', color: '#f87171' },
+            yellow: { fill: '#ca8a04', stroke: '#eab308', opacity: 0.45, dniproOpacity: 0.32, text: 'Загроза', badgeClass: 'badge badge-yellow', feedClass: 'yellow-line', color: '#facc15' },
+            green: { fill: '#16a34a', stroke: '#22c55e', opacity: 0.42, dniproOpacity: 0.22, text: 'Відбій', badgeClass: 'badge badge-green', feedClass: 'green-line', color: '#4ade80' }
         };
 
         let krStatus = 'red';
+        let dniproStatus = 'green';
 
         function applyStatusVisuals(statusKey) {
             const cfg = statusPalette[statusKey] || statusPalette.red;
@@ -948,6 +974,15 @@
             badge.innerText = cfg.text;
             krZone.setStyle({ color: cfg.stroke, fillColor: cfg.fill, fillOpacity: cfg.opacity });
             krBorder.setStyle({ color: cfg.stroke, opacity: 0.95 });
+        }
+
+        function applyDniproStatusVisuals(statusKey) {
+            const cfg = statusPalette[statusKey] || statusPalette.green;
+            const badge = document.getElementById('badgeDnipro');
+            badge.className = `badge ${cfg.badgeClass.split(' ')[1]} ${isOperator ? 'clickable' : ''}`;
+            badge.innerText = cfg.text;
+            dniproZone.setStyle({ color: cfg.stroke, fillColor: cfg.fill, fillOpacity: cfg.dniproOpacity });
+            dniproBorder.setStyle({ color: cfg.stroke, opacity: 0.92 });
         }
 
         function setKrStatus(nextStatus, fromRemote = false) {
@@ -971,11 +1006,39 @@
             }
         }
 
+        function setDniproStatus(nextStatus, fromRemote = false) {
+            if (!statusPalette[nextStatus]) return;
+            if (!fromRemote && firebaseConfigured && !isOperator) return;
+            dniproStatus = nextStatus;
+            applyDniproStatusVisuals(dniproStatus);
+
+            if (!fromRemote) {
+                const cfg = statusPalette[dniproStatus];
+                if (firebaseConfigured && db) {
+                    db.ref('monitoring/dniproStatus').set(dniproStatus);
+                }
+                saveFeedEntry({
+                    timeStr: nowTimeStr(),
+                    title: 'Дніпропетровський р-н',
+                    desc: `Статус: ${cfg.text}`,
+                    feedClass: cfg.feedClass,
+                    titleColor: cfg.color
+                });
+            }
+        }
+
         function changeKrStatus() {
             if (firebaseConfigured && !isOperator) return;
             if (krStatus === 'red') setKrStatus('yellow');
             else if (krStatus === 'yellow') setKrStatus('green');
             else setKrStatus('red');
+        }
+
+        function changeDniproStatus() {
+            if (firebaseConfigured && !isOperator) return;
+            if (dniproStatus === 'red') setDniproStatus('yellow');
+            else if (dniproStatus === 'yellow') setDniproStatus('green');
+            else setDniproStatus('red');
         }
 
         const targetsData = {
@@ -1360,6 +1423,14 @@
                 }
             });
 
+            db.ref('monitoring/dniproStatus').on('value', snap => {
+                const val = snap.val();
+                if (val && statusPalette[val]) {
+                    dniproStatus = val;
+                    applyDniproStatusVisuals(dniproStatus);
+                }
+            });
+
             db.ref('monitoring/markers').on('value', snap => {
                 const remoteMap = snap.val() || {};
                 const remoteIds = new Set(Object.keys(remoteMap));
@@ -1391,6 +1462,8 @@
             });
         }
 
+        applyStatusVisuals(krStatus);
+        applyDniproStatusVisuals(dniproStatus);
         updateRoleUI();
     </script>
 </body>
