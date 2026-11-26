@@ -104,6 +104,9 @@
             height: 500px;
             background: #0b111e;
         }
+        #map.aim-mode {
+            cursor: crosshair !important;
+        }
 
         .admin-controls {
             background: #162033;
@@ -156,6 +159,9 @@
         .btn-autofly { background: #334155; border: 1px solid #475569; }
         .btn-autofly:hover { background: #475569; }
         .btn-autofly.active { background: #0d9488; border-color: #2dd4bf; box-shadow: 0 0 10px rgba(45, 212, 191, 0.35); }
+        .btn-aim { background: #334155; border: 1px solid #475569; }
+        .btn-aim:hover { background: #475569; }
+        .btn-aim.active { background: #2563eb; border-color: #60a5fa; box-shadow: 0 0 10px rgba(96, 165, 250, 0.45); }
         .btn-clear { background: #475569; }
         .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
 
@@ -353,6 +359,9 @@
             <button type="button" class="btn-tool btn-apply" onclick="applyParamsToSelected(true)">
                 <i class="fa-solid fa-check"></i> Застосувати
             </button>
+            <button type="button" class="btn-tool btn-aim" id="btnAimClick" onclick="toggleAimClickMode()">
+                <i class="fa-solid fa-crosshairs"></i> Курс за кліком: вимк
+            </button>
             <button type="button" class="btn-tool btn-autofly" id="btnAutoFly" onclick="toggleAutoFlySelected()">
                 <i class="fa-solid fa-paper-plane"></i> Автополёт: вимк
             </button>
@@ -511,6 +520,7 @@
                 updateCourseLine(item);
             });
             syncAutoFlyUI();
+            syncAimClickUI();
         }
 
         function unlockOperator() {
@@ -529,6 +539,7 @@
             isOperator = false;
             sessionStorage.removeItem('kr_op_ok');
             selectedTargetKey = null;
+            aimClickMode = false;
             document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
             updateRoleUI();
         }
@@ -969,7 +980,12 @@
             return Math.abs(diff);
         }
 
-        function resolveCourseTargetName(lat, lng, angleDeg) {
+        function resolveCourseTargetName(lat, lng, angleDeg, destLat = null, destLng = null) {
+            if (Number.isFinite(destLat) && Number.isFinite(destLng)) {
+                const destLoc = resolveLocationName({ lat: destLat, lng: destLng });
+                return `на ${destLoc}`;
+            }
+
             const normAngle = ((Number(angleDeg) || 0) % 360 + 360) % 360;
             let bestPlace = null;
             let bestScore = Infinity;
@@ -1177,15 +1193,28 @@
         let selectedTargetKey = null;
         let markers = [];
         let activeMarkerItem = null;
+        let aimClickMode = false;
         let lastRemoteSyncAt = 0;
+
+        function clearToolSelection() {
+            selectedTargetKey = null;
+            document.querySelectorAll('.btn-geran, .btn-banderol, .btn-jet, .btn-iskander, .btn-recon')
+                .forEach(b => b.classList.remove('selected'));
+        }
 
         function selectTool(key, btnElement) {
             if (firebaseConfigured && !isOperator) return;
+            if (selectedTargetKey === key) {
+                clearToolSelection();
+                return;
+            }
             selectedTargetKey = key;
+            aimClickMode = false;
+            syncAimClickUI();
             document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
             btnElement.classList.add('selected');
             const target = targetsData[key];
-            if (target && !activeMarkerItem) {
+            if (target) {
                 document.getElementById('speedInput').value = target.defaultSpeed;
                 document.getElementById('altitudeInput').value = target.defaultAltitude;
             }
@@ -1214,31 +1243,67 @@
         function updateCourseLine(item) {
             if (!item || !item.marker) return;
             const pos = item.marker.getLatLng();
-            const tip = computeCourseTip(pos.lat, pos.lng, item.angle);
+            const hasDest = Number.isFinite(item.destLat) && Number.isFinite(item.destLng);
+            const tip = hasDest ? [item.destLat, item.destLng] : computeCourseTip(pos.lat, pos.lng, item.angle);
             const isSelected = activeMarkerItem === item && isOperator;
+
+            if (!item.courseShadowLine) {
+                item.courseShadowLine = L.polyline([[pos.lat, pos.lng], tip], {
+                    pane: 'courseLinePane',
+                    color: '#0f172a',
+                    weight: isSelected ? 6 : 5,
+                    opacity: 0.78,
+                    interactive: false
+                }).addTo(map);
+            } else {
+                item.courseShadowLine.setLatLngs([[pos.lat, pos.lng], tip]);
+                item.courseShadowLine.setStyle({
+                    weight: isSelected ? 6 : 5,
+                    opacity: 0.78
+                });
+            }
 
             if (!item.courseLine) {
                 item.courseLine = L.polyline([[pos.lat, pos.lng], tip], {
                     pane: 'courseLinePane',
-                    color: isSelected ? '#facc15' : '#ef4444',
-                    weight: isSelected ? 3.5 : 2.5,
-                    opacity: 0.92,
+                    color: '#ffffff',
+                    weight: isSelected ? 3.5 : 2.8,
+                    opacity: 0.98,
                     interactive: false
                 }).addTo(map);
             } else {
                 item.courseLine.setLatLngs([[pos.lat, pos.lng], tip]);
                 item.courseLine.setStyle({
-                    color: isSelected ? '#facc15' : '#ef4444',
-                    weight: isSelected ? 3.5 : 2.5,
-                    opacity: 0.92
+                    color: '#ffffff',
+                    weight: isSelected ? 3.5 : 2.8,
+                    opacity: 0.98
                 });
+            }
+
+            if (hasDest) {
+                if (!item.destMarker) {
+                    item.destMarker = L.circleMarker([item.destLat, item.destLng], {
+                        pane: 'courseLinePane',
+                        radius: 5,
+                        color: '#0f172a',
+                        weight: 2,
+                        fillColor: '#ffffff',
+                        fillOpacity: 1,
+                        interactive: false
+                    }).addTo(map);
+                } else {
+                    item.destMarker.setLatLng([item.destLat, item.destLng]);
+                }
+            } else if (item.destMarker) {
+                map.removeLayer(item.destMarker);
+                item.destMarker = null;
             }
         }
 
         function buildMarkerPopupHtml(itemObj) {
             const pos = itemObj.marker.getLatLng();
             const loc = resolveLocationName(pos);
-            const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle);
+            const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
             return `
                 <div>
                     <b>${itemObj.target.name}</b> — ${loc}<br>
@@ -1280,16 +1345,42 @@
                 : '<i class="fa-solid fa-paper-plane"></i> Автополёт: вимк';
         }
 
-        function selectMarkerItem(item) {
+        function syncAimClickUI() {
+            const btn = document.getElementById('btnAimClick');
+            const mapEl = document.getElementById('map');
+            const active = Boolean(aimClickMode && activeMarkerItem && isOperator);
+            if (btn) {
+                btn.classList.toggle('active', active);
+                btn.disabled = !activeMarkerItem || !isOperator;
+                btn.innerHTML = active
+                    ? '<i class="fa-solid fa-crosshairs"></i> Курс за кліком: увімк'
+                    : '<i class="fa-solid fa-crosshairs"></i> Курс за кліком: вимк';
+            }
+            if (mapEl) {
+                mapEl.classList.toggle('aim-mode', active);
+            }
+        }
+
+        function toggleAimClickMode() {
+            if (firebaseConfigured && !isOperator) return;
+            if (!activeMarkerItem) return;
+            aimClickMode = !aimClickMode;
+            if (aimClickMode) clearToolSelection();
+            syncAimClickUI();
+        }
+
+        function selectMarkerItem(item, enableAim = false) {
             if (activeMarkerItem && activeMarkerItem !== item) {
                 const prev = activeMarkerItem;
                 activeMarkerItem = null;
                 applyMarkerTransform(prev);
             }
             activeMarkerItem = item;
+            aimClickMode = Boolean(item && enableAim && isOperator);
             applyMarkerTransform(item);
             syncRotationUI(item ? item.angle : 0);
             syncAutoFlyUI();
+            syncAimClickUI();
             if (item && isOperator) {
                 document.getElementById('speedInput').value = item.speed;
                 document.getElementById('altitudeInput').value = item.altitude;
@@ -1309,6 +1400,8 @@
                     speed: item.speed,
                     altitude: item.altitude,
                     autoFly: Boolean(item.autoFly),
+                    destLat: Number.isFinite(item.destLat) ? item.destLat : null,
+                    destLng: Number.isFinite(item.destLng) ? item.destLng : null,
                     timeStr: item.timeStr
                 };
             });
@@ -1339,7 +1432,7 @@
             if (logToFeed) {
                 const pos = activeMarkerItem.marker.getLatLng();
                 const loc = resolveLocationName(pos);
-                const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, activeMarkerItem.angle);
+                const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, activeMarkerItem.angle, activeMarkerItem.destLat, activeMarkerItem.destLng);
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
                     title: `${activeMarkerItem.target.name} — ${loc}`,
@@ -1356,7 +1449,7 @@
             if (!item || !isOperator) return;
             const pos = item.marker.getLatLng();
             const loc = resolveLocationName(pos);
-            const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, item.angle);
+            const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, item.angle, item.destLat, item.destLng);
             const key = `${item.id}:${courseLabel}`;
             if (key === lastLoggedCourseKey) return;
             lastLoggedCourseKey = key;
@@ -1375,6 +1468,8 @@
             syncRotationUI(normalized);
             if (!activeMarkerItem) return;
             activeMarkerItem.angle = normalized;
+            activeMarkerItem.destLat = null;
+            activeMarkerItem.destLng = null;
             applyMarkerTransform(activeMarkerItem);
             activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
             if (!fromRemote) syncMarkersToFirebase();
@@ -1391,6 +1486,28 @@
             const current = activeMarkerItem ? activeMarkerItem.angle : Number(document.getElementById('angleSlider').value);
             setSelectedRotation(current + delta);
             if (activeMarkerItem) logCourseIfChanged(activeMarkerItem);
+        }
+
+        function directMarkerToLatLng(item, destLatLng) {
+            if (!item || !destLatLng) return;
+            const pos = item.marker.getLatLng();
+            const distKm = distanceKm(pos.lat, pos.lng, destLatLng.lat, destLatLng.lng);
+            if (distKm < 0.2) return;
+
+            const newAngle = normalizeAngle(bearingDeg(pos.lat, pos.lng, destLatLng.lat, destLatLng.lng));
+            item.angle = newAngle;
+            item.destLat = destLatLng.lat;
+            item.destLng = destLatLng.lng;
+            item.autoFly = true;
+            lastAutoFlyFrameAt = performance.now();
+
+            syncRotationUI(newAngle);
+            syncAutoFlyUI();
+            applyMarkerTransform(item);
+            item.marker.setPopupContent(buildMarkerPopupHtml(item));
+            item.marker.openPopup();
+            syncMarkersToFirebase();
+            logCourseIfChanged(item);
         }
 
         function moveLatLngByCourse(lat, lng, speedKmh, angleDeg, dtSeconds) {
@@ -1424,10 +1541,31 @@
                     if (!item.autoFly || !item.marker) return;
                     if (item.marker._dragging && item.marker._dragging._draggable && item.marker._dragging._draggable._moving) return;
                     const pos = item.marker.getLatLng();
+
+                    if (Number.isFinite(item.destLat) && Number.isFinite(item.destLng)) {
+                        const remKm = distanceKm(pos.lat, pos.lng, item.destLat, item.destLng);
+                        const stepKm = (Math.max(0, Number(item.speed) || 0) / 3600) * dtSec;
+                        if (remKm <= Math.max(0.25, stepKm * 1.1)) {
+                            item.marker.setLatLng([item.destLat, item.destLng]);
+                            item.destLat = null;
+                            item.destLng = null;
+                            item.autoFly = false;
+                            updateCourseLine(item);
+                            if (activeMarkerItem === item) syncAutoFlyUI();
+                            if (item.marker.isPopupOpen()) {
+                                item.marker.setPopupContent(buildMarkerPopupHtml(item));
+                            }
+                            anyMoved = true;
+                            return;
+                        }
+                        item.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, item.destLat, item.destLng));
+                        if (activeMarkerItem === item) syncRotationUI(item.angle);
+                    }
+
                     const nextPos = moveLatLngByCourse(pos.lat, pos.lng, item.speed, item.angle, dtSec);
                     if (nextPos.lat !== pos.lat || nextPos.lng !== pos.lng) {
                         item.marker.setLatLng([nextPos.lat, nextPos.lng]);
-                        updateCourseLine(item);
+                        applyMarkerTransform(item);
                         if (refreshPopup && item.marker.isPopupOpen()) {
                             item.marker.setPopupContent(buildMarkerPopupHtml(item));
                         }
@@ -1453,6 +1591,8 @@
             const speed = Number(data.speed) || target.defaultSpeed;
             const altitude = Number(data.altitude) || target.defaultAltitude;
             const autoFly = Boolean(data.autoFly);
+            const destLat = Number.isFinite(data.destLat) ? data.destLat : null;
+            const destLng = Number.isFinite(data.destLng) ? data.destLng : null;
             const timeStr = data.timeStr || nowTimeStr();
 
             let existing = markers.find(m => m.id === id);
@@ -1463,6 +1603,8 @@
                 existing.speed = speed;
                 existing.altitude = altitude;
                 existing.autoFly = autoFly;
+                existing.destLat = destLat;
+                existing.destLng = destLng;
                 existing.timeStr = timeStr;
                 if (!existing.autoFly || !isOperator) {
                     existing.marker.setLatLng(latlng);
@@ -1481,7 +1623,22 @@
             });
 
             const marker = L.marker(latlng, { icon: customIcon, draggable: isOperator }).addTo(map);
-            const itemObj = { id, targetKey: data.targetKey || 'geran', marker, target, angle, speed, altitude, autoFly, timeStr, courseLine: null };
+            const itemObj = {
+                id,
+                targetKey: data.targetKey || 'geran',
+                marker,
+                target,
+                angle,
+                speed,
+                altitude,
+                autoFly,
+                destLat,
+                destLng,
+                timeStr,
+                courseLine: null,
+                courseShadowLine: null,
+                destMarker: null
+            };
             markers.push(itemObj);
             updateCourseLine(itemObj);
 
@@ -1489,7 +1646,10 @@
 
             marker.on('click', function(ev) {
                 L.DomEvent.stopPropagation(ev);
-                if (isOperator) selectMarkerItem(itemObj);
+                if (isOperator) {
+                    clearToolSelection();
+                    selectMarkerItem(itemObj, true);
+                }
                 marker.setPopupContent(buildMarkerPopupHtml(itemObj));
                 marker.openPopup();
             });
@@ -1499,17 +1659,22 @@
             });
 
             marker.on('dragstart', function() {
-                if (isOperator) selectMarkerItem(itemObj);
+                if (isOperator) selectMarkerItem(itemObj, false);
             });
 
             marker.on('dragend', function() {
                 if (!isOperator) return;
+                if (Number.isFinite(itemObj.destLat) && Number.isFinite(itemObj.destLng)) {
+                    const pos = itemObj.marker.getLatLng();
+                    itemObj.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, itemObj.destLat, itemObj.destLng));
+                    if (activeMarkerItem === itemObj) syncRotationUI(itemObj.angle);
+                }
                 applyMarkerTransform(itemObj);
                 itemObj.marker.setPopupContent(buildMarkerPopupHtml(itemObj));
                 syncMarkersToFirebase();
                 const pos = itemObj.marker.getLatLng();
                 const loc = resolveLocationName(pos);
-                const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle);
+                const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
                     title: `${itemObj.target.name} — ${loc}`,
@@ -1524,7 +1689,7 @@
             });
 
             if (shouldSelect && isOperator) {
-                selectMarkerItem(itemObj);
+                selectMarkerItem(itemObj, true);
             }
 
             return itemObj;
@@ -1532,56 +1697,73 @@
 
         map.on('click', function(e) {
             if (firebaseConfigured && !isOperator) return;
-            if (!selectedTargetKey) {
-                selectMarkerItem(null);
+
+            if (selectedTargetKey) {
+                const target = targetsData[selectedTargetKey];
+                const speedVal = Number(document.getElementById('speedInput').value);
+                const altVal = Number(document.getElementById('altitudeInput').value);
+                const speed = Number.isFinite(speedVal) && speedVal >= 0 ? Math.round(speedVal) : target.defaultSpeed;
+                const altitude = Number.isFinite(altVal) && altVal >= 0 ? Math.round(altVal) : target.defaultAltitude;
+                const timeStr = nowTimeStr();
+                const id = 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+
+                const itemObj = createOrUpdateMarkerFromData(id, {
+                    targetKey: selectedTargetKey,
+                    lat: e.latlng.lat,
+                    lng: e.latlng.lng,
+                    angle: 0,
+                    speed,
+                    altitude,
+                    autoFly: false,
+                    destLat: null,
+                    destLng: null,
+                    timeStr
+                }, true);
+
+                clearToolSelection();
+                itemObj.marker.openPopup();
+                syncMarkersToFirebase();
+
+                const locationName = resolveLocationName(e.latlng);
+                const courseLabel = resolveCourseTargetName(e.latlng.lat, e.latlng.lng, itemObj.angle);
+                saveFeedEntry({
+                    timeStr,
+                    title: `${target.name} — ${locationName}`,
+                    desc: `Ціль додано в н.п. ${locationName} • Курс ${courseLabel} • Висота: ${altitude} м • Швидкість: ${speed} км/год`,
+                    feedClass: 'yellow-line',
+                    titleColor: '#facc15'
+                });
                 return;
             }
 
-            const target = targetsData[selectedTargetKey];
-            const speedVal = Number(document.getElementById('speedInput').value);
-            const altVal = Number(document.getElementById('altitudeInput').value);
-            const speed = Number.isFinite(speedVal) && speedVal >= 0 ? Math.round(speedVal) : target.defaultSpeed;
-            const altitude = Number.isFinite(altVal) && altVal >= 0 ? Math.round(altVal) : target.defaultAltitude;
-            const timeStr = nowTimeStr();
-            const id = 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+            if (aimClickMode && activeMarkerItem) {
+                directMarkerToLatLng(activeMarkerItem, e.latlng);
+                return;
+            }
 
-            const itemObj = createOrUpdateMarkerFromData(id, {
-                targetKey: selectedTargetKey,
-                lat: e.latlng.lat,
-                lng: e.latlng.lng,
-                angle: 0,
-                speed,
-                altitude,
-                autoFly: false,
-                timeStr
-            }, true);
-
-            itemObj.marker.openPopup();
-            syncMarkersToFirebase();
-
-            const locationName = resolveLocationName(e.latlng);
-            const courseLabel = resolveCourseTargetName(e.latlng.lat, e.latlng.lng, itemObj.angle);
-            saveFeedEntry({
-                timeStr,
-                title: `${target.name} — ${locationName}`,
-                desc: `Ціль додано в н.п. ${locationName} • Курс ${courseLabel} • Висота: ${altitude} м • Швидкість: ${speed} км/год`,
-                feedClass: 'yellow-line',
-                titleColor: '#facc15'
-            });
+            selectMarkerItem(null, false);
         });
+
+        function removeMarkerLayers(m) {
+            if (m.courseLine) map.removeLayer(m.courseLine);
+            if (m.courseShadowLine) map.removeLayer(m.courseShadowLine);
+            if (m.destMarker) map.removeLayer(m.destMarker);
+            if (m.marker) map.removeLayer(m.marker);
+        }
 
         function clearMarkers(fromRemote = false) {
             if (!fromRemote && firebaseConfigured && !isOperator) return;
             markers.forEach(m => {
                 m.autoFly = false;
-                if (m.courseLine) map.removeLayer(m.courseLine);
-                map.removeLayer(m.marker);
+                removeMarkerLayers(m);
             });
             markers = [];
             activeMarkerItem = null;
+            aimClickMode = false;
             lastLoggedCourseKey = '';
             syncRotationUI(0);
             syncAutoFlyUI();
+            syncAimClickUI();
             if (!fromRemote && firebaseConfigured && db) {
                 db.ref('monitoring/markers').remove();
             }
@@ -1611,11 +1793,12 @@
                 markers = markers.filter(item => {
                     if (!remoteIds.has(item.id)) {
                         item.autoFly = false;
-                        if (item.courseLine) map.removeLayer(item.courseLine);
-                        map.removeLayer(item.marker);
+                        removeMarkerLayers(item);
                         if (activeMarkerItem === item) {
                             activeMarkerItem = null;
+                            aimClickMode = false;
                             syncAutoFlyUI();
+                            syncAimClickUI();
                         }
                         return false;
                     }
