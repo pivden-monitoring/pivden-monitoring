@@ -980,6 +980,25 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
+        function formatEtaText(distKm, speedKmh) {
+            const speed = Number(speedKmh);
+            if (!Number.isFinite(distKm) || distKm <= 0.1) return 'на місці (< 1 хв)';
+            if (!Number.isFinite(speed) || speed <= 0) return 'швидкість 0';
+            const totalMinutes = Math.round((distKm / speed) * 60);
+            if (totalMinutes < 1) return '< 1 хв';
+            if (totalMinutes < 60) return `~${totalMinutes} хв`;
+            const hours = Math.floor(totalMinutes / 60);
+            const mins = totalMinutes % 60;
+            return mins > 0 ? `~${hours} год ${mins} хв` : `~${hours} год`;
+        }
+
+        function getDestinationEtaSummary(lat, lng, speedKmh, destLat, destLng) {
+            if (!Number.isFinite(destLat) || !Number.isFinite(destLng)) return null;
+            const distKm = distanceKm(lat, lng, destLat, destLng);
+            const etaText = formatEtaText(distKm, speedKmh);
+            return `${distKm.toFixed(1)} км • ${etaText}`;
+        }
+
         function bearingDeg(lat1, lng1, lat2, lng2) {
             const φ1 = lat1 * Math.PI / 180;
             const φ2 = lat2 * Math.PI / 180;
@@ -1350,11 +1369,13 @@
             const pos = itemObj.marker.getLatLng();
             const loc = resolveLocationName(pos);
             const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
+            const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, itemObj.destLat, itemObj.destLng);
+            const etaRow = etaSummary ? `<b>До цілі:</b> ${etaSummary}<br>` : '';
             return `
                 <div>
                     <b>${itemObj.target.name}</b> — ${loc}<br>
                     <b>Курс:</b> ${courseLabel} (${itemObj.angle}°)<br>
-                    <b>Висота:</b> ${itemObj.altitude} м<br>
+                    ${etaRow}<b>Висота:</b> ${itemObj.altitude} м<br>
                     <b>Швидкість:</b> ${itemObj.speed} км/год<br>
                     <small>Фіксація: ${itemObj.timeStr}</small>
                 </div>
@@ -1535,10 +1556,12 @@
                 const pos = activeMarkerItem.marker.getLatLng();
                 const loc = resolveLocationName(pos);
                 const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, activeMarkerItem.angle, activeMarkerItem.destLat, activeMarkerItem.destLng);
+                const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, activeMarkerItem.speed, activeMarkerItem.destLat, activeMarkerItem.destLng);
+                const etaPart = etaSummary ? ` • До цілі: ${etaSummary}` : '';
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
                     title: `${activeMarkerItem.target.name} — ${loc}`,
-                    desc: `Курс ${courseLabel} (${activeMarkerItem.angle}°) • Висота: ${activeMarkerItem.altitude} м • Швидкість: ${activeMarkerItem.speed} км/год`,
+                    desc: `Курс ${courseLabel} (${activeMarkerItem.angle}°)${etaPart} • Висота: ${activeMarkerItem.altitude} м • Швидкість: ${activeMarkerItem.speed} км/год`,
                     feedClass: 'yellow-line',
                     titleColor: '#facc15'
                 });
@@ -1552,13 +1575,15 @@
             const pos = item.marker.getLatLng();
             const loc = resolveLocationName(pos);
             const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, item.angle, item.destLat, item.destLng);
-            const key = `${item.id}:${courseLabel}`;
+            const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, item.speed, item.destLat, item.destLng);
+            const key = `${item.id}:${courseLabel}:${etaSummary || ''}`;
             if (key === lastLoggedCourseKey) return;
             lastLoggedCourseKey = key;
+            const etaPart = etaSummary ? ` • Час до точки: ${etaSummary}` : '';
             saveFeedEntry({
                 timeStr: nowTimeStr(),
                 title: `${item.target.name} — курс ${courseLabel}`,
-                desc: `Район: ${loc} • Кут: ${item.angle}° • Швидкість: ${item.speed} км/год`,
+                desc: `Район: ${loc}${etaPart} • Кут: ${item.angle}° • Швидкість: ${item.speed} км/год`,
                 feedClass: 'yellow-line',
                 titleColor: '#facc15'
             });
@@ -1804,10 +1829,12 @@
                 syncMarkersToFirebase();
                 const loc = resolveLocationName(pos);
                 const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
+                const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, itemObj.destLat, itemObj.destLng);
+                const etaPart = etaSummary ? ` • До цілі: ${etaSummary}` : '';
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
                     title: `${itemObj.target.name} — ${loc}`,
-                    desc: `Курс ${courseLabel} (${itemObj.angle}°) • Висота: ${itemObj.altitude} м • Швидкість: ${itemObj.speed} км/год`,
+                    desc: `Курс ${courseLabel} (${itemObj.angle}°)${etaPart} • Висота: ${itemObj.altitude} м • Швидкість: ${itemObj.speed} км/год`,
                     feedClass: 'yellow-line',
                     titleColor: '#facc15'
                 });
