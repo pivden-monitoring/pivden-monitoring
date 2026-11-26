@@ -148,7 +148,7 @@
         .btn-banderol { background: #991b1b; }
         .btn-jet { background: #991b1b; }
         .btn-iskander { background: #7f1d1d; }
-        .btn-recon { background: #854d0e; }
+        .btn-recon { background: #991b1b; }
         .btn-rotate { background: #1e293b; border: 1px solid #334155; }
         .btn-rotate:hover { background: #334155; }
         .btn-apply { background: #0284c7; }
@@ -225,7 +225,7 @@
         .target-icon-wrap.editable { cursor: grab; }
         .target-icon-wrap.editable:active { cursor: grabbing; }
         .target-icon-wrap.active-marker {
-            filter: drop-shadow(0 0 9px #ef4444) drop-shadow(0 0 4px #ffffff) !important;
+            filter: drop-shadow(0 0 11px rgba(239, 68, 68, 1)) drop-shadow(0 0 4px rgba(255, 255, 255, 0.95)) !important;
         }
 
         .leaflet-popup-content {
@@ -307,9 +307,9 @@
             <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Вибери ціль:</span>
             <button type="button" class="btn-tool btn-geran" onclick="selectTool('geran', this)">
                 <svg width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
                     <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
-                    <rect x="34" y="84" width="32" height="4.5" rx="2" fill="#facc15" stroke="#0f172a" stroke-width="1.5"/>
+                    <rect x="34" y="84" width="32" height="4.5" rx="2" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
                 </svg>
                 Герань-2
             </button>
@@ -321,7 +321,7 @@
             </button>
             <button type="button" class="btn-tool btn-jet" onclick="selectTool('jet', this)">
                 <svg width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
                 </svg>
                 Реактивний Шахед
             </button>
@@ -382,34 +382,34 @@
                 <div class="legend-item"><span class="circle green"></span> Відбій тривоги</div>
                 <hr style="border-color: #1f2d45; margin: 10px 0;">
                 <div class="legend-item">
-                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 7px rgba(239, 68, 68, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.85));">
-                        <path fill="#ffffff" stroke="#dc2626" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
-                        <rect x="48" y="78" width="4" height="7" fill="#ffffff"/>
-                        <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#facc15" stroke="#dc2626" stroke-width="1.5"/>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.98)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                        <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+                        <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
                     </svg>
                     Герань-2
                 </div>
                 <div class="legend-item">
-                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 7px rgba(239, 68, 68, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.85));">
-                        <path fill="#ffffff" stroke="#dc2626" stroke-width="4" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.98)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
                     </svg>
                     Бандероль
                 </div>
                 <div class="legend-item">
                     <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.98)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85));">
-                        <path fill="#ffffff" stroke="#dc2626" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
                     </svg>
                     Реактивний Шахед
                 </div>
                 <div class="legend-item">
                     <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.98)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85));">
-                        <path fill="#ffffff" stroke="#dc2626" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
                     </svg>
                     Іскандер-М
                 </div>
                 <div class="legend-item">
-                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 6px rgba(234, 179, 8, 0.9));">
-                        <path fill="#ffffff" stroke="#ca8a04" stroke-width="4" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.98)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
                     </svg>
                     Розвідник
                 </div>
@@ -1054,54 +1054,55 @@
             else setDniproStatus('red');
         }
 
-        const RED_ROCKET_GLOW = 'drop-shadow(0 0 9px rgba(239, 68, 68, 0.98)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.88))';
+        const RED_TARGET_GLOW = 'drop-shadow(0 0 9px rgba(239, 68, 68, 0.98)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.85))';
+        const DARK_STROKE = '#0f172a';
 
         const targetsData = {
             geran: {
                 name: 'Герань-2',
-                glow: RED_ROCKET_GLOW,
+                glow: RED_TARGET_GLOW,
                 defaultSpeed: 185,
                 defaultAltitude: 800,
                 svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#dc2626" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
-                    <rect x="48" y="78" width="4" height="7" fill="#ffffff"/>
-                    <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#facc15" stroke="#dc2626" stroke-width="1.5"/>
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                    <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="1.5"/>
+                    <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="1.5"/>
                 </svg>`
             },
             banderol: {
                 name: 'Бандероль',
-                glow: RED_ROCKET_GLOW,
+                glow: RED_TARGET_GLOW,
                 defaultSpeed: 520,
                 defaultAltitude: 2500,
                 svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#dc2626" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
                 </svg>`
             },
             jet: {
                 name: 'Реактивний Шахед',
-                glow: RED_ROCKET_GLOW,
+                glow: RED_TARGET_GLOW,
                 defaultSpeed: 460,
                 defaultAltitude: 1500,
                 svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#dc2626" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
                 </svg>`
             },
             iskander: {
                 name: 'Іскандер-М',
-                glow: RED_ROCKET_GLOW,
+                glow: RED_TARGET_GLOW,
                 defaultSpeed: 3600,
                 defaultAltitude: 35000,
                 svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#dc2626" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
                 </svg>`
             },
             recon: {
                 name: 'Розвідник',
-                glow: 'drop-shadow(0 0 8px rgba(234, 179, 8, 0.95)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.9))',
+                glow: RED_TARGET_GLOW,
                 defaultSpeed: 110,
                 defaultAltitude: 1500,
                 svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#ca8a04" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
                 </svg>`
             }
         };
