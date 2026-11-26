@@ -138,6 +138,10 @@
             padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: white;
             display: inline-flex; align-items: center; gap: 8px;
         }
+        .btn-tool:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
         .btn-op { background: #2563eb; padding: 6px 12px; font-size: 12px; }
         .btn-op:hover { background: #1d4ed8; }
         .btn-exit { background: #334155; padding: 6px 12px; font-size: 12px; }
@@ -162,6 +166,8 @@
         .btn-aim { background: #334155; border: 1px solid #475569; }
         .btn-aim:hover { background: #475569; }
         .btn-aim.active { background: #2563eb; border-color: #60a5fa; box-shadow: 0 0 10px rgba(96, 165, 250, 0.45); }
+        .btn-delete-one { background: #991b1b; border: 1px solid #dc2626; }
+        .btn-delete-one:hover:not(:disabled) { background: #b91c1c; }
         .btn-clear { background: #475569; }
         .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
 
@@ -378,6 +384,9 @@
                 <span id="angleLabel" class="angle-readout">0°</span>
             </div>
             <button type="button" class="btn-tool btn-rotate" onclick="setSelectedRotation(0)">↺ 0°</button>
+            <button type="button" class="btn-tool btn-delete-one" id="btnDeleteSelected" onclick="deleteSelectedMarker()" disabled>
+                <i class="fa-solid fa-xmark"></i> Видалити ціль
+            </button>
             <button type="button" class="btn-tool btn-clear" onclick="clearMarkers()">🗑️ Очистити</button>
         </div>
     </div>
@@ -518,9 +527,11 @@
                 }
                 applyMarkerTransform(item);
                 updateCourseLine(item);
+                updateTrailLine(item);
             });
             syncAutoFlyUI();
             syncAimClickUI();
+            syncDeleteSelectedUI();
         }
 
         function unlockOperator() {
@@ -566,6 +577,9 @@
 
         map.createPane('borderPane');
         map.getPane('borderPane').style.zIndex = 415;
+
+        map.createPane('trailLinePane');
+        map.getPane('trailLinePane').style.zIndex = 422;
 
         map.createPane('courseLinePane');
         map.getPane('courseLinePane').style.zIndex = 430;
@@ -1240,6 +1254,38 @@
             ];
         }
 
+        function appendTrailPoint(item, lat, lng) {
+            if (!item) return;
+            if (!Array.isArray(item.trailPoints)) item.trailPoints = [];
+            const last = item.trailPoints[item.trailPoints.length - 1];
+            if (!last || distanceKm(last[0], last[1], lat, lng) >= 0.45) {
+                item.trailPoints.push([lat, lng]);
+                if (item.trailPoints.length > 250) item.trailPoints.shift();
+            }
+        }
+
+        function updateTrailLine(item) {
+            if (!item || !item.marker) return;
+            const pos = item.marker.getLatLng();
+            const pts = Array.isArray(item.trailPoints) ? [...item.trailPoints, [pos.lat, pos.lng]] : [[pos.lat, pos.lng]];
+            if (pts.length < 2) {
+                if (item.trailLine) item.trailLine.setLatLngs([]);
+                return;
+            }
+            if (!item.trailLine) {
+                item.trailLine = L.polyline(pts, {
+                    pane: 'trailLinePane',
+                    color: '#f87171',
+                    weight: 2.2,
+                    opacity: 0.85,
+                    dashArray: '6, 6',
+                    interactive: false
+                }).addTo(map);
+            } else {
+                item.trailLine.setLatLngs(pts);
+            }
+        }
+
         function updateCourseLine(item) {
             if (!item || !item.marker) return;
             const pos = item.marker.getLatLng();
@@ -1318,6 +1364,7 @@
         function applyMarkerTransform(item) {
             if (!item) return;
             updateCourseLine(item);
+            updateTrailLine(item);
             if (!item.marker._icon) return;
             const iconEl = item.marker._icon.querySelector('.target-icon-wrap');
             if (!iconEl) return;
@@ -1361,6 +1408,12 @@
             }
         }
 
+        function syncDeleteSelectedUI() {
+            const btn = document.getElementById('btnDeleteSelected');
+            if (!btn) return;
+            btn.disabled = !activeMarkerItem || !isOperator;
+        }
+
         function toggleAimClickMode() {
             if (firebaseConfigured && !isOperator) return;
             if (!activeMarkerItem) return;
@@ -1381,10 +1434,58 @@
             syncRotationUI(item ? item.angle : 0);
             syncAutoFlyUI();
             syncAimClickUI();
+            syncDeleteSelectedUI();
             if (item && isOperator) {
                 document.getElementById('speedInput').value = item.speed;
                 document.getElementById('altitudeInput').value = item.altitude;
             }
+        }
+
+        function removeMarkerLayers(m) {
+            if (m.trailLine) map.removeLayer(m.trailLine);
+            if (m.courseLine) map.removeLayer(m.courseLine);
+            if (m.courseShadowLine) map.removeLayer(m.courseShadowLine);
+            if (m.destMarker) map.removeLayer(m.destMarker);
+            if (m.marker) map.removeLayer(m.marker);
+        }
+
+        function deleteMarkerById(id, fromRemote = false) {
+            if (!fromRemote && firebaseConfigured && !isOperator) return;
+            const idx = markers.findIndex(m => m.id === id);
+            if (idx === -1) return;
+            const item = markers[idx];
+            const pos = item.marker.getLatLng();
+            const loc = resolveLocationName(pos);
+            item.autoFly = false;
+            removeMarkerLayers(item);
+            markers.splice(idx, 1);
+
+            if (activeMarkerItem === item) {
+                activeMarkerItem = null;
+                aimClickMode = false;
+                syncRotationUI(0);
+                syncAutoFlyUI();
+                syncAimClickUI();
+                syncDeleteSelectedUI();
+            }
+
+            if (!fromRemote) {
+                if (firebaseConfigured && db) {
+                    db.ref(`monitoring/markers/${id}`).remove();
+                }
+                saveFeedEntry({
+                    timeStr: nowTimeStr(),
+                    title: `${item.target.name} — знято з супроводу`,
+                    desc: `Ціль видалено в р-ні ${loc}`,
+                    feedClass: 'green-line',
+                    titleColor: '#4ade80'
+                });
+            }
+        }
+
+        function deleteSelectedMarker() {
+            if (!activeMarkerItem || !isOperator) return;
+            deleteMarkerById(activeMarkerItem.id, false);
         }
 
         function syncMarkersToFirebase() {
@@ -1402,6 +1503,7 @@
                     autoFly: Boolean(item.autoFly),
                     destLat: Number.isFinite(item.destLat) ? item.destLat : null,
                     destLng: Number.isFinite(item.destLng) ? item.destLng : null,
+                    trailPoints: Array.isArray(item.trailPoints) ? item.trailPoints.slice(-80).map(p => [p[0], p[1]]) : [[latlng.lat, latlng.lng]],
                     timeStr: item.timeStr
                 };
             });
@@ -1494,6 +1596,7 @@
             const distKm = distanceKm(pos.lat, pos.lng, destLatLng.lat, destLatLng.lng);
             if (distKm < 0.2) return;
 
+            appendTrailPoint(item, pos.lat, pos.lng);
             const newAngle = normalizeAngle(bearingDeg(pos.lat, pos.lng, destLatLng.lat, destLatLng.lng));
             item.angle = newAngle;
             item.destLat = destLatLng.lat;
@@ -1541,16 +1644,18 @@
                     if (!item.autoFly || !item.marker) return;
                     if (item.marker._dragging && item.marker._dragging._draggable && item.marker._dragging._draggable._moving) return;
                     const pos = item.marker.getLatLng();
+                    appendTrailPoint(item, pos.lat, pos.lng);
 
                     if (Number.isFinite(item.destLat) && Number.isFinite(item.destLng)) {
                         const remKm = distanceKm(pos.lat, pos.lng, item.destLat, item.destLng);
                         const stepKm = (Math.max(0, Number(item.speed) || 0) / 3600) * dtSec;
                         if (remKm <= Math.max(0.25, stepKm * 1.1)) {
                             item.marker.setLatLng([item.destLat, item.destLng]);
+                            appendTrailPoint(item, item.destLat, item.destLng);
                             item.destLat = null;
                             item.destLng = null;
                             item.autoFly = false;
-                            updateCourseLine(item);
+                            applyMarkerTransform(item);
                             if (activeMarkerItem === item) syncAutoFlyUI();
                             if (item.marker.isPopupOpen()) {
                                 item.marker.setPopupContent(buildMarkerPopupHtml(item));
@@ -1565,6 +1670,7 @@
                     const nextPos = moveLatLngByCourse(pos.lat, pos.lng, item.speed, item.angle, dtSec);
                     if (nextPos.lat !== pos.lat || nextPos.lng !== pos.lng) {
                         item.marker.setLatLng([nextPos.lat, nextPos.lng]);
+                        appendTrailPoint(item, nextPos.lat, nextPos.lng);
                         applyMarkerTransform(item);
                         if (refreshPopup && item.marker.isPopupOpen()) {
                             item.marker.setPopupContent(buildMarkerPopupHtml(item));
@@ -1584,6 +1690,15 @@
 
         requestAnimationFrame(stepAutoFlyAnimation);
 
+        function parseTrailPoints(rawTrail, fallbackLat, fallbackLng) {
+            if (Array.isArray(rawTrail) && rawTrail.length > 0) {
+                return rawTrail
+                    .filter(p => Array.isArray(p) && p.length >= 2 && Number.isFinite(Number(p[0])) && Number.isFinite(Number(p[1])))
+                    .map(p => [Number(p[0]), Number(p[1])]);
+            }
+            return [[fallbackLat, fallbackLng]];
+        }
+
         function createOrUpdateMarkerFromData(id, data, shouldSelect = false) {
             const target = targetsData[data.targetKey] || targetsData.geran;
             const latlng = L.latLng(data.lat, data.lng);
@@ -1594,6 +1709,7 @@
             const destLat = Number.isFinite(data.destLat) ? data.destLat : null;
             const destLng = Number.isFinite(data.destLng) ? data.destLng : null;
             const timeStr = data.timeStr || nowTimeStr();
+            const parsedTrail = parseTrailPoints(data.trailPoints, latlng.lat, latlng.lng);
 
             let existing = markers.find(m => m.id === id);
             if (existing) {
@@ -1608,6 +1724,7 @@
                 existing.timeStr = timeStr;
                 if (!existing.autoFly || !isOperator) {
                     existing.marker.setLatLng(latlng);
+                    existing.trailPoints = parsedTrail;
                 }
                 existing.marker.setPopupContent(buildMarkerPopupHtml(existing));
                 applyMarkerTransform(existing);
@@ -1635,12 +1752,14 @@
                 destLat,
                 destLng,
                 timeStr,
+                trailPoints: parsedTrail,
+                trailLine: null,
                 courseLine: null,
                 courseShadowLine: null,
                 destMarker: null
             };
             markers.push(itemObj);
-            updateCourseLine(itemObj);
+            applyMarkerTransform(itemObj);
 
             marker.bindPopup(buildMarkerPopupHtml(itemObj));
 
@@ -1654,8 +1773,18 @@
                 marker.openPopup();
             });
 
+            marker.on('contextmenu', function(ev) {
+                L.DomEvent.stopPropagation(ev);
+                if (ev.originalEvent) L.DomEvent.preventDefault(ev.originalEvent);
+                if (!isOperator) return;
+                deleteMarkerById(itemObj.id, false);
+            });
+
             marker.on('drag', function() {
+                const cur = itemObj.marker.getLatLng();
+                appendTrailPoint(itemObj, cur.lat, cur.lng);
                 updateCourseLine(itemObj);
+                updateTrailLine(itemObj);
             });
 
             marker.on('dragstart', function() {
@@ -1664,15 +1793,15 @@
 
             marker.on('dragend', function() {
                 if (!isOperator) return;
+                const pos = itemObj.marker.getLatLng();
+                appendTrailPoint(itemObj, pos.lat, pos.lng);
                 if (Number.isFinite(itemObj.destLat) && Number.isFinite(itemObj.destLng)) {
-                    const pos = itemObj.marker.getLatLng();
                     itemObj.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, itemObj.destLat, itemObj.destLng));
                     if (activeMarkerItem === itemObj) syncRotationUI(itemObj.angle);
                 }
                 applyMarkerTransform(itemObj);
                 itemObj.marker.setPopupContent(buildMarkerPopupHtml(itemObj));
                 syncMarkersToFirebase();
-                const pos = itemObj.marker.getLatLng();
                 const loc = resolveLocationName(pos);
                 const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
                 saveFeedEntry({
@@ -1717,6 +1846,7 @@
                     autoFly: false,
                     destLat: null,
                     destLng: null,
+                    trailPoints: [[e.latlng.lat, e.latlng.lng]],
                     timeStr
                 }, true);
 
@@ -1744,13 +1874,6 @@
             selectMarkerItem(null, false);
         });
 
-        function removeMarkerLayers(m) {
-            if (m.courseLine) map.removeLayer(m.courseLine);
-            if (m.courseShadowLine) map.removeLayer(m.courseShadowLine);
-            if (m.destMarker) map.removeLayer(m.destMarker);
-            if (m.marker) map.removeLayer(m.marker);
-        }
-
         function clearMarkers(fromRemote = false) {
             if (!fromRemote && firebaseConfigured && !isOperator) return;
             markers.forEach(m => {
@@ -1764,6 +1887,7 @@
             syncRotationUI(0);
             syncAutoFlyUI();
             syncAimClickUI();
+            syncDeleteSelectedUI();
             if (!fromRemote && firebaseConfigured && db) {
                 db.ref('monitoring/markers').remove();
             }
@@ -1799,6 +1923,7 @@
                             aimClickMode = false;
                             syncAutoFlyUI();
                             syncAimClickUI();
+                            syncDeleteSelectedUI();
                         }
                         return false;
                     }
