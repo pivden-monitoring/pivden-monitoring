@@ -208,6 +208,7 @@
         .custom-marker {
             background: transparent !important;
             border: none !important;
+            will-change: transform;
         }
 
         .target-icon-wrap {
@@ -216,8 +217,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.1s ease-out, filter 0.15s ease;
+            transition: filter 0.15s ease;
             user-select: none;
+            will-change: transform;
         }
         .target-icon-wrap.editable { cursor: grab; }
         .target-icon-wrap.editable:active { cursor: grabbing; }
@@ -808,6 +810,7 @@
             if (firebaseConfigured && !isOperator) return;
             if (!activeMarkerItem) return;
             activeMarkerItem.autoFly = !activeMarkerItem.autoFly;
+            lastAutoFlyFrameAt = performance.now();
             syncAutoFlyUI();
             syncMarkersToFirebase();
         }
@@ -866,35 +869,43 @@
             };
         }
 
-        const AUTO_FLY_STEP_MS = 250;
         const FIREBASE_SYNC_INTERVAL_MS = 1600;
-        let lastAutoFlyTickAt = Date.now();
+        let lastAutoFlyFrameAt = performance.now();
+        let lastPopupRefreshAt = 0;
 
-        setInterval(() => {
-            const now = Date.now();
-            const dtSec = Math.min(2, (now - lastAutoFlyTickAt) / 1000);
-            lastAutoFlyTickAt = now;
-            if (dtSec <= 0) return;
+        function stepAutoFlyAnimation(nowPerf) {
+            const dtSec = Math.min(0.5, Math.max(0, (nowPerf - lastAutoFlyFrameAt) / 1000));
+            lastAutoFlyFrameAt = nowPerf;
 
-            let anyMoved = false;
-            markers.forEach(item => {
-                if (!item.autoFly || !item.marker) return;
-                if (item.marker._dragging && item.marker._dragging._draggable && item.marker._dragging._draggable._moving) return;
-                const pos = item.marker.getLatLng();
-                const nextPos = moveLatLngByCourse(pos.lat, pos.lng, item.speed, item.angle, dtSec);
-                if (nextPos.lat !== pos.lat || nextPos.lng !== pos.lng) {
-                    item.marker.setLatLng([nextPos.lat, nextPos.lng]);
-                    if (item.marker.isPopupOpen()) {
-                        item.marker.setPopupContent(buildMarkerPopupHtml(item));
+            if (dtSec > 0 && markers.length > 0) {
+                let anyMoved = false;
+                const refreshPopup = (nowPerf - lastPopupRefreshAt) >= 750;
+                if (refreshPopup) lastPopupRefreshAt = nowPerf;
+
+                markers.forEach(item => {
+                    if (!item.autoFly || !item.marker) return;
+                    if (item.marker._dragging && item.marker._dragging._draggable && item.marker._dragging._draggable._moving) return;
+                    const pos = item.marker.getLatLng();
+                    const nextPos = moveLatLngByCourse(pos.lat, pos.lng, item.speed, item.angle, dtSec);
+                    if (nextPos.lat !== pos.lat || nextPos.lng !== pos.lng) {
+                        item.marker.setLatLng([nextPos.lat, nextPos.lng]);
+                        if (refreshPopup && item.marker.isPopupOpen()) {
+                            item.marker.setPopupContent(buildMarkerPopupHtml(item));
+                        }
+                        anyMoved = true;
                     }
-                    anyMoved = true;
-                }
-            });
+                });
 
-            if (anyMoved && isOperator && firebaseConfigured && db && (now - lastRemoteSyncAt >= FIREBASE_SYNC_INTERVAL_MS)) {
-                syncMarkersToFirebase();
+                const nowWall = Date.now();
+                if (anyMoved && isOperator && firebaseConfigured && db && (nowWall - lastRemoteSyncAt >= FIREBASE_SYNC_INTERVAL_MS)) {
+                    syncMarkersToFirebase();
+                }
             }
-        }, AUTO_FLY_STEP_MS);
+
+            requestAnimationFrame(stepAutoFlyAnimation);
+        }
+
+        requestAnimationFrame(stepAutoFlyAnimation);
 
         function createOrUpdateMarkerFromData(id, data, shouldSelect = false) {
             const target = targetsData[data.targetKey] || targetsData.geran;
@@ -914,7 +925,9 @@
                 existing.altitude = altitude;
                 existing.autoFly = autoFly;
                 existing.timeStr = timeStr;
-                existing.marker.setLatLng(latlng);
+                if (!existing.autoFly || !isOperator) {
+                    existing.marker.setLatLng(latlng);
+                }
                 existing.marker.setPopupContent(buildMarkerPopupHtml(existing));
                 applyMarkerTransform(existing);
                 if (activeMarkerItem === existing) syncAutoFlyUI();
