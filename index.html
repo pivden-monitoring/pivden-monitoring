@@ -238,11 +238,6 @@
             padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: white;
             display: inline-flex; align-items: center; gap: 8px;
         }
-        .btn-tool.sm-btn {
-            padding: 5px 9px;
-            font-size: 11.5px;
-            gap: 5px;
-        }
         .btn-tool:disabled {
             opacity: 0.45;
             cursor: not-allowed;
@@ -250,18 +245,16 @@
         .btn-op { background: #2563eb; padding: 6px 12px; font-size: 12px; }
         .btn-op:hover { background: #1d4ed8; }
         .btn-exit { background: #334155; padding: 6px 12px; font-size: 12px; }
-        .btn-alarm-on { background: #dc2626; }
-        .btn-alarm-on:hover { background: #b91c1c; }
-        .btn-alarm-yellow { background: #ca8a04; }
-        .btn-alarm-yellow:hover { background: #a16207; }
-        .btn-alarm-off { background: #16a34a; }
-        .btn-alarm-off:hover { background: #15803d; }
-        .btn-geran { background: #991b1b; }
-        .btn-banderol { background: #991b1b; }
-        .btn-jet { background: #991b1b; }
-        .btn-iskander { background: #7f1d1d; }
-        .btn-kalibr { background: #7f1d1d; }
-        .btn-recon { background: #991b1b; }
+        .btn-geran, .btn-banderol, .btn-jet, .btn-recon {
+            background: #991b1b;
+            border: 1px solid rgba(248, 113, 113, 0.55);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+        }
+        .btn-iskander, .btn-kalibr {
+            background: #7f1d1d;
+            border: 1px solid rgba(248, 113, 113, 0.55);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+        }
         .btn-rotate { background: #1e293b; border: 1px solid #334155; }
         .btn-rotate:hover { background: #334155; }
         .btn-apply { background: #0284c7; }
@@ -284,27 +277,10 @@
         .btn-clear { background: #475569; }
         .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
 
-        .zone-quick-bar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 6px;
-            background: #0f172a;
-            border: 1px solid #2b3f63;
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-size: 12px;
-        }
-        .zone-quick-bar select {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 5px;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 4px 8px;
-            outline: none;
-            cursor: pointer;
+        .red-target-glow {
+            filter: drop-shadow(0 0 14px rgba(239, 68, 68, 1))
+                    drop-shadow(0 0 7px rgba(220, 38, 38, 1))
+                    drop-shadow(0 0 2px rgba(254, 202, 202, 0.95));
         }
 
         .param-box {
@@ -424,7 +400,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            filter: drop-shadow(0 0 14px rgba(239, 68, 68, 1)) drop-shadow(0 0 6px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));
+            filter: drop-shadow(0 0 18px rgba(239, 68, 68, 1))
+                    drop-shadow(0 0 9px rgba(220, 38, 38, 1))
+                    drop-shadow(0 0 3px rgba(254, 202, 202, 0.95));
             transition: filter 0.15s ease;
             user-select: none;
             will-change: transform;
@@ -432,7 +410,9 @@
         .target-icon-wrap.editable { cursor: grab; }
         .target-icon-wrap.editable:active { cursor: grabbing; }
         .target-icon-wrap.active-marker {
-            filter: drop-shadow(0 0 16px rgba(250, 204, 21, 1)) drop-shadow(0 0 8px rgba(255, 255, 255, 0.95)) !important;
+            filter: drop-shadow(0 0 22px rgba(239, 68, 68, 1))
+                    drop-shadow(0 0 11px rgba(220, 38, 38, 1))
+                    drop-shadow(0 0 4px rgba(250, 204, 21, 0.95)) !important;
         }
 
         .group-count-badge {
@@ -625,33 +605,10 @@
     </header>
 
     <div class="admin-controls" id="adminControls">
-        <div class="zone-quick-bar">
-            <span style="color:#94a3b8;font-weight:700;">Тривога зони:</span>
-            <select id="zoneSelect">
-                <option value="kr">Криворізький район</option>
-                <option value="dnipro">Дніпропетровський район</option>
-                <option value="kryvyi_rih">м. Кривий Ріг</option>
-                <option value="kamianske">м. Кам’янське</option>
-                <option value="dnipro_city">м. Дніпро</option>
-                <option value="zaporizhzhia">м. Запоріжжя</option>
-            </select>
-            <button type="button" class="btn-tool sm-btn btn-alarm-on" onclick="setZoneStatus(document.getElementById('zoneSelect').value, 'red')">
-                <i class="fa-solid fa-bell"></i> Тривога
-            </button>
-            <button type="button" class="btn-tool sm-btn btn-alarm-yellow" onclick="setZoneStatus(document.getElementById('zoneSelect').value, 'yellow')">
-                <i class="fa-solid fa-triangle-exclamation"></i> Загроза
-            </button>
-            <button type="button" class="btn-tool sm-btn btn-alarm-off" onclick="setZoneStatus(document.getElementById('zoneSelect').value, 'green')">
-                <i class="fa-solid fa-bell-slash"></i> Відбій
-            </button>
-        </div>
-
-        <div class="divider"></div>
-
         <div class="control-group">
             <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Вибери ціль:</span>
             <button type="button" class="btn-tool btn-geran" onclick="selectTool('geran', this)">
-                <svg width="20" height="20" viewBox="0 0 100 100">
+                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
                     <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
                     <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
                     <rect x="34" y="84" width="32" height="4.5" rx="2" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
@@ -659,31 +616,31 @@
                 Герань-2
             </button>
             <button type="button" class="btn-tool btn-banderol" onclick="selectTool('banderol', this)">
-                <svg width="20" height="20" viewBox="0 0 100 100">
+                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
                     <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
                 </svg>
                 Бандероль
             </button>
             <button type="button" class="btn-tool btn-jet" onclick="selectTool('jet', this)">
-                <svg width="20" height="20" viewBox="0 0 100 100">
+                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
                     <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
                 </svg>
                 Реактивний Шахед
             </button>
             <button type="button" class="btn-tool btn-iskander" onclick="selectTool('iskander', this)">
-                <svg width="20" height="20" viewBox="0 0 100 100">
+                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
                     <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
                 </svg>
                 Іскандер-М
             </button>
             <button type="button" class="btn-tool btn-kalibr" onclick="selectTool('kalibr', this)">
-                <svg width="20" height="20" viewBox="0 0 100 100">
+                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
                     <path fill="#ffffff" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
                 </svg>
                 Калібр
             </button>
             <button type="button" class="btn-tool btn-recon" onclick="selectTool('recon', this)">
-                <svg width="20" height="20" viewBox="0 0 100 100">
+                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
                     <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
                 </svg>
                 Розвідник
@@ -755,7 +712,7 @@
                 <div class="legend-item"><span class="circle green"></span> Відбій тривоги</div>
                 <hr style="border-color: #1f2d45; margin: 10px 0;">
                 <div class="legend-item">
-                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
                         <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
                         <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
                         <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
@@ -763,31 +720,31 @@
                     Герань-2
                 </div>
                 <div class="legend-item">
-                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
                         <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
                     </svg>
                     Бандероль
                 </div>
                 <div class="legend-item">
-                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
                         <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
                     </svg>
                     Реактивний Шахед
                 </div>
                 <div class="legend-item">
-                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
                         <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
                     </svg>
                     Іскандер-М
                 </div>
                 <div class="legend-item">
-                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
                         <path fill="#ffffff" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
                     </svg>
                     Калібр
                 </div>
                 <div class="legend-item">
-                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
                         <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
                     </svg>
                     Розвідник
