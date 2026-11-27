@@ -58,6 +58,18 @@
             color: #4ade80;
             border-color: #16a34a;
         }
+        .btn-sound {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            padding: 6px 11px;
+            font-size: 12px;
+        }
+        .btn-sound.on {
+            background: rgba(56, 189, 248, 0.16);
+            border-color: #38bdf8;
+            color: #7dd3fc;
+        }
 
         .main-grid {
             display: grid;
@@ -152,6 +164,27 @@
             background: transparent;
             border-color: transparent;
             padding: 2px 0;
+        }
+        .map-layer-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+        .map-layer-switch select {
+            background: #0f172a;
+            border: 1px solid #2b3f63;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            cursor: pointer;
+            outline: none;
+        }
+        .map-layer-switch select:focus {
+            border-color: #38bdf8;
         }
 
         #map-container {
@@ -465,6 +498,9 @@
         </div>
 
         <div class="op-access">
+            <button type="button" class="btn-tool btn-sound on" id="btnSoundToggle" onclick="toggleSoundEnabled()">
+                <i class="fa-solid fa-volume-high"></i> Голос: увімк
+            </button>
             <span class="role-tag" id="roleTag">Перегляд</span>
             <input type="password" id="opCodeInput" placeholder="Код оператора" autocomplete="off">
             <button type="button" class="btn-tool btn-op" id="btnOpUnlock" onclick="unlockOperator()">
@@ -669,6 +705,14 @@
                 <div class="air-counter-breakdown" id="airBreakdown">
                     <span class="air-chip empty">Активних цілей немає</span>
                 </div>
+                <div class="map-layer-switch">
+                    <label for="mapLayerSelect"><i class="fa-solid fa-map"></i> Карта:</label>
+                    <select id="mapLayerSelect" onchange="switchMapLayer(this.value)">
+                        <option value="osm">OpenStreetMap</option>
+                        <option value="maptiler">MapTiler</option>
+                        <option value="dark">Темна</option>
+                    </select>
+                </div>
             </div>
 
             <div id="map-container">
@@ -707,6 +751,10 @@
         // 2. Придумай ваш общий код оператора (для тебя и напарника)
         const OPERATOR_CODE = "KR2026";
 
+        // 3. Вставь ключ MapTiler (наприклад: "aBcDeFgHiJkLmNoPqRsT")
+        const MAPTILER_KEY = "YOUR_MAPTILER_KEY";
+        const MAPTILER_STYLE = "streets-v2";
+
         const firebaseConfigured = !firebaseConfig.apiKey.startsWith("YOUR_");
         let db = null;
         let isOperator = !firebaseConfigured;
@@ -715,6 +763,118 @@
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
         }
+
+        // Голосове сповіщення при тривозі
+        let soundEnabled = localStorage.getItem('kr_voice_enabled') !== '0';
+        let voicesCache = [];
+        let pendingSpeechText = null;
+
+        function refreshVoices() {
+            if (!('speechSynthesis' in window)) return;
+            voicesCache = window.speechSynthesis.getVoices() || [];
+        }
+
+        if ('speechSynthesis' in window) {
+            refreshVoices();
+            window.speechSynthesis.onvoiceschanged = refreshVoices;
+        }
+
+        function pickMaleUkrainianVoice() {
+            refreshVoices();
+            if (!voicesCache.length) return null;
+            const ukVoices = voicesCache.filter(v => (v.lang || '').toLowerCase().startsWith('uk'));
+            const pool = ukVoices.length ? ukVoices : voicesCache;
+            const maleHints = ['male', 'man', 'dmytro', 'ostap', 'taras', 'maksym', 'oleksandr', 'bohdan', 'ivan', 'dmitry', 'yuri'];
+            const femaleHints = ['female', 'woman', 'maryna', 'lesya', 'tetiana', 'olena', 'irina', 'svetlana', 'anna', 'sofia'];
+
+            const explicitMale = pool.find(v => {
+                const n = (v.name || '').toLowerCase();
+                return maleHints.some(h => n.includes(h)) && !femaleHints.some(f => n.includes(f));
+            });
+            if (explicitMale) return explicitMale;
+
+            const nonFemale = pool.find(v => {
+                const n = (v.name || '').toLowerCase();
+                return !femaleHints.some(f => n.includes(f));
+            });
+            return nonFemale || pool[0] || null;
+        }
+
+        function playAlertChime() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const now = ctx.currentTime;
+                const notes = [523.25, 659.25];
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.14);
+                    gain.gain.setValueAtTime(0.001, now + idx * 0.14);
+                    gain.gain.exponentialRampToValueAtTime(0.12, now + idx * 0.14 + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.14 + 0.24);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + idx * 0.14);
+                    osc.stop(now + idx * 0.14 + 0.25);
+                });
+            } catch (e) {}
+        }
+
+        function speakAlarmMessage(text) {
+            if (!soundEnabled || !text) return;
+            playAlertChime();
+            if (!('speechSynthesis' in window)) return;
+            try {
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'uk-UA';
+                utter.pitch = 0.82;
+                utter.rate = 0.96;
+                utter.volume = 1;
+                const voice = pickMaleUkrainianVoice();
+                if (voice) utter.voice = voice;
+                utter.onerror = function(ev) {
+                    if (ev && (ev.error === 'not-allowed' || ev.error === 'interrupted')) {
+                        pendingSpeechText = text;
+                    }
+                };
+                window.speechSynthesis.speak(utter);
+            } catch (e) {
+                pendingSpeechText = text;
+            }
+        }
+
+        function updateSoundButtonUI() {
+            const btn = document.getElementById('btnSoundToggle');
+            if (!btn) return;
+            btn.classList.toggle('on', soundEnabled);
+            btn.innerHTML = soundEnabled
+                ? '<i class="fa-solid fa-volume-high"></i> Голос: увімк'
+                : '<i class="fa-solid fa-volume-xmark"></i> Голос: вимк';
+        }
+
+        function toggleSoundEnabled() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('kr_voice_enabled', soundEnabled ? '1' : '0');
+            updateSoundButtonUI();
+            if (soundEnabled) {
+                speakAlarmMessage('Голосові сповіщення увімкнено');
+            } else if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                pendingSpeechText = null;
+            }
+        }
+
+        document.addEventListener('pointerdown', function() {
+            if (pendingSpeechText && soundEnabled) {
+                const queued = pendingSpeechText;
+                pendingSpeechText = null;
+                speakAlarmMessage(queued);
+            }
+        }, { passive: true });
 
         function sanitizeCount(val) {
             const n = Math.round(Number(val));
@@ -838,10 +998,39 @@
 
         const map = L.map('map').setView([48.35, 34.45], 8);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
+        const tileLayers = {
+            osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap'
+            }),
+            dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap &copy; CARTO'
+            }),
+            maptiler: MAPTILER_KEY && !MAPTILER_KEY.startsWith("YOUR_")
+                ? L.tileLayer(`https://api.maptiler.com/maps/${MAPTILER_STYLE}/256/{z}/{x}/{y}.png?key=${MAPTILER_KEY}`, {
+                    maxZoom: 20,
+                    attribution: '&copy; MapTiler &copy; OpenStreetMap'
+                })
+                : null
+        };
+
+        let activeBaseLayer = tileLayers.osm;
+        activeBaseLayer.addTo(map);
+
+        function switchMapLayer(layerKey) {
+            const sel = document.getElementById('mapLayerSelect');
+            if (layerKey === 'maptiler' && !tileLayers.maptiler) {
+                alert('Встав свій ключ MapTiler у змінну MAPTILER_KEY у коді');
+                if (sel) sel.value = activeBaseLayer === tileLayers.dark ? 'dark' : 'osm';
+                return;
+            }
+            const nextLayer = tileLayers[layerKey] || tileLayers.osm;
+            if (nextLayer === activeBaseLayer) return;
+            map.removeLayer(activeBaseLayer);
+            nextLayer.addTo(map);
+            activeBaseLayer = nextLayer;
+        }
 
         map.createPane('dniproZonePane');
         map.getPane('dniproZonePane').style.zIndex = 385;
@@ -1372,6 +1561,15 @@
 
         let krStatus = 'red';
         let dniproStatus = 'green';
+        let initialRemoteStatusLoaded = false;
+
+        function triggerAlarmVoice(regionLabel, nextStatus) {
+            if (nextStatus === 'red') {
+                speakAlarmMessage(`Увага! Повітряна тривога! ${regionLabel}!`);
+            } else if (nextStatus === 'yellow') {
+                speakAlarmMessage(`Увага! Загроза! ${regionLabel}!`);
+            }
+        }
 
         function applyStatusVisuals(statusKey) {
             const cfg = statusPalette[statusKey] || statusPalette.red;
@@ -1394,13 +1592,20 @@
         function setKrStatus(nextStatus, fromRemote = false) {
             if (!statusPalette[nextStatus]) return;
             if (!fromRemote && firebaseConfigured && !isOperator) return;
+            const prevStatus = krStatus;
             krStatus = nextStatus;
             applyStatusVisuals(krStatus);
 
             if (!fromRemote) {
+                if (nextStatus === 'red' || nextStatus === 'yellow') {
+                    triggerAlarmVoice('Криворізький район', nextStatus);
+                }
                 const cfg = statusPalette[krStatus];
                 if (firebaseConfigured && db) {
-                    db.ref('monitoring/status').set(krStatus);
+                    db.ref('monitoring/status').set({
+                        value: krStatus,
+                        alertId: Date.now() + '_' + Math.random().toString(36).slice(2, 6)
+                    });
                 }
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
@@ -1409,19 +1614,28 @@
                     feedClass: cfg.feedClass,
                     titleColor: cfg.color
                 });
+            } else if (initialRemoteStatusLoaded && prevStatus !== nextStatus && (nextStatus === 'red' || nextStatus === 'yellow')) {
+                triggerAlarmVoice('Криворізький район', nextStatus);
             }
         }
 
         function setDniproStatus(nextStatus, fromRemote = false) {
             if (!statusPalette[nextStatus]) return;
             if (!fromRemote && firebaseConfigured && !isOperator) return;
+            const prevStatus = dniproStatus;
             dniproStatus = nextStatus;
             applyDniproStatusVisuals(dniproStatus);
 
             if (!fromRemote) {
+                if (nextStatus === 'red' || nextStatus === 'yellow') {
+                    triggerAlarmVoice('Дніпропетровський район', nextStatus);
+                }
                 const cfg = statusPalette[dniproStatus];
                 if (firebaseConfigured && db) {
-                    db.ref('monitoring/dniproStatus').set(dniproStatus);
+                    db.ref('monitoring/dniproStatus').set({
+                        value: dniproStatus,
+                        alertId: Date.now() + '_' + Math.random().toString(36).slice(2, 6)
+                    });
                 }
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
@@ -1430,6 +1644,8 @@
                     feedClass: cfg.feedClass,
                     titleColor: cfg.color
                 });
+            } else if (initialRemoteStatusLoaded && prevStatus !== nextStatus && (nextStatus === 'red' || nextStatus === 'yellow')) {
+                triggerAlarmVoice('Дніпропетровський район', nextStatus);
             }
         }
 
@@ -2305,20 +2521,43 @@
             }
         }
 
+        function unpackStatusPayload(raw) {
+            if (!raw) return { value: null, alertId: null };
+            if (typeof raw === 'string') return { value: raw, alertId: null };
+            if (typeof raw === 'object') return { value: raw.value || null, alertId: raw.alertId || null };
+            return { value: null, alertId: null };
+        }
+
+        let lastKrAlertId = null;
+        let lastDniproAlertId = null;
+
         if (firebaseConfigured && db) {
             db.ref('monitoring/status').on('value', snap => {
-                const val = snap.val();
-                if (val && statusPalette[val]) {
-                    krStatus = val;
+                const { value, alertId } = unpackStatusPayload(snap.val());
+                if (value && statusPalette[value]) {
+                    const statusChanged = krStatus !== value;
+                    const alertTriggered = Boolean(alertId && alertId !== lastKrAlertId);
+                    lastKrAlertId = alertId;
+                    krStatus = value;
                     applyStatusVisuals(krStatus);
+                    if (initialRemoteStatusLoaded && !isOperator && (alertTriggered || statusChanged) && (value === 'red' || value === 'yellow')) {
+                        triggerAlarmVoice('Криворізький район', value);
+                    }
+                    initialRemoteStatusLoaded = true;
                 }
             });
 
             db.ref('monitoring/dniproStatus').on('value', snap => {
-                const val = snap.val();
-                if (val && statusPalette[val]) {
-                    dniproStatus = val;
+                const { value, alertId } = unpackStatusPayload(snap.val());
+                if (value && statusPalette[value]) {
+                    const statusChanged = dniproStatus !== value;
+                    const alertTriggered = Boolean(alertId && alertId !== lastDniproAlertId);
+                    lastDniproAlertId = alertId;
+                    dniproStatus = value;
                     applyDniproStatusVisuals(dniproStatus);
+                    if (initialRemoteStatusLoaded && !isOperator && (alertTriggered || statusChanged) && (value === 'red' || value === 'yellow')) {
+                        triggerAlarmVoice('Дніпропетровський район', value);
+                    }
                 }
             });
 
@@ -2357,6 +2596,7 @@
             });
         }
 
+        updateSoundButtonUI();
         applyStatusVisuals(krStatus);
         applyDniproStatusVisuals(dniproStatus);
         updateAirCounterUI();
