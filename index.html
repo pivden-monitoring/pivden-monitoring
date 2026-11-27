@@ -247,13 +247,13 @@
         .btn-exit { background: #334155; padding: 6px 12px; font-size: 12px; }
         .btn-geran, .btn-banderol, .btn-jet, .btn-recon {
             background: #991b1b;
-            border: 1px solid rgba(248, 113, 113, 0.55);
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+            border: 1px solid rgba(248, 113, 113, 0.7);
+            box-shadow: 0 0 12px rgba(220, 38, 38, 0.45);
         }
         .btn-iskander, .btn-kalibr {
             background: #7f1d1d;
-            border: 1px solid rgba(248, 113, 113, 0.55);
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+            border: 1px solid rgba(248, 113, 113, 0.7);
+            box-shadow: 0 0 12px rgba(220, 38, 38, 0.45);
         }
         .btn-rotate { background: #1e293b; border: 1px solid #334155; }
         .btn-rotate:hover { background: #334155; }
@@ -278,9 +278,9 @@
         .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
 
         .red-target-glow {
-            filter: drop-shadow(0 0 14px rgba(239, 68, 68, 1))
-                    drop-shadow(0 0 7px rgba(220, 38, 38, 1))
-                    drop-shadow(0 0 2px rgba(254, 202, 202, 0.95));
+            filter: drop-shadow(0 0 6px rgba(220, 38, 38, 1))
+                    drop-shadow(0 0 14px rgba(185, 28, 28, 1))
+                    drop-shadow(0 0 22px rgba(239, 68, 68, 0.95));
         }
 
         .param-box {
@@ -360,30 +360,6 @@
             transform: translate(-50%, -50%);
         }
 
-        .city-label-marker {
-            background: transparent !important;
-            border: none !important;
-        }
-        .city-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 2px 7px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 800;
-            color: #ffffff;
-            background: rgba(15, 23, 42, 0.88);
-            border: 1.5px solid #94a3b8;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
-            white-space: nowrap;
-            cursor: pointer;
-            transform: translate(-50%, -50%);
-        }
-        .city-pill.red { background: rgba(185, 28, 28, 0.94); border-color: #fca5a5; }
-        .city-pill.yellow { background: rgba(161, 98, 7, 0.94); border-color: #fde047; }
-        .city-pill.green { background: rgba(21, 128, 61, 0.9); border-color: #86efac; }
-
         .marker-slot {
             position: relative;
             width: 56px;
@@ -400,9 +376,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            filter: drop-shadow(0 0 18px rgba(239, 68, 68, 1))
-                    drop-shadow(0 0 9px rgba(220, 38, 38, 1))
-                    drop-shadow(0 0 3px rgba(254, 202, 202, 0.95));
+            filter: drop-shadow(0 0 6px rgba(220, 38, 38, 1))
+                    drop-shadow(0 0 14px rgba(185, 28, 28, 1))
+                    drop-shadow(0 0 24px rgba(239, 68, 68, 0.95));
             transition: filter 0.15s ease;
             user-select: none;
             will-change: transform;
@@ -410,9 +386,9 @@
         .target-icon-wrap.editable { cursor: grab; }
         .target-icon-wrap.editable:active { cursor: grabbing; }
         .target-icon-wrap.active-marker {
-            filter: drop-shadow(0 0 22px rgba(239, 68, 68, 1))
-                    drop-shadow(0 0 11px rgba(220, 38, 38, 1))
-                    drop-shadow(0 0 4px rgba(250, 204, 21, 0.95)) !important;
+            filter: drop-shadow(0 0 8px rgba(220, 38, 38, 1))
+                    drop-shadow(0 0 18px rgba(185, 28, 28, 1))
+                    drop-shadow(0 0 28px rgba(255, 0, 0, 1)) !important;
         }
 
         .group-count-badge {
@@ -609,39 +585,39 @@
             <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Вибери ціль:</span>
             <button type="button" class="btn-tool btn-geran" onclick="selectTool('geran', this)">
                 <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
-                    <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
-                    <rect x="34" y="84" width="32" height="4.5" rx="2" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                    <rect x="48" y="78" width="4" height="7" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
+                    <rect x="34" y="84" width="32" height="4.5" rx="2" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
                 </svg>
                 Герань-2
             </button>
             <button type="button" class="btn-tool btn-banderol" onclick="selectTool('banderol', this)">
                 <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
+                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
                 </svg>
                 Бандероль
             </button>
             <button type="button" class="btn-tool btn-jet" onclick="selectTool('jet', this)">
                 <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
                 </svg>
                 Реактивний Шахед
             </button>
             <button type="button" class="btn-tool btn-iskander" onclick="selectTool('iskander', this)">
                 <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
+                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
                 </svg>
                 Іскандер-М
             </button>
             <button type="button" class="btn-tool btn-kalibr" onclick="selectTool('kalibr', this)">
                 <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
+                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
                 </svg>
                 Калібр
             </button>
             <button type="button" class="btn-tool btn-recon" onclick="selectTool('recon', this)">
                 <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
+                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
                 </svg>
                 Розвідник
             </button>
@@ -713,39 +689,39 @@
                 <hr style="border-color: #1f2d45; margin: 10px 0;">
                 <div class="legend-item">
                     <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
-                        <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
-                        <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                        <rect x="48" y="78" width="4" height="7" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
+                        <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
                     </svg>
                     Герань-2
                 </div>
                 <div class="legend-item">
                     <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
+                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
                     </svg>
                     Бандероль
                 </div>
                 <div class="legend-item">
                     <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
                     </svg>
                     Реактивний Шахед
                 </div>
                 <div class="legend-item">
                     <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
+                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
                     </svg>
                     Іскандер-М
                 </div>
                 <div class="legend-item">
                     <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
+                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
                     </svg>
                     Калібр
                 </div>
                 <div class="legend-item">
                     <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
+                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
                     </svg>
                     Розвідник
                 </div>
@@ -1019,8 +995,6 @@
                 fillRed: 0.28,
                 fillYellow: 0.25,
                 fillGreen: 0.14,
-                labelPos: [48.72, 34.45],
-                showPill: false,
                 contour: [
                     [48.392636, 33.4818434], [48.438459, 33.4895144], [48.4994921, 33.4792863],
                     [48.536754, 33.4690583], [48.5638363, 33.5074135], [48.5756803, 33.5764528],
@@ -1064,8 +1038,6 @@
                 fillRed: 0.42,
                 fillYellow: 0.38,
                 fillGreen: 0.24,
-                labelPos: [47.76, 33.82],
-                showPill: false,
                 contour: [
                     [48.4011644, 33.4840501], [48.3745213, 33.4722501], [48.3588423, 33.4580901],
                     [48.329039, 33.4722501], [48.330608, 33.5147302], [48.2835161, 33.5100102],
@@ -1103,8 +1075,6 @@
                 fillRed: 0.56,
                 fillYellow: 0.48,
                 fillGreen: 0.16,
-                labelPos: [47.9105, 33.3918],
-                showPill: true,
                 contour: [
                     [48.125, 33.245], [48.138, 33.360], [48.118, 33.495], [48.045, 33.565],
                     [47.935, 33.545], [47.815, 33.485], [47.695, 33.375], [47.675, 33.235],
@@ -1120,8 +1090,6 @@
                 fillRed: 0.56,
                 fillYellow: 0.48,
                 fillGreen: 0.16,
-                labelPos: [48.5166, 34.6136],
-                showPill: true,
                 contour: [
                     [48.595, 34.485], [48.612, 34.615], [48.575, 34.745], [48.485, 34.755],
                     [48.435, 34.645], [48.455, 34.505]
@@ -1136,8 +1104,6 @@
                 fillRed: 0.56,
                 fillYellow: 0.48,
                 fillGreen: 0.16,
-                labelPos: [48.4647, 35.0462],
-                showPill: true,
                 contour: [
                     [48.585, 34.845], [48.615, 35.025], [48.575, 35.245], [48.455, 35.285],
                     [48.355, 35.165], [48.365, 34.935], [48.455, 34.835]
@@ -1152,8 +1118,6 @@
                 fillRed: 0.56,
                 fillYellow: 0.48,
                 fillGreen: 0.16,
-                labelPos: [47.8388, 35.1396],
-                showPill: true,
                 contour: [
                     [47.965, 34.985], [47.985, 35.165], [47.915, 35.345], [47.775, 35.335],
                     [47.715, 35.155], [47.755, 34.985], [47.865, 34.955]
@@ -1163,7 +1127,6 @@
 
         const zoneStatuses = {};
         const zonePolygons = {};
-        const zonePills = {};
         const zoneAlertIds = {};
         let initialRemoteZonesLoaded = false;
 
@@ -1286,9 +1249,6 @@
         map.createPane('cityZonePane');
         map.getPane('cityZonePane').style.zIndex = 415;
 
-        map.createPane('cityPillPane');
-        map.getPane('cityPillPane').style.zIndex = 420;
-
         map.createPane('routeLinePane');
         map.getPane('routeLinePane').style.zIndex = 422;
 
@@ -1356,12 +1316,6 @@
                     weight: zCfg.strokeWeight,
                     opacity: 0.95
                 });
-            }
-
-            const pillEl = document.getElementById(`pill_${zKey}`);
-            if (pillEl) {
-                pillEl.className = `city-pill ${st}`;
-                pillEl.innerHTML = `<i class="fa-solid ${st === 'red' ? 'fa-bell' : (st === 'yellow' ? 'fa-triangle-exclamation' : 'fa-shield')}"></i> ${zCfg.shortLabel}: ${pCfg.text}`;
             }
         }
 
@@ -1449,21 +1403,6 @@
             });
 
             zonePolygons[zKey] = poly;
-
-            if (zCfg.showPill && Array.isArray(zCfg.labelPos)) {
-                const pillIcon = L.divIcon({
-                    html: `<div id="pill_${zKey}" class="city-pill green" onclick="event.stopPropagation(); focusOrOpenZone('${zKey}');">${zCfg.shortLabel}</div>`,
-                    className: 'city-label-marker',
-                    iconSize: [0, 0],
-                    iconAnchor: [0, 0]
-                });
-                const pillMarker = L.marker(zCfg.labelPos, {
-                    pane: 'cityPillPane',
-                    icon: pillIcon,
-                    interactive: true
-                }).addTo(map);
-                zonePills[zKey] = pillMarker;
-            }
         });
 
         const mainBounds = L.latLngBounds([]);
@@ -1709,9 +1648,9 @@
             if (!item.trailLine) {
                 item.trailLine = L.polyline(pts, {
                     pane: 'trailLinePane',
-                    color: '#f87171',
+                    color: '#ef4444',
                     weight: 2.2,
-                    opacity: 0.85,
+                    opacity: 0.9,
                     dashArray: '6, 6',
                     interactive: false
                 }).addTo(map);
@@ -1774,23 +1713,23 @@
             if (!item.courseShadowLine) {
                 item.courseShadowLine = L.polyline([[pos.lat, pos.lng], tip], {
                     pane: 'courseLinePane',
-                    color: '#0f172a',
+                    color: '#450a0a',
                     weight: isSelected ? 6 : 5,
-                    opacity: 0.78,
+                    opacity: 0.85,
                     interactive: false
                 }).addTo(map);
             } else {
                 item.courseShadowLine.setLatLngs([[pos.lat, pos.lng], tip]);
                 item.courseShadowLine.setStyle({
                     weight: isSelected ? 6 : 5,
-                    opacity: 0.78
+                    opacity: 0.85
                 });
             }
 
             if (!item.courseLine) {
                 item.courseLine = L.polyline([[pos.lat, pos.lng], tip], {
                     pane: 'courseLinePane',
-                    color: '#ffffff',
+                    color: '#ef4444',
                     weight: isSelected ? 3.5 : 2.8,
                     opacity: 0.98,
                     interactive: false
@@ -1798,7 +1737,7 @@
             } else {
                 item.courseLine.setLatLngs([[pos.lat, pos.lng], tip]);
                 item.courseLine.setStyle({
-                    color: '#ffffff',
+                    color: '#ef4444',
                     weight: isSelected ? 3.5 : 2.8,
                     opacity: 0.98
                 });
@@ -1810,9 +1749,9 @@
                     item.destMarker = L.circleMarker([item.destLat, item.destLng], {
                         pane: 'courseLinePane',
                         radius: 5,
-                        color: '#0f172a',
+                        color: '#7f1d1d',
                         weight: 2,
-                        fillColor: '#ffffff',
+                        fillColor: '#ef4444',
                         fillOpacity: 1,
                         interactive: false
                     }).addTo(map);
@@ -2441,12 +2380,12 @@
             }
 
             const svgByType = {
-                geran: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/><rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/><rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/></svg>`,
-                banderol: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/></svg>`,
-                jet: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/></svg>`,
-                iskander: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/></svg>`,
-                kalibr: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/></svg>`,
-                recon: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/></svg>`
+                geran: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/><rect x="48" y="78" width="4" height="7" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/><rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/></svg>`,
+                banderol: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/></svg>`,
+                jet: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/></svg>`,
+                iskander: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4.5" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/></svg>`,
+                kalibr: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/></svg>`,
+                recon: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/></svg>`
             };
             const svgHtml = svgByType[data.targetKey] || svgByType.geran;
             const badgeHtml = count > 1 ? `<span class="group-count-badge">${count}x</span>` : '';
