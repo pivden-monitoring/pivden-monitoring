@@ -204,7 +204,7 @@
             min-height: 460px;
             background: #0b111e;
         }
-        #map.aim-mode, #map.route-mode {
+        #map.aim-mode {
             cursor: crosshair !important;
         }
 
@@ -238,6 +238,11 @@
             padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: white;
             display: inline-flex; align-items: center; gap: 8px;
         }
+        .btn-tool.sm-btn {
+            padding: 5px 9px;
+            font-size: 11.5px;
+            gap: 5px;
+        }
         .btn-tool:disabled {
             opacity: 0.45;
             cursor: not-allowed;
@@ -245,16 +250,18 @@
         .btn-op { background: #2563eb; padding: 6px 12px; font-size: 12px; }
         .btn-op:hover { background: #1d4ed8; }
         .btn-exit { background: #334155; padding: 6px 12px; font-size: 12px; }
-        .btn-geran, .btn-banderol, .btn-jet, .btn-recon {
-            background: #991b1b;
-            border: 1px solid rgba(248, 113, 113, 0.7);
-            box-shadow: 0 0 12px rgba(220, 38, 38, 0.45);
-        }
-        .btn-iskander, .btn-kalibr {
-            background: #7f1d1d;
-            border: 1px solid rgba(248, 113, 113, 0.7);
-            box-shadow: 0 0 12px rgba(220, 38, 38, 0.45);
-        }
+        .btn-alarm-on { background: #dc2626; }
+        .btn-alarm-on:hover { background: #b91c1c; }
+        .btn-alarm-yellow { background: #ca8a04; }
+        .btn-alarm-yellow:hover { background: #a16207; }
+        .btn-alarm-off { background: #16a34a; }
+        .btn-alarm-off:hover { background: #15803d; }
+        .btn-geran { background: #991b1b; }
+        .btn-banderol { background: #991b1b; }
+        .btn-jet { background: #991b1b; }
+        .btn-iskander { background: #7f1d1d; }
+        .btn-kalibr { background: #7f1d1d; }
+        .btn-recon { background: #991b1b; }
         .btn-rotate { background: #1e293b; border: 1px solid #334155; }
         .btn-rotate:hover { background: #334155; }
         .btn-apply { background: #0284c7; }
@@ -265,9 +272,6 @@
         .btn-aim { background: #334155; border: 1px solid #475569; }
         .btn-aim:hover { background: #475569; }
         .btn-aim.active { background: #2563eb; border-color: #60a5fa; box-shadow: 0 0 10px rgba(96, 165, 250, 0.45); }
-        .btn-route { background: #334155; border: 1px solid #475569; }
-        .btn-route:hover:not(:disabled) { background: #475569; }
-        .btn-route.active { background: #7c3aed; border-color: #c4b5fd; box-shadow: 0 0 10px rgba(167, 139, 250, 0.45); }
         .btn-lost { background: #475569; border: 1px solid #64748b; }
         .btn-lost:hover:not(:disabled) { background: #64748b; }
         .btn-airdef { background: #15803d; border: 1px solid #22c55e; }
@@ -277,10 +281,27 @@
         .btn-clear { background: #475569; }
         .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
 
-        .red-target-glow {
-            filter: drop-shadow(0 0 6px rgba(220, 38, 38, 1))
-                    drop-shadow(0 0 14px rgba(185, 28, 28, 1))
-                    drop-shadow(0 0 22px rgba(239, 68, 68, 0.95));
+        .zone-quick-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            background: #0f172a;
+            border: 1px solid #2b3f63;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+        .zone-quick-bar select {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 5px;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 8px;
+            outline: none;
+            cursor: pointer;
         }
 
         .param-box {
@@ -340,25 +361,29 @@
             will-change: transform;
         }
 
-        .waypoint-dot-marker {
+        .city-label-marker {
             background: transparent !important;
             border: none !important;
         }
-        .waypoint-dot {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #7c3aed;
-            color: #ffffff;
-            border: 2px solid #ffffff;
-            font-size: 10px;
-            font-weight: 800;
-            display: flex;
+        .city-pill {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.75);
+            gap: 5px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffffff;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1.5px solid #94a3b8;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+            white-space: nowrap;
+            cursor: pointer;
             transform: translate(-50%, -50%);
         }
+        .city-pill.red { background: rgba(185, 28, 28, 0.94); border-color: #fca5a5; }
+        .city-pill.yellow { background: rgba(161, 98, 7, 0.94); border-color: #fde047; }
+        .city-pill.green { background: rgba(21, 128, 61, 0.9); border-color: #86efac; }
 
         .marker-slot {
             position: relative;
@@ -376,9 +401,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            filter: drop-shadow(0 0 6px rgba(220, 38, 38, 1))
-                    drop-shadow(0 0 14px rgba(185, 28, 28, 1))
-                    drop-shadow(0 0 24px rgba(239, 68, 68, 0.95));
             transition: filter 0.15s ease;
             user-select: none;
             will-change: transform;
@@ -386,9 +408,7 @@
         .target-icon-wrap.editable { cursor: grab; }
         .target-icon-wrap.editable:active { cursor: grabbing; }
         .target-icon-wrap.active-marker {
-            filter: drop-shadow(0 0 8px rgba(220, 38, 38, 1))
-                    drop-shadow(0 0 18px rgba(185, 28, 28, 1))
-                    drop-shadow(0 0 28px rgba(255, 0, 0, 1)) !important;
+            filter: drop-shadow(0 0 16px rgba(239, 68, 68, 1)) drop-shadow(0 0 8px rgba(220, 38, 38, 1)) drop-shadow(0 0 3px rgba(255, 255, 255, 1)) !important;
         }
 
         .group-count-badge {
@@ -581,43 +601,66 @@
     </header>
 
     <div class="admin-controls" id="adminControls">
+        <div class="zone-quick-bar">
+            <span style="color:#94a3b8;font-weight:700;">Тривога зони:</span>
+            <select id="zoneSelect">
+                <option value="kr">Криворізький район</option>
+                <option value="dnipro">Дніпропетровський район</option>
+                <option value="kryvyi_rih">м. Кривий Ріг</option>
+                <option value="kamianske">м. Кам’янське</option>
+                <option value="dnipro_city">м. Дніпро</option>
+                <option value="zaporizhzhia">м. Запоріжжя</option>
+            </select>
+            <button type="button" class="btn-tool sm-btn btn-alarm-on" onclick="setZoneStatus(document.getElementById('zoneSelect').value, 'red')">
+                <i class="fa-solid fa-bell"></i> Тривога
+            </button>
+            <button type="button" class="btn-tool sm-btn btn-alarm-yellow" onclick="setZoneStatus(document.getElementById('zoneSelect').value, 'yellow')">
+                <i class="fa-solid fa-triangle-exclamation"></i> Загроза
+            </button>
+            <button type="button" class="btn-tool sm-btn btn-alarm-off" onclick="setZoneStatus(document.getElementById('zoneSelect').value, 'green')">
+                <i class="fa-solid fa-bell-slash"></i> Відбій
+            </button>
+        </div>
+
+        <div class="divider"></div>
+
         <div class="control-group">
             <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Вибери ціль:</span>
             <button type="button" class="btn-tool btn-geran" onclick="selectTool('geran', this)">
-                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
-                    <rect x="48" y="78" width="4" height="7" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
-                    <rect x="34" y="84" width="32" height="4.5" rx="2" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                    <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+                    <rect x="34" y="84" width="32" height="4.5" rx="2" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
                 </svg>
                 Герань-2
             </button>
             <button type="button" class="btn-tool btn-banderol" onclick="selectTool('banderol', this)">
-                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
                 </svg>
                 Бандероль
             </button>
             <button type="button" class="btn-tool btn-jet" onclick="selectTool('jet', this)">
-                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
                 </svg>
                 Реактивний Шахед
             </button>
             <button type="button" class="btn-tool btn-iskander" onclick="selectTool('iskander', this)">
-                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
                 </svg>
                 Іскандер-М
             </button>
             <button type="button" class="btn-tool btn-kalibr" onclick="selectTool('kalibr', this)">
-                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
                 </svg>
                 Калібр
             </button>
             <button type="button" class="btn-tool btn-recon" onclick="selectTool('recon', this)">
-                <svg class="red-target-glow" width="20" height="20" viewBox="0 0 100 100">
-                    <path fill="#ef4444" stroke="#7f1d1d" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
                 </svg>
                 Розвідник
             </button>
@@ -640,12 +683,6 @@
             </div>
             <button type="button" class="btn-tool btn-apply" onclick="applyParamsToSelected(true)">
                 <i class="fa-solid fa-check"></i> Застосувати
-            </button>
-            <button type="button" class="btn-tool btn-route" id="btnRouteMode" onclick="toggleRouteMode()" disabled>
-                <i class="fa-solid fa-route"></i> Маршрут: вимк
-            </button>
-            <button type="button" class="btn-tool btn-rotate" id="btnClearRoute" onclick="clearSelectedRoute()" disabled>
-                <i class="fa-solid fa-eraser"></i> Очистити точки
             </button>
             <button type="button" class="btn-tool btn-aim" id="btnAimClick" onclick="toggleAimClickMode()">
                 <i class="fa-solid fa-crosshairs"></i> Курс за кліком: вимк
@@ -688,40 +725,40 @@
                 <div class="legend-item"><span class="circle green"></span> Відбій тривоги</div>
                 <hr style="border-color: #1f2d45; margin: 10px 0;">
                 <div class="legend-item">
-                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
-                        <rect x="48" y="78" width="4" height="7" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
-                        <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                        <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+                        <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
                     </svg>
                     Герань-2
                 </div>
                 <div class="legend-item">
-                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
                     </svg>
                     Бандероль
                 </div>
                 <div class="legend-item">
-                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
                     </svg>
                     Реактивний Шахед
                 </div>
                 <div class="legend-item">
-                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
                     </svg>
                     Іскандер-М
                 </div>
                 <div class="legend-item">
-                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
                     </svg>
                     Калібр
                 </div>
                 <div class="legend-item">
-                    <svg class="red-target-glow" width="22" height="22" viewBox="0 0 100 100">
-                        <path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
                     </svg>
                     Розвідник
                 </div>
@@ -995,6 +1032,8 @@
                 fillRed: 0.28,
                 fillYellow: 0.25,
                 fillGreen: 0.14,
+                labelPos: [48.72, 34.45],
+                showPill: false,
                 contour: [
                     [48.392636, 33.4818434], [48.438459, 33.4895144], [48.4994921, 33.4792863],
                     [48.536754, 33.4690583], [48.5638363, 33.5074135], [48.5756803, 33.5764528],
@@ -1011,22 +1050,22 @@
                     [48.7796685, 34.1323414], [48.7509133, 34.2367295], [48.7283085, 34.3052829],
                     [48.7848016, 34.3364435], [48.8248219, 34.3208632], [48.8812064, 34.3286534],
                     [48.9538999, 34.313073], [49.0152485, 34.3395596], [49.0499792, 34.4034389],
-                    [49.0857061, 34.406555], [49.0734598, 34.4704343], [49.0571267, 34.5467778],
-                    [49.0938686, 34.5639162], [49.1285444, 34.6418178], [49.1415359, 34.7582248],
-                    [49.1760362, 34.8010887], [49.1918408, 34.8483489], [49.1753177, 34.9000054],
-                    [49.1537575, 34.9033026], [49.1875309, 34.9340766], [49.1918408, 34.9472655],
-                    [49.1695692, 34.9780396], [49.1537575, 35.028597], [49.1731621, 35.0549748],
-                    [49.1415359, 35.0824516], [49.1580703, 35.1220183], [49.1329071, 35.2165386],
-                    [49.1034139, 35.2275294], [49.0926194, 35.3000683], [49.0278027, 35.3879942],
-                    [48.9960838, 35.4506414], [48.9737243, 35.4869109], [48.9859872, 35.5858275],
-                    [49.0026956, 35.5543359], [48.8794492, 35.5543359], [48.841466, 35.5038183],
-                    [48.8034539, 35.5543359], [48.7225826, 35.5326855], [48.6797157, 35.4966015],
-                    [48.6320429, 35.5038183], [48.4744028, 35.5110351], [48.4073768, 35.4677343],
-                    [48.3690364, 35.4605175], [48.1046647, 35.4677343], [48.105847, 35.4327361],
-                    [48.1404716, 35.3073843], [48.1462402, 35.2382247], [48.1173911, 35.0437133],
-                    [48.0885259, 34.9486189], [48.1347025, 34.8967492], [48.0856385, 34.8621694],
-                    [48.0567554, 34.8881043], [48.0220743, 34.8535245], [48.1393936, 34.8758234],
-                    [48.4027153, 33.4819369]
+                    [49.0857061, 34.406555], [49.0734598, 49.0734598 ? 34.4704343 : 34.4704343],
+                    [49.0571267, 34.5467778], [49.0938686, 34.5639162], [49.1285444, 34.6418178],
+                    [49.1415359, 34.7582248], [49.1760362, 34.8010887], [49.1918408, 34.8483489],
+                    [49.1753177, 34.9000054], [49.1537575, 34.9033026], [49.1875309, 34.9340766],
+                    [49.1918408, 34.9472655], [49.1695692, 34.9780396], [49.1537575, 35.028597],
+                    [49.1731621, 35.0549748], [49.1415359, 35.0824516], [49.1580703, 35.1220183],
+                    [49.1329071, 35.2165386], [49.1034139, 35.2275294], [49.0926194, 35.3000683],
+                    [49.0278027, 35.3879942], [48.9960838, 35.4506414], [48.9737243, 35.4869109],
+                    [48.9859872, 35.5858275], [49.0026956, 35.5543359], [48.8794492, 35.5543359],
+                    [48.841466, 35.5038183], [48.8034539, 35.5543359], [48.7225826, 35.5326855],
+                    [48.6797157, 35.4966015], [48.6320429, 35.5038183], [48.4744028, 35.5110351],
+                    [48.4073768, 35.4677343], [48.3690364, 35.4605175], [48.1046647, 35.4677343],
+                    [48.105847, 35.4327361], [48.1404716, 35.3073843], [48.1462402, 35.2382247],
+                    [48.1173911, 35.0437133], [48.0885259, 34.9486189], [48.1347025, 34.8967492],
+                    [48.0856385, 34.8621694], [48.0567554, 34.8881043], [48.0220743, 34.8535245],
+                    [48.1393936, 34.8758234], [48.4027153, 33.4819369]
                 ]
             },
             kr: {
@@ -1038,6 +1077,8 @@
                 fillRed: 0.42,
                 fillYellow: 0.38,
                 fillGreen: 0.24,
+                labelPos: [47.76, 33.82],
+                showPill: false,
                 contour: [
                     [48.4011644, 33.4840501], [48.3745213, 33.4722501], [48.3588423, 33.4580901],
                     [48.329039, 33.4722501], [48.330608, 33.5147302], [48.2835161, 33.5100102],
@@ -1075,6 +1116,8 @@
                 fillRed: 0.56,
                 fillYellow: 0.48,
                 fillGreen: 0.16,
+                labelPos: [47.9105, 33.3918],
+                showPill: true,
                 contour: [
                     [48.125, 33.245], [48.138, 33.360], [48.118, 33.495], [48.045, 33.565],
                     [47.935, 33.545], [47.815, 33.485], [47.695, 33.375], [47.675, 33.235],
@@ -1090,6 +1133,8 @@
                 fillRed: 0.56,
                 fillYellow: 0.48,
                 fillGreen: 0.16,
+                labelPos: [48.5166, 34.6136],
+                showPill: true,
                 contour: [
                     [48.595, 34.485], [48.612, 34.615], [48.575, 34.745], [48.485, 34.755],
                     [48.435, 34.645], [48.455, 34.505]
@@ -1104,6 +1149,8 @@
                 fillRed: 0.56,
                 fillYellow: 0.48,
                 fillGreen: 0.16,
+                labelPos: [48.4647, 35.0462],
+                showPill: true,
                 contour: [
                     [48.585, 34.845], [48.615, 35.025], [48.575, 35.245], [48.455, 35.285],
                     [48.355, 35.165], [48.365, 34.935], [48.455, 34.835]
@@ -1118,6 +1165,8 @@
                 fillRed: 0.56,
                 fillYellow: 0.48,
                 fillGreen: 0.16,
+                labelPos: [47.8388, 35.1396],
+                showPill: true,
                 contour: [
                     [47.965, 34.985], [47.985, 35.165], [47.915, 35.345], [47.775, 35.335],
                     [47.715, 35.155], [47.755, 34.985], [47.865, 34.955]
@@ -1127,6 +1176,7 @@
 
         const zoneStatuses = {};
         const zonePolygons = {};
+        const zonePills = {};
         const zoneAlertIds = {};
         let initialRemoteZonesLoaded = false;
 
@@ -1169,11 +1219,9 @@
                 applyMarkerTransform(item);
                 updateCourseLine(item);
                 updateTrailLine(item);
-                updateRouteVisuals(item);
             });
             syncAutoFlyUI();
             syncAimClickUI();
-            syncRouteModeUI();
             syncDeleteSelectedUI();
             updateAirCounterUI();
         }
@@ -1195,7 +1243,6 @@
             sessionStorage.removeItem('kr_op_ok');
             selectedTargetKey = null;
             aimClickMode = false;
-            routeEditMode = false;
             document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
             updateRoleUI();
         }
@@ -1249,8 +1296,8 @@
         map.createPane('cityZonePane');
         map.getPane('cityZonePane').style.zIndex = 415;
 
-        map.createPane('routeLinePane');
-        map.getPane('routeLinePane').style.zIndex = 422;
+        map.createPane('cityPillPane');
+        map.getPane('cityPillPane').style.zIndex = 420;
 
         map.createPane('trailLinePane');
         map.getPane('trailLinePane').style.zIndex = 425;
@@ -1288,7 +1335,7 @@
             return `
                 <div class="zone-popup-actions">
                     <div class="zone-popup-title">${zCfg.label}</div>
-                    <div style="font-size:12px;color:#0f172a;">Статус: <b>${stLabel}</b></div>
+                    <div style="font-size:12px;color:#0f172a;">Поточний статус: <b>${stLabel}</b></div>
                     ${btnsHtml}
                 </div>
             `;
@@ -1316,6 +1363,12 @@
                     weight: zCfg.strokeWeight,
                     opacity: 0.95
                 });
+            }
+
+            const pillEl = document.getElementById(`pill_${zKey}`);
+            if (pillEl) {
+                pillEl.className = `city-pill ${st}`;
+                pillEl.innerHTML = `<i class="fa-solid ${st === 'red' ? 'fa-bell' : (st === 'yellow' ? 'fa-triangle-exclamation' : 'fa-shield')}"></i> ${zCfg.shortLabel}: ${pCfg.text}`;
             }
         }
 
@@ -1382,6 +1435,7 @@
                 .openOn(map);
         }
 
+        // Создаем полигоны строгих границ районов и городов
         Object.keys(zonesConfig).forEach(zKey => {
             const zCfg = zonesConfig[zKey];
             const poly = L.polygon(zCfg.contour, {
@@ -1394,7 +1448,7 @@
             }).addTo(map);
 
             poly.on('click', function(ev) {
-                if (selectedTargetKey || aimClickMode || routeEditMode) return;
+                if (selectedTargetKey || (aimClickMode && activeMarkerItem)) return;
                 L.DomEvent.stopPropagation(ev);
                 L.popup()
                     .setLatLng(ev.latlng)
@@ -1403,8 +1457,24 @@
             });
 
             zonePolygons[zKey] = poly;
+
+            if (zCfg.showPill && Array.isArray(zCfg.labelPos)) {
+                const pillIcon = L.divIcon({
+                    html: `<div id="pill_${zKey}" class="city-pill green" onclick="event.stopPropagation(); focusOrOpenZone('${zKey}');">${zCfg.shortLabel}</div>`,
+                    className: 'city-label-marker',
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0]
+                });
+                const pillMarker = L.marker(zCfg.labelPos, {
+                    pane: 'cityPillPane',
+                    icon: pillIcon,
+                    interactive: true
+                }).addTo(map);
+                zonePills[zKey] = pillMarker;
+            }
         });
 
+        // Центрируем карту по основным районам и городам
         const mainBounds = L.latLngBounds([]);
         ['kr', 'dnipro', 'zaporizhzhia'].forEach(k => {
             if (zonePolygons[k]) mainBounds.extend(zonePolygons[k].getBounds());
@@ -1565,20 +1635,72 @@
             }
         }
 
+        const RED_TARGET_GLOW = 'drop-shadow(0 0 14px rgba(239, 68, 68, 1)) drop-shadow(0 0 6px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9))';
+        const DARK_STROKE = '#0f172a';
+
         const targetsData = {
-            geran: { name: 'Герань-2', defaultSpeed: 185, defaultAltitude: 800 },
-            banderol: { name: 'Бандероль', defaultSpeed: 520, defaultAltitude: 2500 },
-            jet: { name: 'Реактивний Шахед', defaultSpeed: 460, defaultAltitude: 1500 },
-            iskander: { name: 'Іскандер-М', defaultSpeed: 3600, defaultAltitude: 35000 },
-            kalibr: { name: 'Калібр', defaultSpeed: 850, defaultAltitude: 120 },
-            recon: { name: 'Розвідник', defaultSpeed: 110, defaultAltitude: 1500 }
+            geran: {
+                name: 'Герань-2',
+                glow: RED_TARGET_GLOW,
+                defaultSpeed: 185,
+                defaultAltitude: 800,
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
+                    <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="1.5"/>
+                    <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="1.5"/>
+                </svg>`
+            },
+            banderol: {
+                name: 'Бандероль',
+                glow: RED_TARGET_GLOW,
+                defaultSpeed: 520,
+                defaultAltitude: 2500,
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
+                </svg>`
+            },
+            jet: {
+                name: 'Реактивний Шахед',
+                glow: RED_TARGET_GLOW,
+                defaultSpeed: 460,
+                defaultAltitude: 1500,
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
+                </svg>`
+            },
+            iskander: {
+                name: 'Іскандер-М',
+                glow: RED_TARGET_GLOW,
+                defaultSpeed: 3600,
+                defaultAltitude: 35000,
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
+                </svg>`
+            },
+            kalibr: {
+                name: 'Калібр',
+                glow: RED_TARGET_GLOW,
+                defaultSpeed: 850,
+                defaultAltitude: 120,
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
+                </svg>`
+            },
+            recon: {
+                name: 'Розвідник',
+                glow: RED_TARGET_GLOW,
+                defaultSpeed: 110,
+                defaultAltitude: 1500,
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
+                </svg>`
+            }
         };
 
         let selectedTargetKey = null;
         let markers = [];
         let activeMarkerItem = null;
         let aimClickMode = false;
-        let routeEditMode = false;
         let lastRemoteSyncAt = 0;
 
         function clearToolSelection() {
@@ -1595,9 +1717,7 @@
             }
             selectedTargetKey = key;
             aimClickMode = false;
-            routeEditMode = false;
             syncAimClickUI();
-            syncRouteModeUI();
             document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
             btnElement.classList.add('selected');
             const target = targetsData[key];
@@ -1648,9 +1768,9 @@
             if (!item.trailLine) {
                 item.trailLine = L.polyline(pts, {
                     pane: 'trailLinePane',
-                    color: '#ef4444',
+                    color: '#f87171',
                     weight: 2.2,
-                    opacity: 0.9,
+                    opacity: 0.85,
                     dashArray: '6, 6',
                     interactive: false
                 }).addTo(map);
@@ -1659,77 +1779,33 @@
             }
         }
 
-        function updateRouteVisuals(item) {
-            if (!item || !item.marker) return;
-            if (item.routeLine) {
-                map.removeLayer(item.routeLine);
-                item.routeLine = null;
-            }
-            if (Array.isArray(item.routeDotMarkers)) {
-                item.routeDotMarkers.forEach(dm => map.removeLayer(dm));
-            }
-            item.routeDotMarkers = [];
-
-            const wps = Array.isArray(item.waypoints) ? item.waypoints : [];
-            if (!wps.length) return;
-
-            const pos = item.marker.getLatLng();
-            const allPts = [[pos.lat, pos.lng], ...wps.map(p => [p[0], p[1]])];
-            item.routeLine = L.polyline(allPts, {
-                pane: 'routeLinePane',
-                color: '#a78bfa',
-                weight: 2.6,
-                opacity: 0.92,
-                dashArray: '8, 6',
-                interactive: false
-            }).addTo(map);
-
-            wps.forEach((pt, idx) => {
-                const dotIcon = L.divIcon({
-                    html: `<div class="waypoint-dot">${idx + 1}</div>`,
-                    className: 'waypoint-dot-marker',
-                    iconSize: [0, 0],
-                    iconAnchor: [0, 0]
-                });
-                const dm = L.marker([pt[0], pt[1]], {
-                    pane: 'routeLinePane',
-                    icon: dotIcon,
-                    interactive: false
-                }).addTo(map);
-                item.routeDotMarkers.push(dm);
-            });
-        }
-
         function updateCourseLine(item) {
             if (!item || !item.marker) return;
             const pos = item.marker.getLatLng();
-            const hasRoute = Array.isArray(item.waypoints) && item.waypoints.length > 0;
             const hasDest = Number.isFinite(item.destLat) && Number.isFinite(item.destLng);
-            const tip = hasRoute
-                ? [item.waypoints[0][0], item.waypoints[0][1]]
-                : (hasDest ? [item.destLat, item.destLng] : computeCourseTip(pos.lat, pos.lng, item.angle));
+            const tip = hasDest ? [item.destLat, item.destLng] : computeCourseTip(pos.lat, pos.lng, item.angle);
             const isSelected = activeMarkerItem === item && isOperator;
 
             if (!item.courseShadowLine) {
                 item.courseShadowLine = L.polyline([[pos.lat, pos.lng], tip], {
                     pane: 'courseLinePane',
-                    color: '#450a0a',
+                    color: '#0f172a',
                     weight: isSelected ? 6 : 5,
-                    opacity: 0.85,
+                    opacity: 0.78,
                     interactive: false
                 }).addTo(map);
             } else {
                 item.courseShadowLine.setLatLngs([[pos.lat, pos.lng], tip]);
                 item.courseShadowLine.setStyle({
                     weight: isSelected ? 6 : 5,
-                    opacity: 0.85
+                    opacity: 0.78
                 });
             }
 
             if (!item.courseLine) {
                 item.courseLine = L.polyline([[pos.lat, pos.lng], tip], {
                     pane: 'courseLinePane',
-                    color: '#ef4444',
+                    color: '#ffffff',
                     weight: isSelected ? 3.5 : 2.8,
                     opacity: 0.98,
                     interactive: false
@@ -1737,21 +1813,20 @@
             } else {
                 item.courseLine.setLatLngs([[pos.lat, pos.lng], tip]);
                 item.courseLine.setStyle({
-                    color: '#ef4444',
+                    color: '#ffffff',
                     weight: isSelected ? 3.5 : 2.8,
                     opacity: 0.98
                 });
             }
 
-            const showDestDot = !hasRoute && hasDest;
-            if (showDestDot) {
+            if (hasDest) {
                 if (!item.destMarker) {
                     item.destMarker = L.circleMarker([item.destLat, item.destLng], {
                         pane: 'courseLinePane',
                         radius: 5,
-                        color: '#7f1d1d',
+                        color: '#0f172a',
                         weight: 2,
-                        fillColor: '#ef4444',
+                        fillColor: '#ffffff',
                         fillOpacity: 1,
                         interactive: false
                     }).addTo(map);
@@ -1768,20 +1843,12 @@
             const pos = itemObj.marker.getLatLng();
             const loc = resolveLocationName(pos);
             const titleWithCount = formatTargetTitle(itemObj.target.name, itemObj.count);
-            const hasRoute = Array.isArray(itemObj.waypoints) && itemObj.waypoints.length > 0;
-            const targetLat = hasRoute ? itemObj.waypoints[0][0] : itemObj.destLat;
-            const targetLng = hasRoute ? itemObj.waypoints[0][1] : itemObj.destLng;
-            const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, targetLat, targetLng);
-            const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, targetLat, targetLng);
+            const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
+            const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, itemObj.destLat, itemObj.destLng);
             const etaRow = etaSummary ? `
                 <div class="target-card-row">
-                    <span class="target-card-label"><i class="fa-solid fa-clock" style="color:#dc2626;width:14px;"></i> До точки:</span>
+                    <span class="target-card-label"><i class="fa-solid fa-clock" style="color:#dc2626;width:14px;"></i> До цілі:</span>
                     <span class="target-card-val eta">${etaSummary}</span>
-                </div>` : '';
-            const routeRow = hasRoute ? `
-                <div class="target-card-row">
-                    <span class="target-card-label"><i class="fa-solid fa-route" style="color:#7c3aed;width:14px;"></i> Маршрут:</span>
-                    <span class="target-card-val">${itemObj.waypoints.length} ${itemObj.waypoints.length === 1 ? 'точка' : 'точки'}</span>
                 </div>` : '';
             return `
                 <div class="target-card">
@@ -1794,7 +1861,6 @@
                         <span class="target-card-val">${courseLabel} (${itemObj.angle}°)</span>
                     </div>
                     ${etaRow}
-                    ${routeRow}
                     <div class="target-card-row">
                         <span class="target-card-label"><i class="fa-solid fa-arrows-up-down" style="color:#0f172a;width:14px;"></i> Висота:</span>
                         <span class="target-card-val">${itemObj.altitude} м</span>
@@ -1815,12 +1881,12 @@
             if (!item) return;
             updateCourseLine(item);
             updateTrailLine(item);
-            updateRouteVisuals(item);
             if (!item.marker._icon) return;
             const iconEl = item.marker._icon.querySelector('.target-icon-wrap');
             if (!iconEl) return;
             const isSelected = activeMarkerItem === item && isOperator;
             iconEl.style.transform = `rotate(${item.angle}deg)`;
+            iconEl.style.filter = isSelected ? '' : item.target.glow;
             iconEl.classList.toggle('active-marker', isSelected);
             iconEl.classList.toggle('editable', isOperator);
 
@@ -1876,72 +1942,6 @@
             }
         }
 
-        function syncRouteModeUI() {
-            const btn = document.getElementById('btnRouteMode');
-            const btnClear = document.getElementById('btnClearRoute');
-            const mapEl = document.getElementById('map');
-            const canUse = Boolean(activeMarkerItem && isOperator);
-            const active = Boolean(routeEditMode && canUse);
-            if (btn) {
-                btn.classList.toggle('active', active);
-                btn.disabled = !canUse;
-                const wpCount = activeMarkerItem && Array.isArray(activeMarkerItem.waypoints) ? activeMarkerItem.waypoints.length : 0;
-                btn.innerHTML = active
-                    ? `<i class="fa-solid fa-route"></i> Маршрут: увімк (${wpCount})`
-                    : `<i class="fa-solid fa-route"></i> Маршрут${wpCount ? ` (${wpCount})` : ': вимк'}`;
-            }
-            if (btnClear) {
-                const hasWps = Boolean(activeMarkerItem && Array.isArray(activeMarkerItem.waypoints) && activeMarkerItem.waypoints.length > 0);
-                btnClear.disabled = !canUse || !hasWps;
-            }
-            if (mapEl) {
-                mapEl.classList.toggle('route-mode', active);
-            }
-        }
-
-        function toggleRouteMode() {
-            if (firebaseConfigured && !isOperator) return;
-            if (!activeMarkerItem) return;
-            routeEditMode = !routeEditMode;
-            if (routeEditMode) {
-                aimClickMode = false;
-                clearToolSelection();
-                syncAimClickUI();
-            }
-            syncRouteModeUI();
-        }
-
-        function addWaypointToSelected(latlng) {
-            if (!activeMarkerItem || !isOperator || !latlng) return;
-            if (!Array.isArray(activeMarkerItem.waypoints)) activeMarkerItem.waypoints = [];
-            activeMarkerItem.waypoints.push([latlng.lat, latlng.lng]);
-
-            const pos = activeMarkerItem.marker.getLatLng();
-            if (activeMarkerItem.waypoints.length === 1) {
-                activeMarkerItem.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, latlng.lat, latlng.lng));
-                activeMarkerItem.destLat = latlng.lat;
-                activeMarkerItem.destLng = latlng.lng;
-                syncRotationUI(activeMarkerItem.angle);
-            }
-
-            applyMarkerTransform(activeMarkerItem);
-            syncRouteModeUI();
-            activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
-            syncMarkersToFirebase();
-        }
-
-        function clearSelectedRoute() {
-            if (!activeMarkerItem || !isOperator) return;
-            activeMarkerItem.waypoints = [];
-            activeMarkerItem.destLat = null;
-            activeMarkerItem.destLng = null;
-            routeEditMode = false;
-            applyMarkerTransform(activeMarkerItem);
-            syncRouteModeUI();
-            activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
-            syncMarkersToFirebase();
-        }
-
         function syncDeleteSelectedUI() {
             const canAct = Boolean(activeMarkerItem && isOperator);
             const btnDel = document.getElementById('btnDeleteSelected');
@@ -1956,11 +1956,7 @@
             if (firebaseConfigured && !isOperator) return;
             if (!activeMarkerItem) return;
             aimClickMode = !aimClickMode;
-            if (aimClickMode) {
-                routeEditMode = false;
-                clearToolSelection();
-                syncRouteModeUI();
-            }
+            if (aimClickMode) clearToolSelection();
             syncAimClickUI();
         }
 
@@ -1971,20 +1967,11 @@
                 applyMarkerTransform(prev);
             }
             activeMarkerItem = item;
-            if (!item) {
-                aimClickMode = false;
-                routeEditMode = false;
-            } else if (enableAim && isOperator && !routeEditMode) {
-                aimClickMode = true;
-            } else if (!isOperator) {
-                aimClickMode = false;
-                routeEditMode = false;
-            }
+            aimClickMode = Boolean(item && enableAim && isOperator);
             applyMarkerTransform(item);
             syncRotationUI(item ? item.angle : 0);
             syncAutoFlyUI();
             syncAimClickUI();
-            syncRouteModeUI();
             syncDeleteSelectedUI();
             if (item && isOperator) {
                 document.getElementById('countInput').value = sanitizeCount(item.count);
@@ -1998,11 +1985,6 @@
             if (m.courseLine) map.removeLayer(m.courseLine);
             if (m.courseShadowLine) map.removeLayer(m.courseShadowLine);
             if (m.destMarker) map.removeLayer(m.destMarker);
-            if (m.routeLine) map.removeLayer(m.routeLine);
-            if (Array.isArray(m.routeDotMarkers)) {
-                m.routeDotMarkers.forEach(dm => map.removeLayer(dm));
-                m.routeDotMarkers = [];
-            }
             if (m.marker) map.removeLayer(m.marker);
         }
 
@@ -2022,11 +2004,9 @@
             if (activeMarkerItem === item) {
                 activeMarkerItem = null;
                 aimClickMode = false;
-                routeEditMode = false;
                 syncRotationUI(0);
                 syncAutoFlyUI();
                 syncAimClickUI();
-                syncRouteModeUI();
                 syncDeleteSelectedUI();
             }
 
@@ -2098,7 +2078,6 @@
                     autoFly: Boolean(item.autoFly),
                     destLat: Number.isFinite(item.destLat) ? item.destLat : null,
                     destLng: Number.isFinite(item.destLng) ? item.destLng : null,
-                    waypoints: Array.isArray(item.waypoints) ? item.waypoints.map(p => [p[0], p[1]]) : [],
                     trailPoints: Array.isArray(item.trailPoints) ? item.trailPoints.slice(-80).map(p => [p[0], p[1]]) : [[latlng.lat, latlng.lng]],
                     timeStr: item.timeStr
                 };
@@ -2205,7 +2184,6 @@
 
             appendTrailPoint(item, pos.lat, pos.lng);
             const newAngle = normalizeAngle(bearingDeg(pos.lat, pos.lng, destLatLng.lat, destLatLng.lng));
-            item.waypoints = [];
             item.angle = newAngle;
             item.destLat = destLatLng.lat;
             item.destLng = destLatLng.lng;
@@ -2214,7 +2192,6 @@
 
             syncRotationUI(newAngle);
             syncAutoFlyUI();
-            syncRouteModeUI();
             applyMarkerTransform(item);
             item.marker.setPopupContent(buildMarkerPopupHtml(item));
             item.marker.openPopup();
@@ -2255,47 +2232,24 @@
                     const pos = item.marker.getLatLng();
                     appendTrailPoint(item, pos.lat, pos.lng);
 
-                    const hasRoute = Array.isArray(item.waypoints) && item.waypoints.length > 0;
-                    const activeTargetLat = hasRoute ? item.waypoints[0][0] : item.destLat;
-                    const activeTargetLng = hasRoute ? item.waypoints[0][1] : item.destLng;
-
-                    if (Number.isFinite(activeTargetLat) && Number.isFinite(activeTargetLng)) {
-                        const remKm = distanceKm(pos.lat, pos.lng, activeTargetLat, activeTargetLng);
+                    if (Number.isFinite(item.destLat) && Number.isFinite(item.destLng)) {
+                        const remKm = distanceKm(pos.lat, pos.lng, item.destLat, item.destLng);
                         const stepKm = (Math.max(0, Number(item.speed) || 0) / 3600) * dtSec;
                         if (remKm <= Math.max(0.25, stepKm * 1.1)) {
-                            item.marker.setLatLng([activeTargetLat, activeTargetLng]);
-                            appendTrailPoint(item, activeTargetLat, activeTargetLng);
-                            if (hasRoute) {
-                                item.waypoints.shift();
-                                if (item.waypoints.length > 0) {
-                                    const nextWp = item.waypoints[0];
-                                    item.destLat = nextWp[0];
-                                    item.destLng = nextWp[1];
-                                    item.angle = normalizeAngle(bearingDeg(activeTargetLat, activeTargetLng, nextWp[0], nextWp[1]));
-                                    if (activeMarkerItem === item) syncRotationUI(item.angle);
-                                } else {
-                                    item.destLat = null;
-                                    item.destLng = null;
-                                    item.autoFly = false;
-                                }
-                                if (activeMarkerItem === item) {
-                                    syncAutoFlyUI();
-                                    syncRouteModeUI();
-                                }
-                            } else {
-                                item.destLat = null;
-                                item.destLng = null;
-                                item.autoFly = false;
-                                if (activeMarkerItem === item) syncAutoFlyUI();
-                            }
+                            item.marker.setLatLng([item.destLat, item.destLng]);
+                            appendTrailPoint(item, item.destLat, item.destLng);
+                            item.destLat = null;
+                            item.destLng = null;
+                            item.autoFly = false;
                             applyMarkerTransform(item);
+                            if (activeMarkerItem === item) syncAutoFlyUI();
                             if (item.marker.isPopupOpen()) {
                                 item.marker.setPopupContent(buildMarkerPopupHtml(item));
                             }
                             anyMoved = true;
                             return;
                         }
-                        item.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, activeTargetLat, activeTargetLng));
+                        item.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, item.destLat, item.destLng));
                         if (activeMarkerItem === item) syncRotationUI(item.angle);
                     }
 
@@ -2331,13 +2285,6 @@
             return [[fallbackLat, fallbackLng]];
         }
 
-        function parseWaypoints(rawWps) {
-            if (!Array.isArray(rawWps)) return [];
-            return rawWps
-                .filter(p => Array.isArray(p) && p.length >= 2 && Number.isFinite(Number(p[0])) && Number.isFinite(Number(p[1])))
-                .map(p => [Number(p[0]), Number(p[1])]);
-        }
-
         function createOrUpdateMarkerFromData(id, data, shouldSelect = false) {
             const target = targetsData[data.targetKey] || targetsData.geran;
             const latlng = L.latLng(data.lat, data.lng);
@@ -2348,7 +2295,6 @@
             const autoFly = Boolean(data.autoFly);
             const destLat = Number.isFinite(data.destLat) ? data.destLat : null;
             const destLng = Number.isFinite(data.destLng) ? data.destLng : null;
-            const waypoints = parseWaypoints(data.waypoints);
             const timeStr = data.timeStr || nowTimeStr();
             const parsedTrail = parseTrailPoints(data.trailPoints, latlng.lat, latlng.lng);
 
@@ -2363,7 +2309,6 @@
                 existing.autoFly = autoFly;
                 existing.destLat = destLat;
                 existing.destLng = destLng;
-                existing.waypoints = waypoints;
                 existing.timeStr = timeStr;
                 if (!existing.autoFly || !isOperator) {
                     existing.marker.setLatLng(latlng);
@@ -2372,25 +2317,13 @@
                 existing.marker.setPopupContent(buildMarkerPopupHtml(existing));
                 applyMarkerTransform(existing);
                 updateAirCounterUI();
-                if (activeMarkerItem === existing) {
-                    syncAutoFlyUI();
-                    syncRouteModeUI();
-                }
+                if (activeMarkerItem === existing) syncAutoFlyUI();
                 return existing;
             }
 
-            const svgByType = {
-                geran: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/><rect x="48" y="78" width="4" height="7" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/><rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5"/></svg>`,
-                banderol: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/></svg>`,
-                jet: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/></svg>`,
-                iskander: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4.5" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/></svg>`,
-                kalibr: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/></svg>`,
-                recon: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ef4444" stroke="#7f1d1d" stroke-width="4" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/></svg>`
-            };
-            const svgHtml = svgByType[data.targetKey] || svgByType.geran;
             const badgeHtml = count > 1 ? `<span class="group-count-badge">${count}x</span>` : '';
             const customIcon = L.divIcon({
-                html: `<div class="marker-slot"><div class="target-icon-wrap ${isOperator ? 'editable' : ''}" style="transform: rotate(${angle}deg);">${svgHtml}</div>${badgeHtml}</div>`,
+                html: `<div class="marker-slot"><div class="target-icon-wrap ${isOperator ? 'editable' : ''}" style="filter: ${target.glow}; transform: rotate(${angle}deg);">${target.svg}</div>${badgeHtml}</div>`,
                 className: 'custom-marker',
                 iconSize: [56, 44],
                 iconAnchor: [28, 22]
@@ -2409,15 +2342,12 @@
                 autoFly,
                 destLat,
                 destLng,
-                waypoints,
                 timeStr,
                 trailPoints: parsedTrail,
                 trailLine: null,
                 courseLine: null,
                 courseShadowLine: null,
-                destMarker: null,
-                routeLine: null,
-                routeDotMarkers: []
+                destMarker: null
             };
             markers.push(itemObj);
             applyMarkerTransform(itemObj);
@@ -2447,7 +2377,6 @@
                 appendTrailPoint(itemObj, cur.lat, cur.lng);
                 updateCourseLine(itemObj);
                 updateTrailLine(itemObj);
-                updateRouteVisuals(itemObj);
             });
 
             marker.on('dragstart', function() {
@@ -2458,11 +2387,8 @@
                 if (!isOperator) return;
                 const pos = itemObj.marker.getLatLng();
                 appendTrailPoint(itemObj, pos.lat, pos.lng);
-                const hasRoute = Array.isArray(itemObj.waypoints) && itemObj.waypoints.length > 0;
-                const targetLat = hasRoute ? itemObj.waypoints[0][0] : itemObj.destLat;
-                const targetLng = hasRoute ? itemObj.waypoints[0][1] : itemObj.destLng;
-                if (Number.isFinite(targetLat) && Number.isFinite(targetLng)) {
-                    itemObj.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, targetLat, targetLng));
+                if (Number.isFinite(itemObj.destLat) && Number.isFinite(itemObj.destLng)) {
+                    itemObj.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, itemObj.destLat, itemObj.destLng));
                     if (activeMarkerItem === itemObj) syncRotationUI(itemObj.angle);
                 }
                 applyMarkerTransform(itemObj);
@@ -2470,8 +2396,8 @@
                 syncMarkersToFirebase();
                 const loc = resolveLocationName(pos);
                 const titleWithCount = formatTargetTitle(itemObj.target.name, itemObj.count);
-                const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, targetLat, targetLng);
-                const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, targetLat, targetLng);
+                const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
+                const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, itemObj.destLat, itemObj.destLng);
                 const etaPart = etaSummary ? ` • До цілі: ${etaSummary}` : '';
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
@@ -2487,7 +2413,7 @@
             });
 
             if (shouldSelect && isOperator) {
-                selectMarkerItem(itemObj, false);
+                selectMarkerItem(itemObj, true);
             }
 
             return itemObj;
@@ -2518,7 +2444,6 @@
                     autoFly: false,
                     destLat: null,
                     destLng: null,
-                    waypoints: [],
                     trailPoints: [[e.latlng.lat, e.latlng.lng]],
                     timeStr
                 }, true);
@@ -2540,11 +2465,6 @@
                 return;
             }
 
-            if (routeEditMode && activeMarkerItem) {
-                addWaypointToSelected(e.latlng);
-                return;
-            }
-
             if (aimClickMode && activeMarkerItem) {
                 directMarkerToLatLng(activeMarkerItem, e.latlng);
                 return;
@@ -2562,13 +2482,11 @@
             markers = [];
             activeMarkerItem = null;
             aimClickMode = false;
-            routeEditMode = false;
             lastLoggedCourseKey = '';
             updateAirCounterUI();
             syncRotationUI(0);
             syncAutoFlyUI();
             syncAimClickUI();
-            syncRouteModeUI();
             syncDeleteSelectedUI();
             if (!fromRemote && firebaseConfigured && db) {
                 db.ref('monitoring/markers').remove();
@@ -2642,10 +2560,8 @@
                         if (activeMarkerItem === item) {
                             activeMarkerItem = null;
                             aimClickMode = false;
-                            routeEditMode = false;
                             syncAutoFlyUI();
                             syncAimClickUI();
-                            syncRouteModeUI();
                             syncDeleteSelectedUI();
                         }
                         return false;
