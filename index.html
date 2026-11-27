@@ -155,6 +155,7 @@
         .btn-banderol { background: #991b1b; }
         .btn-jet { background: #991b1b; }
         .btn-iskander { background: #7f1d1d; }
+        .btn-kalibr { background: #7f1d1d; }
         .btn-recon { background: #991b1b; }
         .btn-rotate { background: #1e293b; border: 1px solid #334155; }
         .btn-rotate:hover { background: #334155; }
@@ -270,7 +271,6 @@
             pointer-events: none;
         }
 
-        /* Белая табличка-попап с чёрными надписями и красным названием цели */
         .leaflet-popup-content-wrapper {
             background: #ffffff !important;
             color: #0f172a !important;
@@ -467,6 +467,12 @@
                 </svg>
                 Іскандер-М
             </button>
+            <button type="button" class="btn-tool btn-kalibr" onclick="selectTool('kalibr', this)">
+                <svg width="20" height="20" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
+                </svg>
+                Калібр
+            </button>
             <button type="button" class="btn-tool btn-recon" onclick="selectTool('recon', this)">
                 <svg width="20" height="20" viewBox="0 0 100 100">
                     <path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
@@ -552,6 +558,12 @@
                         <path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
                     </svg>
                     Іскандер-М
+                </div>
+                <div class="legend-item">
+                    <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
+                        <path fill="#ffffff" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
+                    </svg>
+                    Калібр
                 </div>
                 <div class="legend-item">
                     <svg width="22" height="22" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 12px rgba(239, 68, 68, 1)) drop-shadow(0 0 5px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));">
@@ -1351,6 +1363,15 @@
                     <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
                 </svg>`
             },
+            kalibr: {
+                name: 'Калібр',
+                glow: RED_TARGET_GLOW,
+                defaultSpeed: 850,
+                defaultAltitude: 120,
+                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
+                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
+                </svg>`
+            },
             recon: {
                 name: 'Розвідник',
                 glow: RED_TARGET_GLOW,
@@ -1370,7 +1391,7 @@
 
         function clearToolSelection() {
             selectedTargetKey = null;
-            document.querySelectorAll('.btn-geran, .btn-banderol, .btn-jet, .btn-iskander, .btn-recon')
+            document.querySelectorAll('.btn-geran, .btn-banderol, .btn-jet, .btn-iskander, .btn-kalibr, .btn-recon')
                 .forEach(b => b.classList.remove('selected'));
         }
 
