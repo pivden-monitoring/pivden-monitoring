@@ -73,7 +73,7 @@
 
         .main-grid {
             display: grid;
-            grid-template-columns: 260px 1fr 290px;
+            grid-template-columns: 280px 1fr 290px;
             gap: 15px;
             padding: 15px 20px;
             flex: 1;
@@ -96,7 +96,10 @@
         .red { background: #ef4444; }
         .yellow { background: #eab308; }
         .green { background: #22c55e; }
-        .region-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 8px 0; border-bottom: 1px solid #182338; gap: 8px; }
+        .region-row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; padding: 8px 0; border-bottom: 1px solid #182338; gap: 8px; }
+        .region-name { font-weight: 600; color: #e2e8f0; }
+        .region-name.clickable-zone { cursor: pointer; }
+        .region-name.clickable-zone:hover { color: #38bdf8; }
         .badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; user-select: none; white-space: nowrap; }
         .badge.clickable { cursor: pointer; }
         .badge-red { background: #dc2626; color: white; }
@@ -201,7 +204,7 @@
             min-height: 460px;
             background: #0b111e;
         }
-        #map.aim-mode {
+        #map.aim-mode, #map.route-mode {
             cursor: crosshair !important;
         }
 
@@ -235,6 +238,11 @@
             padding: 8px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: white;
             display: inline-flex; align-items: center; gap: 8px;
         }
+        .btn-tool.sm-btn {
+            padding: 5px 9px;
+            font-size: 11.5px;
+            gap: 5px;
+        }
         .btn-tool:disabled {
             opacity: 0.45;
             cursor: not-allowed;
@@ -264,6 +272,9 @@
         .btn-aim { background: #334155; border: 1px solid #475569; }
         .btn-aim:hover { background: #475569; }
         .btn-aim.active { background: #2563eb; border-color: #60a5fa; box-shadow: 0 0 10px rgba(96, 165, 250, 0.45); }
+        .btn-route { background: #334155; border: 1px solid #475569; }
+        .btn-route:hover:not(:disabled) { background: #475569; }
+        .btn-route.active { background: #7c3aed; border-color: #c4b5fd; box-shadow: 0 0 10px rgba(167, 139, 250, 0.45); }
         .btn-lost { background: #475569; border: 1px solid #64748b; }
         .btn-lost:hover:not(:disabled) { background: #64748b; }
         .btn-airdef { background: #15803d; border: 1px solid #22c55e; }
@@ -272,6 +283,29 @@
         .btn-delete-one:hover:not(:disabled) { background: #b91c1c; }
         .btn-clear { background: #475569; }
         .btn-tool.selected { outline: 2px solid #facc15; transform: scale(1.03); }
+
+        .zone-quick-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            background: #0f172a;
+            border: 1px solid #2b3f63;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+        .zone-quick-bar select {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 5px;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 8px;
+            outline: none;
+            cursor: pointer;
+        }
 
         .param-box {
             display: inline-flex;
@@ -330,6 +364,50 @@
             will-change: transform;
         }
 
+        .waypoint-dot-marker {
+            background: transparent !important;
+            border: none !important;
+        }
+        .waypoint-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #7c3aed;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.75);
+            transform: translate(-50%, -50%);
+        }
+
+        .city-label-marker {
+            background: transparent !important;
+            border: none !important;
+        }
+        .city-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffffff;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1.5px solid #94a3b8;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+            white-space: nowrap;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+        }
+        .city-pill.red { background: rgba(185, 28, 28, 0.94); border-color: #fca5a5; }
+        .city-pill.yellow { background: rgba(161, 98, 7, 0.94); border-color: #fde047; }
+        .city-pill.green { background: rgba(21, 128, 61, 0.9); border-color: #86efac; }
+
         .marker-slot {
             position: relative;
             width: 56px;
@@ -346,6 +424,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            filter: drop-shadow(0 0 14px rgba(239, 68, 68, 1)) drop-shadow(0 0 6px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));
             transition: filter 0.15s ease;
             user-select: none;
             will-change: transform;
@@ -353,7 +432,7 @@
         .target-icon-wrap.editable { cursor: grab; }
         .target-icon-wrap.editable:active { cursor: grabbing; }
         .target-icon-wrap.active-marker {
-            filter: drop-shadow(0 0 16px rgba(239, 68, 68, 1)) drop-shadow(0 0 8px rgba(220, 38, 38, 1)) drop-shadow(0 0 3px rgba(255, 255, 255, 1)) !important;
+            filter: drop-shadow(0 0 16px rgba(250, 204, 21, 1)) drop-shadow(0 0 8px rgba(255, 255, 255, 0.95)) !important;
         }
 
         .group-count-badge {
@@ -404,6 +483,39 @@
             margin: 10px 14px 10px 12px !important;
             min-width: 196px;
         }
+        .zone-popup-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 185px;
+        }
+        .zone-popup-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+            padding-right: 14px;
+        }
+        .zone-popup-btns {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .zone-pop-btn {
+            border: none;
+            border-radius: 6px;
+            padding: 6px 9px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffffff;
+            cursor: pointer;
+            flex: 1;
+        }
+        .zone-pop-btn.red { background: #dc2626; }
+        .zone-pop-btn.yellow { background: #ca8a04; }
+        .zone-pop-btn.green { background: #16a34a; }
+
         .target-card {
             display: flex;
             flex-direction: column;
@@ -493,7 +605,7 @@
             <div class="trident"><i class="fa-solid fa-shield-halved"></i></div>
             <div class="title">
                 <h1>КРИВИЙ РІГ <span>MONITORING</span></h1>
-                <p>Моніторинг обстановки • Криворізький та Дніпропетровський райони</p>
+                <p>Моніторинг обстановки • Райони та міста за контурами</p>
             </div>
         </div>
 
@@ -513,31 +625,24 @@
     </header>
 
     <div class="admin-controls" id="adminControls">
-        <div class="control-group">
-            <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Статус КР:</span>
-            <button type="button" class="btn-tool btn-alarm-on" onclick="setKrStatus('red')">
-                <i class="fa-solid fa-bell"></i> Тривога КР
+        <div class="zone-quick-bar">
+            <span style="color:#94a3b8;font-weight:700;">Тривога зони:</span>
+            <select id="zoneSelect">
+                <option value="kr">Криворізький район</option>
+                <option value="dnipro">Дніпропетровський район</option>
+                <option value="kryvyi_rih">м. Кривий Ріг</option>
+                <option value="kamianske">м. Кам’янське</option>
+                <option value="dnipro_city">м. Дніпро</option>
+                <option value="zaporizhzhia">м. Запоріжжя</option>
+            </select>
+            <button type="button" class="btn-tool sm-btn btn-alarm-on" onclick="setZoneStatus(document.getElementById('zoneSelect').value, 'red')">
+                <i class="fa-solid fa-bell"></i> Тривога
             </button>
-            <button type="button" class="btn-tool btn-alarm-yellow" onclick="setKrStatus('yellow')">
-                <i class="fa-solid fa-triangle-exclamation"></i> Загроза КР
+            <button type="button" class="btn-tool sm-btn btn-alarm-yellow" onclick="setZoneStatus(document.getElementById('zoneSelect').value, 'yellow')">
+                <i class="fa-solid fa-triangle-exclamation"></i> Загроза
             </button>
-            <button type="button" class="btn-tool btn-alarm-off" onclick="setKrStatus('green')">
-                <i class="fa-solid fa-bell-slash"></i> Відбій КР
-            </button>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="control-group">
-            <span style="font-size: 13px; color: #94a3b8; margin-right: 2px;">Статус Дніпро:</span>
-            <button type="button" class="btn-tool btn-alarm-on" onclick="setDniproStatus('red')">
-                <i class="fa-solid fa-bell"></i> Тривога Дніпро
-            </button>
-            <button type="button" class="btn-tool btn-alarm-yellow" onclick="setDniproStatus('yellow')">
-                <i class="fa-solid fa-triangle-exclamation"></i> Загроза Дніпро
-            </button>
-            <button type="button" class="btn-tool btn-alarm-off" onclick="setDniproStatus('green')">
-                <i class="fa-solid fa-bell-slash"></i> Відбій Дніпро
+            <button type="button" class="btn-tool sm-btn btn-alarm-off" onclick="setZoneStatus(document.getElementById('zoneSelect').value, 'green')">
+                <i class="fa-solid fa-bell-slash"></i> Відбій
             </button>
         </div>
 
@@ -602,6 +707,12 @@
             </div>
             <button type="button" class="btn-tool btn-apply" onclick="applyParamsToSelected(true)">
                 <i class="fa-solid fa-check"></i> Застосувати
+            </button>
+            <button type="button" class="btn-tool btn-route" id="btnRouteMode" onclick="toggleRouteMode()" disabled>
+                <i class="fa-solid fa-route"></i> Маршрут: вимк
+            </button>
+            <button type="button" class="btn-tool btn-rotate" id="btnClearRoute" onclick="clearSelectedRoute()" disabled>
+                <i class="fa-solid fa-eraser"></i> Очистити точки
             </button>
             <button type="button" class="btn-tool btn-aim" id="btnAimClick" onclick="toggleAimClickMode()">
                 <i class="fa-solid fa-crosshairs"></i> Курс за кліком: вимк
@@ -683,14 +794,30 @@
                 </div>
             </div>
             <div>
-                <div class="panel-title">Статус районів</div>
+                <div class="panel-title">Статус районів та міст</div>
                 <div class="region-row">
-                    <span>Криворізький р-н (КР)</span>
-                    <span id="badgeKr" class="badge badge-red" onclick="changeKrStatus()">Тривога</span>
+                    <span class="region-name clickable-zone" onclick="focusOrOpenZone('kr')">Криворізький р-н</span>
+                    <span id="badge_kr" class="badge badge-red" onclick="cycleZoneStatus('kr')">Тривога</span>
                 </div>
                 <div class="region-row">
-                    <span>Дніпропетровський р-н</span>
-                    <span id="badgeDnipro" class="badge badge-green" onclick="changeDniproStatus()">Відбій</span>
+                    <span class="region-name clickable-zone" onclick="focusOrOpenZone('dnipro')">Дніпропетровський р-н</span>
+                    <span id="badge_dnipro" class="badge badge-green" onclick="cycleZoneStatus('dnipro')">Відбій</span>
+                </div>
+                <div class="region-row">
+                    <span class="region-name clickable-zone" onclick="focusOrOpenZone('kryvyi_rih')">м. Кривий Ріг</span>
+                    <span id="badge_kryvyi_rih" class="badge badge-green" onclick="cycleZoneStatus('kryvyi_rih')">Відбій</span>
+                </div>
+                <div class="region-row">
+                    <span class="region-name clickable-zone" onclick="focusOrOpenZone('kamianske')">м. Кам’янське</span>
+                    <span id="badge_kamianske" class="badge badge-green" onclick="cycleZoneStatus('kamianske')">Відбій</span>
+                </div>
+                <div class="region-row">
+                    <span class="region-name clickable-zone" onclick="focusOrOpenZone('dnipro_city')">м. Дніпро</span>
+                    <span id="badge_dnipro_city" class="badge badge-green" onclick="cycleZoneStatus('dnipro_city')">Відбій</span>
+                </div>
+                <div class="region-row">
+                    <span class="region-name clickable-zone" onclick="focusOrOpenZone('zaporizhzhia')">м. Запоріжжя</span>
+                    <span id="badge_zaporizhzhia" class="badge badge-green" onclick="cycleZoneStatus('zaporizhzhia')">Відбій</span>
                 </div>
             </div>
         </div>
@@ -725,7 +852,7 @@
             <div id="feedList">
                 <div class="feed-item">
                     <div class="feed-time">Зараз</div>
-                    <div class="feed-title" style="color: #f87171;">Тривога — КР</div>
+                    <div class="feed-title" style="color: #f87171;">Тривога — Криворізький район</div>
                     <div class="feed-desc">Моніторинг запущено</div>
                 </div>
             </div>
@@ -925,11 +1052,171 @@
             breakdownEl.innerHTML = chips.join('');
         }
 
+        const zonesConfig = {
+            dnipro: {
+                label: 'Дніпропетровський район',
+                shortLabel: 'Дніпропетровський р-н',
+                initialStatus: 'green',
+                pane: 'dniproZonePane',
+                strokeWeight: 2.2,
+                fillRed: 0.28,
+                fillYellow: 0.25,
+                fillGreen: 0.14,
+                labelPos: [48.72, 34.45],
+                showPill: false,
+                contour: [
+                    [48.392636, 33.4818434], [48.438459, 33.4895144], [48.4994921, 33.4792863],
+                    [48.536754, 33.4690583], [48.5638363, 33.5074135], [48.5756803, 33.5764528],
+                    [48.5604518, 33.5917948], [48.5672206, 33.619922], [48.5959777, 33.6122509],
+                    [48.6027417, 33.6429351], [48.5892128, 33.6582771], [48.6264087, 33.7605576],
+                    [48.6568212, 33.7580006], [48.6618882, 33.7861277], [48.6787745, 33.7989127],
+                    [48.6804628, 33.7554436], [48.6956551, 33.7477725], [48.7024057, 33.7196454],
+                    [48.7209654, 33.6812902], [48.7277127, 33.635264], [48.7327725, 33.6122509],
+                    [48.7530068, 33.586681], [48.773233, 33.5790099], [48.7951355, 33.594352],
+                    [48.7867126, 33.6429352], [48.8136609, 33.6787334], [48.8069251, 33.7170886],
+                    [48.7883972, 33.7503298], [48.7951354, 33.8065841], [48.7664918, 33.8423822],
+                    [48.8397532, 33.8730664], [48.90067, 33.9017527], [48.8812064, 33.9422615],
+                    [48.8648102, 34.0310693], [48.8371294, 34.0715781], [48.8196928, 34.116761],
+                    [48.7796685, 34.1323414], [48.7509133, 34.2367295], [48.7283085, 34.3052829],
+                    [48.7848016, 34.3364435], [48.8248219, 34.3208632], [48.8812064, 34.3286534],
+                    [48.9538999, 34.313073], [49.0152485, 34.3395596], [49.0499792, 34.4034389],
+                    [49.0857061, 34.406555], [49.0734598, 34.4704343], [49.0571267, 34.5467778],
+                    [49.0938686, 34.5639162], [49.1285444, 34.6418178], [49.1415359, 34.7582248],
+                    [49.1760362, 34.8010887], [49.1918408, 34.8483489], [49.1753177, 34.9000054],
+                    [49.1537575, 34.9033026], [49.1875309, 34.9340766], [49.1918408, 34.9472655],
+                    [49.1695692, 34.9780396], [49.1537575, 35.028597], [49.1731621, 35.0549748],
+                    [49.1415359, 35.0824516], [49.1580703, 35.1220183], [49.1329071, 35.2165386],
+                    [49.1034139, 35.2275294], [49.0926194, 35.3000683], [49.0278027, 35.3879942],
+                    [48.9960838, 35.4506414], [48.9737243, 35.4869109], [48.9859872, 35.5858275],
+                    [49.0026956, 35.5543359], [48.8794492, 35.5543359], [48.841466, 35.5038183],
+                    [48.8034539, 35.5543359], [48.7225826, 35.5326855], [48.6797157, 35.4966015],
+                    [48.6320429, 35.5038183], [48.4744028, 35.5110351], [48.4073768, 35.4677343],
+                    [48.3690364, 35.4605175], [48.1046647, 35.4677343], [48.105847, 35.4327361],
+                    [48.1404716, 35.3073843], [48.1462402, 35.2382247], [48.1173911, 35.0437133],
+                    [48.0885259, 34.9486189], [48.1347025, 34.8967492], [48.0856385, 34.8621694],
+                    [48.0567554, 34.8881043], [48.0220743, 34.8535245], [48.1393936, 34.8758234],
+                    [48.4027153, 33.4819369]
+                ]
+            },
+            kr: {
+                label: 'Криворізький район',
+                shortLabel: 'Криворізький р-н',
+                initialStatus: 'red',
+                pane: 'zonePane',
+                strokeWeight: 2.6,
+                fillRed: 0.42,
+                fillYellow: 0.38,
+                fillGreen: 0.24,
+                labelPos: [47.76, 33.82],
+                showPill: false,
+                contour: [
+                    [48.4011644, 33.4840501], [48.3745213, 33.4722501], [48.3588423, 33.4580901],
+                    [48.329039, 33.4722501], [48.330608, 33.5147302], [48.2835161, 33.5100102],
+                    [48.2568114, 33.5359703], [48.2348088, 33.5501303], [48.2222316, 33.5288903],
+                    [48.2269484, 33.5076502], [48.2096514, 33.4982102], [48.1923485, 33.4675301],
+                    [48.1923485, 33.44393], [48.1718921, 33.43213], [48.1561508, 33.3188497],
+                    [48.1230784, 33.3164897], [48.1025944, 33.2858096], [48.1545764, 33.2763695],
+                    [48.1718921, 33.2480495], [48.1734659, 33.2150094], [48.1561508, 33.2268094],
+                    [48.121503, 33.1866893], [48.1152009, 33.2220894], [48.0947137, 33.2338894],
+                    [48.0821022, 33.1418491], [48.0663334, 33.1324091], [48.0474045, 33.101729],
+                    [48.0332032, 33.0380088], [47.9905759, 33.0073288], [47.9241967, 33.0002487],
+                    [47.9241967, 33.075769], [47.8830621, 33.0686889], [47.83239, 33.0545289],
+                    [47.7895969, 33.0639689], [47.7499422, 33.0710489], [47.7261349, 32.9790087],
+                    [47.622844, 32.9931687], [47.5989786, 32.9624886], [47.5989786, 33.087569],
+                    [47.5766584, 33.0976024], [47.5782504, 33.2297628], [47.5368416, 33.2179628],
+                    [47.5511791, 33.284043], [47.5304681, 33.288763], [47.5416212, 33.4752035],
+                    [47.5973512, 33.5672438], [47.5081547, 33.5932039], [47.5177187, 33.633324],
+                    [47.5177187, 33.9306849], [47.4603084, 33.9424849], [47.4778571, 34.1407255],
+                    [47.5209063, 34.327166], [47.5575501, 34.5324866], [47.5639203, 34.6245269],
+                    [47.5384348, 34.7755673], [47.5193126, 34.8558076], [47.5336549, 34.9572879],
+                    [47.600534, 34.9289678], [47.6403024, 34.9171677], [47.6800406, 34.9407678],
+                    [47.7102213, 34.9596479], [47.7641855, 34.9053677], [47.8339384, 34.9053677],
+                    [47.8545293, 34.8817676], [47.8624467, 34.8109674], [47.9130894, 34.7968074],
+                    [47.9383922, 34.8487275], [47.9304864, 34.8912077], [47.9842219, 34.9030077],
+                    [48.015805, 34.8487275], [48.0521016, 34.8487275], [48.1372192, 34.8534476],
+                    [48.1323638, 34.8551718], [48.4029864, 33.474289]
+                ]
+            },
+            kryvyi_rih: {
+                label: 'м. Кривий Ріг',
+                shortLabel: 'м. Кривий Ріг',
+                initialStatus: 'green',
+                pane: 'cityZonePane',
+                strokeWeight: 2.2,
+                fillRed: 0.56,
+                fillYellow: 0.48,
+                fillGreen: 0.16,
+                labelPos: [47.9105, 33.3918],
+                showPill: true,
+                contour: [
+                    [48.125, 33.245], [48.138, 33.360], [48.118, 33.495], [48.045, 33.565],
+                    [47.935, 33.545], [47.815, 33.485], [47.695, 33.375], [47.675, 33.235],
+                    [47.765, 33.175], [47.905, 33.195], [48.045, 33.215]
+                ]
+            },
+            kamianske: {
+                label: 'м. Кам’янське',
+                shortLabel: 'м. Кам’янське',
+                initialStatus: 'green',
+                pane: 'cityZonePane',
+                strokeWeight: 2.2,
+                fillRed: 0.56,
+                fillYellow: 0.48,
+                fillGreen: 0.16,
+                labelPos: [48.5166, 34.6136],
+                showPill: true,
+                contour: [
+                    [48.595, 34.485], [48.612, 34.615], [48.575, 34.745], [48.485, 34.755],
+                    [48.435, 34.645], [48.455, 34.505]
+                ]
+            },
+            dnipro_city: {
+                label: 'м. Дніпро',
+                shortLabel: 'м. Дніпро',
+                initialStatus: 'green',
+                pane: 'cityZonePane',
+                strokeWeight: 2.4,
+                fillRed: 0.56,
+                fillYellow: 0.48,
+                fillGreen: 0.16,
+                labelPos: [48.4647, 35.0462],
+                showPill: true,
+                contour: [
+                    [48.585, 34.845], [48.615, 35.025], [48.575, 35.245], [48.455, 35.285],
+                    [48.355, 35.165], [48.365, 34.935], [48.455, 34.835]
+                ]
+            },
+            zaporizhzhia: {
+                label: 'м. Запоріжжя',
+                shortLabel: 'м. Запоріжжя',
+                initialStatus: 'green',
+                pane: 'cityZonePane',
+                strokeWeight: 2.4,
+                fillRed: 0.56,
+                fillYellow: 0.48,
+                fillGreen: 0.16,
+                labelPos: [47.8388, 35.1396],
+                showPill: true,
+                contour: [
+                    [47.965, 34.985], [47.985, 35.165], [47.915, 35.345], [47.775, 35.335],
+                    [47.715, 35.155], [47.755, 34.985], [47.865, 34.955]
+                ]
+            }
+        };
+
+        const zoneStatuses = {};
+        const zonePolygons = {};
+        const zonePills = {};
+        const zoneAlertIds = {};
+        let initialRemoteZonesLoaded = false;
+
+        Object.keys(zonesConfig).forEach(zKey => {
+            zoneStatuses[zKey] = zonesConfig[zKey].initialStatus;
+        });
+
         function updateRoleUI() {
             const tag = document.getElementById('roleTag');
             const controls = document.getElementById('adminControls');
-            const krBadge = document.getElementById('badgeKr');
-            const dniproBadge = document.getElementById('badgeDnipro');
             const input = document.getElementById('opCodeInput');
             const btnUnlock = document.getElementById('btnOpUnlock');
             const btnLock = document.getElementById('btnOpLock');
@@ -938,8 +1225,6 @@
                 tag.textContent = 'Оператор';
                 tag.classList.add('active');
                 controls.classList.add('visible');
-                krBadge.classList.add('clickable');
-                dniproBadge.classList.add('clickable');
                 if (firebaseConfigured) {
                     input.style.display = 'none';
                     btnUnlock.style.display = 'none';
@@ -949,12 +1234,12 @@
                 tag.textContent = 'Перегляд';
                 tag.classList.remove('active');
                 controls.classList.remove('visible');
-                krBadge.classList.remove('clickable');
-                dniproBadge.classList.remove('clickable');
                 input.style.display = 'inline-block';
                 btnUnlock.style.display = 'inline-flex';
                 btnLock.style.display = 'none';
             }
+
+            Object.keys(zonesConfig).forEach(zKey => applyZoneVisuals(zKey));
 
             markers.forEach(item => {
                 if (item.marker.dragging) {
@@ -964,9 +1249,11 @@
                 applyMarkerTransform(item);
                 updateCourseLine(item);
                 updateTrailLine(item);
+                updateRouteVisuals(item);
             });
             syncAutoFlyUI();
             syncAimClickUI();
+            syncRouteModeUI();
             syncDeleteSelectedUI();
             updateAirCounterUI();
         }
@@ -988,6 +1275,7 @@
             sessionStorage.removeItem('kr_op_ok');
             selectedTargetKey = null;
             aimClickMode = false;
+            routeEditMode = false;
             document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
             updateRoleUI();
         }
@@ -996,7 +1284,7 @@
             isOperator = true;
         }
 
-        const map = L.map('map').setView([48.35, 34.45], 8);
+        const map = L.map('map').setView([48.25, 34.45], 8);
 
         const tileLayers = {
             osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1035,370 +1323,198 @@
         map.createPane('dniproZonePane');
         map.getPane('dniproZonePane').style.zIndex = 385;
 
-        map.createPane('dniproBorderPane');
-        map.getPane('dniproBorderPane').style.zIndex = 390;
-
         map.createPane('zonePane');
         map.getPane('zonePane').style.zIndex = 400;
 
-        map.createPane('borderPane');
-        map.getPane('borderPane').style.zIndex = 415;
+        map.createPane('cityZonePane');
+        map.getPane('cityZonePane').style.zIndex = 415;
+
+        map.createPane('cityPillPane');
+        map.getPane('cityPillPane').style.zIndex = 420;
+
+        map.createPane('routeLinePane');
+        map.getPane('routeLinePane').style.zIndex = 422;
 
         map.createPane('trailLinePane');
-        map.getPane('trailLinePane').style.zIndex = 422;
+        map.getPane('trailLinePane').style.zIndex = 425;
 
         map.createPane('courseLinePane');
-        map.getPane('courseLinePane').style.zIndex = 430;
+        map.getPane('courseLinePane').style.zIndex = 432;
 
-        // Границы Криворожского района (не трогаем)
-        const krGeoJson = {
-            "type": "FeatureCollection",
-            "features": [
-                { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[33.4840501, 48.4011644], [33.4722501, 48.3745213], [33.4580901, 48.3588423], [33.4722501, 48.329039], [33.5147302, 48.330608], [33.5100102, 48.2835161], [33.5359703, 48.2568114], [33.5501303, 48.2348088], [33.5288903, 48.2222316], [33.5076502, 48.2269484], [33.4982102, 48.2190869], [33.4982102, 48.2096514], [33.4887702, 48.2002142], [33.4675301, 48.1923485]] } },
-                { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[33.4604501, 48.197068], [33.44393, 48.1923485], [33.43213, 48.1718921], [33.3188497, 48.1561508], [33.2999696, 48.149853], [33.3164897, 48.1230784], [33.2999696, 48.1041704], [33.2858096, 48.1025944], [33.2763695, 48.1545764], [33.2504095, 48.1514275], [33.2480495, 48.1718921], [33.2150094, 48.1734659], [33.2173694, 48.1592994], [33.2268094, 48.1561508], [33.2315294, 48.1372549], [33.1866893, 48.121503], [33.1866893, 48.1088981], [33.2220894, 48.1152009], [33.2338894, 48.0947137], [33.1583692, 48.0852554], [33.1418491, 48.0821022], [33.1512892, 48.0489821], [33.1324091, 48.0663334], [33.1111691, 48.0647562], [33.101729, 48.0474045], [33.0380088, 48.0332032], [33.0238488, 47.9937347], [33.0073288, 47.9905759], [33.0002487, 47.9241967], [33.0073288, 47.9131252], [33.075769, 47.9241967], [33.087569, 47.8925576], [33.0686889, 47.8830621], [33.078129, 47.8434788], [33.0545289, 47.83239], [33.0639689, 47.7895969], [33.0545289, 47.7816684], [33.0545289, 47.7689803], [33.0710489, 47.7499422], [33.0191288, 47.7324846], [32.9790087, 47.7261349], [32.9931687, 47.622844], [32.9624886, 47.5989786], [33.087569, 47.5989786], [33.0976024, 47.5766584], [33.1943627, 47.5702897], [33.2297628, 47.5782504], [33.2274028, 47.5464004], [33.2179628, 47.5368416], [33.284043, 47.5511791], [33.288763, 47.5304681], [33.3760832, 47.5304681], [33.4752035, 47.5416212], [33.4752035, 47.5830263], [33.5672438, 47.5973512], [33.5932039, 47.5623278]] } },
-                { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[33.5837639, 47.571882], [33.5932039, 47.5081547], [33.633324, 47.5177187], [33.642764, 47.4938054], [33.9306849, 47.5177187], [33.9424849, 47.4603084], [34.1407255, 47.4778571], [34.2894059, 47.5129369], [34.327166, 47.5209063], [34.4451664, 47.5320615], [34.5324866, 47.5575501], [34.5938468, 47.5607353], [34.6245269, 47.5639203], [34.6858871, 47.5511791], [34.7330872, 47.5384348], [34.7755673, 47.5384348], [34.8558076, 47.5193126], [34.9572879, 47.5336549], [34.9478478, 47.5734741], [34.9289678, 47.600534], [34.9384078, 47.6291703], [34.9171677, 47.6403024], [34.8982877, 47.6720953], [34.9407678, 47.6800406], [34.9313278, 47.7054571], [34.9596479, 47.7102213], [34.9572879, 47.7641855], [34.9053677, 47.7641855], [34.8864876, 47.8149241], [34.9053677, 47.8339384], [34.8912077, 47.8529456], [34.8817676, 47.8545293], [34.8581676, 47.873529], [34.8109674, 47.8624467], [34.7968074, 47.9130894], [34.8440075, 47.9241609], [34.8487275, 47.9383922], [34.8699676, 47.9447159], [34.8912077, 47.9304864], [34.9100877, 47.9399732], [34.9030077, 47.9842219], [34.8817676, 47.9858016], [34.8605276, 48.007911], [34.8487275, 48.015805], [34.8463675, 48.0394796], [34.8487275, 48.0521016], [34.8628876, 48.0536791], [34.8534476, 48.1372192], [34.8516686, 48.1347038]] } },
-                { "type": "Feature", "properties": {}, "geometry": { "type": "LineString", "coordinates": [[33.474289, 48.4029864], [34.8551718, 48.1323638], [34.8551718, 48.1370418]] } }
-            ]
+        const statusPalette = {
+            red: { fill: '#dc2626', stroke: '#ef4444', text: 'Тривога', badgeClass: 'badge-red', feedClass: '', color: '#f87171' },
+            yellow: { fill: '#ca8a04', stroke: '#eab308', text: 'Загроза', badgeClass: 'badge-yellow', feedClass: 'yellow-line', color: '#facc15' },
+            green: { fill: '#16a34a', stroke: '#22c55e', text: 'Відбій', badgeClass: 'badge-green', feedClass: 'green-line', color: '#4ade80' }
         };
 
-        // Границы Днепропетровского района
-        const dniproGeoJson = {
-            "type": "FeatureCollection",
-            "features": [
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [33.4818434, 48.392636],
-                            [33.4895144, 48.438459],
-                            [33.4792863, 48.4994921],
-                            [33.4690583, 48.536754],
-                            [33.5074135, 48.5638363],
-                            [33.5764528, 48.5756803],
-                            [33.5917948, 48.5604518],
-                            [33.619922, 48.5672206],
-                            [33.6122509, 48.5959777],
-                            [33.6429351, 48.6027417],
-                            [33.6582771, 48.5892128],
-                            [33.7605576, 48.6264087],
-                            [33.7580006, 48.6568212],
-                            [33.7861277, 48.6618882],
-                            [33.7989127, 48.6787745],
-                            [33.7554436, 48.6804628],
-                            [33.7477725, 48.6956551],
-                            [33.7196454, 48.7024057],
-                            [33.6812902, 48.7209654],
-                            [33.635264, 48.7277127],
-                            [33.625036, 48.7277127],
-                            [33.6122509, 48.7327725],
-                            [33.6122509, 48.7378319]
-                        ]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [33.599466, 48.747949],
-                            [33.586681, 48.7530068],
-                            [33.5790099, 48.773233],
-                            [33.586681, 48.7850278],
-                            [33.594352, 48.7951355],
-                            [33.607137, 48.7951355],
-                            [33.6173651, 48.7900819],
-                            [33.6352642, 48.7867126],
-                            [33.6429352, 48.7867126],
-                            [33.6633913, 48.793451],
-                            [33.6736193, 48.8069252],
-                            [33.6787334, 48.8136609],
-                            [33.7170886, 48.8069251],
-                            [33.7298738, 48.7883972],
-                            [33.7426588, 48.7883972],
-                            [33.7503298, 48.7883972],
-                            [33.786128, 48.7951354],
-                            [33.8065841, 48.7951354],
-                            [33.8295972, 48.7782882],
-                            [33.8423822, 48.7664918],
-                            [33.8513318, 48.7841854],
-                            [33.8462178, 48.7968198],
-                            [33.8551673, 48.8145028],
-                            [33.8641168, 48.8363872],
-                            [33.8730664, 48.8397532],
-                            [33.8820159, 48.8683551],
-                            [33.8986365, 48.8986215],
-                            [33.8986365, 48.8986215]
-                        ]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [33.9017527, 48.90067],
-                            [33.9422615, 48.8812064],
-                            [34.0310693, 48.8648102],
-                            [34.0373014, 48.8371294],
-                            [34.0715781, 48.8371294],
-                            [34.1074129, 48.8196928],
-                            [34.116761, 48.8196928],
-                            [34.1323414, 48.7796685],
-                            [34.1510377, 48.7765884],
-                            [34.2055689, 48.7663199],
-                            [34.2211492, 48.7591308],
-                            [34.2367295, 48.7509133],
-                            [34.2725642, 48.7406397],
-                            [34.3037249, 48.7396122],
-                            [34.3052829, 48.7283085],
-                            [34.313073, 48.7519406],
-                            [34.3161891, 48.7704276],
-                            [34.3333275, 48.7755616],
-                            [34.3364435, 48.7848016],
-                            [34.3239793, 48.7940399],
-                            [34.308399, 48.7765884],
-                            [34.3021668, 48.7878812],
-                            [34.2990508, 48.801224],
-                            [34.2990508, 48.818667],
-                            [34.3006088, 48.8237961],
-                            [34.311515, 48.8248219],
-                            [34.3208632, 48.8248219],
-                            [34.3286534, 48.8371294],
-                            [34.3380016, 48.8689097],
-                            [34.3286534, 48.8812064],
-                            [34.3037249, 48.8883781],
-                            [34.2912606, 48.9139828],
-                            [34.313073, 48.9538999],
-                            [34.3364435, 48.9815161],
-                            [34.3224212, 48.9968518],
-                            [34.3395596, 49.0152485],
-                            [34.3535819, 49.0275092],
-                            [34.3707202, 49.0356813],
-                            [34.3909746, 49.0397668],
-                            [34.4034389, 49.0499792],
-                            [34.406555, 49.0857061],
-                            [34.4486218, 49.0663147],
-                            [34.4704343, 49.0734598],
-                            [34.4953628, 49.0581476],
-                            [34.5093851, 49.0724391],
-                            [34.5467778, 49.0571267],
-                            [34.5685903, 49.0612104],
-                            [34.5623581, 49.0744804],
-                            [34.5639162, 49.0938686],
-                            [34.5732644, 49.0969292],
-                            [34.5794965, 49.0999896],
-                            [34.5966348, 49.1101897],
-                            [34.6153312, 49.1203876],
-                            [34.6418178, 49.1285444],
-                            [34.6714204, 49.1203876],
-                            [34.6776525, 49.1285444]
-                        ]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [34.672497, 49.1314688],
-                            [34.6944785, 49.1372217],
-                            [34.7362433, 49.1386598],
-                            [34.7582248, 49.1415359],
-                            [34.7670174, 49.1587891],
-                            [34.7626211, 49.1631014],
-                            [34.77581, 49.171725],
-                            [34.8010887, 49.1760362],
-                            [34.8175748, 49.1710064],
-                            [34.8285655, 49.1796286],
-                            [34.8230702, 49.1875309],
-                            [34.8483489, 49.1918408],
-                            [34.864835, 49.1853759],
-                            [34.879123, 49.1810655],
-                            [34.9000054, 49.1753177],
-                            [34.8791229, 49.1695692],
-                            [34.8692313, 49.1688506],
-                            [34.8681322, 49.1659761],
-                            [34.8758257, 49.1595078],
-                            [34.8857174, 49.1559139],
-                            [34.8967081, 49.1537575],
-                            [34.9033026, 49.1537575],
-                            [34.9131942, 49.1559139],
-                            [34.9219868, 49.1688506],
-                            [34.9340766, 49.1875309],
-                            [34.939572, 49.1896859],
-                            [34.9406711, 49.1904042],
-                            [34.9472655, 49.1918408],
-                            [34.9615535, 49.1853759],
-                            [34.9670489, 49.1781917],
-                            [34.9780396, 49.1695692],
-                            [35.0099127, 49.1544763],
-                            [35.028597, 49.1537575],
-                            [35.0417859, 49.1595078],
-                            [35.0549748, 49.1731621],
-                            [35.0692627, 49.1559139],
-                            [35.0769562, 49.1494443],
-                            [35.0824516, 49.1415359],
-                            [35.0890461, 49.1501632],
-                            [35.1187211, 49.1573515],
-                            [35.1220183, 49.1580703],
-                            [35.1396035, 49.1551951],
-                            [35.1450988, 49.1508821],
-                            [35.1582877, 49.1580703],
-                            [35.1890618, 49.1580703],
-                            [35.1912599, 49.155914],
-                            [35.2022507, 49.1451308],
-                            [35.2165386, 49.1329071],
-                            [35.1879627, 49.1120479],
-                            [35.2110433, 49.1070116],
-                            [35.2275294, 49.1034139],
-                            [35.2626998, 49.1134867],
-                            [35.2703933, 49.0983768],
-                            [35.2824831, 49.0940588],
-                            [35.3000683, 49.0926194],
-                            [35.3066627, 49.083982],
-                            [35.3066627, 49.0739033],
-                            [35.3187525, 49.0623821],
-                            [35.3462294, 49.0465362],
-                            [35.3879942, 49.0278027],
-                            [35.4011831, 49.0270821],
-                            [35.4165701, 49.0155501],
-                            [35.4396507, 49.0083412],
-                            [35.4506414, 48.9960838],
-                            [35.4704247, 48.9838234],
-                            [35.4869109, 48.9737243],
-                            [35.5088923, 48.9809381],
-                            [35.5286757, 48.9766099],
-                            [35.5308738, 48.9809381],
-                            [35.5605488, 48.9773313],
-                            [35.5858275, 48.9859872]
-                        ]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [35.5543359, 49.0026956],
-                            [35.5543359, 48.8794492],
-                            [35.5038183, 48.841466],
-                            [35.5543359, 48.8034539],
-                            [35.5326855, 48.7225826],
-                            [35.4966015, 48.6797157],
-                            [35.5038183, 48.6320429],
-                            [35.5110351, 48.4744028],
-                            [35.4677343, 48.4073768],
-                            [35.4605175, 48.3690364],
-                            [35.4677343, 48.1046647],
-                            [35.4749511, 48.0950254]
-                        ]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [35.4673159, 48.105847],
-                            [35.4327361, 48.105847],
-                            [35.4024787, 48.1173911],
-                            [35.3073843, 48.1404716],
-                            [35.2382247, 48.1462402],
-                            [35.1474527, 48.1289327],
-                            [35.0437133, 48.1173911],
-                            [35.0048111, 48.0971872],
-                            [34.9486189, 48.0885259],
-                            [34.922684, 48.1145053],
-                            [34.8967492, 48.1347025],
-                            [34.8664919, 48.1347025],
-                            [34.8621694, 48.0856385],
-                            [34.8881043, 48.0567554],
-                            [34.8664919, 48.0249653],
-                            [34.8535245, 48.0220743]
-                        ]
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [
-                            [34.8758234, 48.1393936],
-                            [33.4819369, 48.4027153],
-                            [33.4782396, 48.4051699]
-                        ]
-                    }
-                }
-            ]
-        };
-
-        function buildContinuousPolygon(geoJson) {
-            const segments = geoJson.features
-                .filter(f => f.geometry && f.geometry.type === 'LineString' && Array.isArray(f.geometry.coordinates))
-                .map(f => f.geometry.coordinates.map(([lng, lat]) => [lat, lng]));
-
-            if (!segments.length) return [];
-
-            const distSq = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
-            const ordered = [...segments[0]];
-            const used = new Set([0]);
-
-            while (used.size < segments.length) {
-                const currentEnd = ordered[ordered.length - 1];
-                let bestIdx = -1, bestReverse = false, bestDist = Infinity;
-
-                for (let i = 0; i < segments.length; i++) {
-                    if (used.has(i) || !segments[i].length) continue;
-                    const seg = segments[i];
-                    const dStart = distSq(currentEnd, seg[0]);
-                    if (dStart < bestDist) { bestDist = dStart; bestIdx = i; bestReverse = false; }
-                    const dEnd = distSq(currentEnd, seg[seg.length - 1]);
-                    if (dEnd < bestDist) { bestDist = dEnd; bestIdx = i; bestReverse = true; }
-                }
-
-                if (bestIdx === -1) break;
-                used.add(bestIdx);
-                const chosen = bestReverse ? [...segments[bestIdx]].reverse() : [...segments[bestIdx]];
-                if (distSq(ordered[ordered.length - 1], chosen[0]) < 1e-12) chosen.shift();
-                ordered.push(...chosen);
+        function triggerAlarmVoice(regionLabel, nextStatus) {
+            if (nextStatus === 'red') {
+                speakAlarmMessage(`Увага! Повітряна тривога! ${regionLabel}!`);
+            } else if (nextStatus === 'yellow') {
+                speakAlarmMessage(`Увага! Загроза! ${regionLabel}!`);
             }
-            return ordered;
         }
 
-        const dniproContour = buildContinuousPolygon(dniproGeoJson);
-        const dniproBorder = L.polyline(dniproContour, {
-            pane: 'dniproBorderPane',
-            color: '#22c55e',
-            weight: 2.5,
-            opacity: 0.92
-        }).addTo(map);
-        const dniproZone = L.polygon(dniproContour, {
-            pane: 'dniproZonePane',
-            color: '#22c55e',
-            fillColor: '#16a34a',
-            fillOpacity: 0.22,
-            weight: 1.2
-        }).addTo(map);
+        function buildZonePopupHtml(zKey) {
+            const zCfg = zonesConfig[zKey];
+            const st = zoneStatuses[zKey] || 'green';
+            const stLabel = (statusPalette[st] || statusPalette.green).text;
+            const canEdit = !firebaseConfigured || isOperator;
+            const btnsHtml = canEdit
+                ? `<div class="zone-popup-btns">
+                        <button type="button" class="zone-pop-btn red" onclick="setZoneStatus('${zKey}', 'red'); map.closePopup();">Тривога</button>
+                        <button type="button" class="zone-pop-btn yellow" onclick="setZoneStatus('${zKey}', 'yellow'); map.closePopup();">Загроза</button>
+                        <button type="button" class="zone-pop-btn green" onclick="setZoneStatus('${zKey}', 'green'); map.closePopup();">Відбій</button>
+                   </div>`
+                : `<div style="font-size:11.5px;color:#475569;">Увійдіть як оператор для зміни статусу</div>`;
 
-        const solidContour = buildContinuousPolygon(krGeoJson);
-        const krBorder = L.polyline(solidContour, { pane: 'borderPane', color: '#ef4444', weight: 3, opacity: 0.95 }).addTo(map);
-        const krZone = L.polygon(solidContour, { pane: 'zonePane', color: '#ef4444', fillColor: '#dc2626', fillOpacity: 0.45, weight: 1.5 }).addTo(map);
+            return `
+                <div class="zone-popup-actions">
+                    <div class="zone-popup-title">${zCfg.label}</div>
+                    <div style="font-size:12px;color:#0f172a;">Статус: <b>${stLabel}</b></div>
+                    ${btnsHtml}
+                </div>
+            `;
+        }
 
-        if (dniproContour.length > 0 && solidContour.length > 0) {
-            const combinedBounds = dniproBorder.getBounds().extend(krBorder.getBounds());
-            map.fitBounds(combinedBounds, { padding: [20, 20] });
-        } else if (dniproContour.length > 0) {
-            map.fitBounds(dniproBorder.getBounds(), { padding: [20, 20] });
-        } else if (solidContour.length > 0) {
-            map.fitBounds(krBorder.getBounds(), { padding: [25, 25] });
+        function applyZoneVisuals(zKey) {
+            const zCfg = zonesConfig[zKey];
+            if (!zCfg) return;
+            const st = zoneStatuses[zKey] || 'green';
+            const pCfg = statusPalette[st] || statusPalette.green;
+
+            const badge = document.getElementById(`badge_${zKey}`);
+            if (badge) {
+                badge.className = `badge ${pCfg.badgeClass} ${(!firebaseConfigured || isOperator) ? 'clickable' : ''}`;
+                badge.innerText = pCfg.text;
+            }
+
+            const poly = zonePolygons[zKey];
+            if (poly) {
+                const fillOpacity = st === 'red' ? zCfg.fillRed : (st === 'yellow' ? zCfg.fillYellow : zCfg.fillGreen);
+                poly.setStyle({
+                    color: pCfg.stroke,
+                    fillColor: pCfg.fill,
+                    fillOpacity,
+                    weight: zCfg.strokeWeight,
+                    opacity: 0.95
+                });
+            }
+
+            const pillEl = document.getElementById(`pill_${zKey}`);
+            if (pillEl) {
+                pillEl.className = `city-pill ${st}`;
+                pillEl.innerHTML = `<i class="fa-solid ${st === 'red' ? 'fa-bell' : (st === 'yellow' ? 'fa-triangle-exclamation' : 'fa-shield')}"></i> ${zCfg.shortLabel}: ${pCfg.text}`;
+            }
+        }
+
+        function setZoneStatus(zKey, nextStatus, fromRemote = false) {
+            if (!zonesConfig[zKey] || !statusPalette[nextStatus]) return;
+            if (!fromRemote && firebaseConfigured && !isOperator) return;
+
+            const prevStatus = zoneStatuses[zKey];
+            zoneStatuses[zKey] = nextStatus;
+            applyZoneVisuals(zKey);
+
+            const zCfg = zonesConfig[zKey];
+            const pCfg = statusPalette[nextStatus];
+
+            if (!fromRemote) {
+                if (nextStatus === 'red' || nextStatus === 'yellow') {
+                    triggerAlarmVoice(zCfg.label, nextStatus);
+                }
+                if (firebaseConfigured && db) {
+                    db.ref(`monitoring/zones/${zKey}`).set({
+                        value: nextStatus,
+                        alertId: Date.now() + '_' + Math.random().toString(36).slice(2, 6)
+                    });
+                    if (zKey === 'kr') {
+                        db.ref('monitoring/status').set({
+                            value: nextStatus,
+                            alertId: Date.now() + '_' + Math.random().toString(36).slice(2, 6)
+                        });
+                    } else if (zKey === 'dnipro') {
+                        db.ref('monitoring/dniproStatus').set({
+                            value: nextStatus,
+                            alertId: Date.now() + '_' + Math.random().toString(36).slice(2, 6)
+                        });
+                    }
+                }
+                saveFeedEntry({
+                    timeStr: nowTimeStr(),
+                    title: `${zCfg.label} — ${pCfg.text}`,
+                    desc: `Статус зони оновлено`,
+                    feedClass: pCfg.feedClass,
+                    titleColor: pCfg.color
+                });
+            } else if (initialRemoteZonesLoaded && prevStatus !== nextStatus && (nextStatus === 'red' || nextStatus === 'yellow')) {
+                triggerAlarmVoice(zCfg.label, nextStatus);
+            }
+        }
+
+        function cycleZoneStatus(zKey) {
+            if (firebaseConfigured && !isOperator) return;
+            const cur = zoneStatuses[zKey] || 'green';
+            if (cur === 'green') setZoneStatus(zKey, 'red');
+            else if (cur === 'red') setZoneStatus(zKey, 'yellow');
+            else setZoneStatus(zKey, 'green');
+        }
+
+        function focusOrOpenZone(zKey) {
+            const zCfg = zonesConfig[zKey];
+            const poly = zonePolygons[zKey];
+            if (!zCfg || !poly) return;
+            const center = poly.getBounds().getCenter();
+            L.popup()
+                .setLatLng(center)
+                .setContent(buildZonePopupHtml(zKey))
+                .openOn(map);
+        }
+
+        Object.keys(zonesConfig).forEach(zKey => {
+            const zCfg = zonesConfig[zKey];
+            const poly = L.polygon(zCfg.contour, {
+                pane: zCfg.pane,
+                color: '#22c55e',
+                fillColor: '#16a34a',
+                fillOpacity: zCfg.fillGreen,
+                weight: zCfg.strokeWeight,
+                opacity: 0.95
+            }).addTo(map);
+
+            poly.on('click', function(ev) {
+                if (selectedTargetKey || aimClickMode || routeEditMode) return;
+                L.DomEvent.stopPropagation(ev);
+                L.popup()
+                    .setLatLng(ev.latlng)
+                    .setContent(buildZonePopupHtml(zKey))
+                    .openOn(map);
+            });
+
+            zonePolygons[zKey] = poly;
+
+            if (zCfg.showPill && Array.isArray(zCfg.labelPos)) {
+                const pillIcon = L.divIcon({
+                    html: `<div id="pill_${zKey}" class="city-pill green" onclick="event.stopPropagation(); focusOrOpenZone('${zKey}');">${zCfg.shortLabel}</div>`,
+                    className: 'city-label-marker',
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0]
+                });
+                const pillMarker = L.marker(zCfg.labelPos, {
+                    pane: 'cityPillPane',
+                    icon: pillIcon,
+                    interactive: true
+                }).addTo(map);
+                zonePills[zKey] = pillMarker;
+            }
+        });
+
+        const mainBounds = L.latLngBounds([]);
+        ['kr', 'dnipro', 'zaporizhzhia'].forEach(k => {
+            if (zonePolygons[k]) mainBounds.extend(zonePolygons[k].getBounds());
+        });
+        if (mainBounds.isValid()) {
+            map.fitBounds(mainBounds, { padding: [18, 18] });
         }
 
         const settlements = [
@@ -1553,182 +1669,20 @@
             }
         }
 
-        const statusPalette = {
-            red: { fill: '#dc2626', stroke: '#ef4444', opacity: 0.48, dniproOpacity: 0.36, text: 'Тривога', badgeClass: 'badge badge-red', feedClass: '', color: '#f87171' },
-            yellow: { fill: '#ca8a04', stroke: '#eab308', opacity: 0.45, dniproOpacity: 0.32, text: 'Загроза', badgeClass: 'badge badge-yellow', feedClass: 'yellow-line', color: '#facc15' },
-            green: { fill: '#16a34a', stroke: '#22c55e', opacity: 0.42, dniproOpacity: 0.22, text: 'Відбій', badgeClass: 'badge badge-green', feedClass: 'green-line', color: '#4ade80' }
-        };
-
-        let krStatus = 'red';
-        let dniproStatus = 'green';
-        let initialRemoteStatusLoaded = false;
-
-        function triggerAlarmVoice(regionLabel, nextStatus) {
-            if (nextStatus === 'red') {
-                speakAlarmMessage(`Увага! Повітряна тривога! ${regionLabel}!`);
-            } else if (nextStatus === 'yellow') {
-                speakAlarmMessage(`Увага! Загроза! ${regionLabel}!`);
-            }
-        }
-
-        function applyStatusVisuals(statusKey) {
-            const cfg = statusPalette[statusKey] || statusPalette.red;
-            const badge = document.getElementById('badgeKr');
-            badge.className = `badge ${cfg.badgeClass.split(' ')[1]} ${isOperator ? 'clickable' : ''}`;
-            badge.innerText = cfg.text;
-            krZone.setStyle({ color: cfg.stroke, fillColor: cfg.fill, fillOpacity: cfg.opacity });
-            krBorder.setStyle({ color: cfg.stroke, opacity: 0.95 });
-        }
-
-        function applyDniproStatusVisuals(statusKey) {
-            const cfg = statusPalette[statusKey] || statusPalette.green;
-            const badge = document.getElementById('badgeDnipro');
-            badge.className = `badge ${cfg.badgeClass.split(' ')[1]} ${isOperator ? 'clickable' : ''}`;
-            badge.innerText = cfg.text;
-            dniproZone.setStyle({ color: cfg.stroke, fillColor: cfg.fill, fillOpacity: cfg.dniproOpacity });
-            dniproBorder.setStyle({ color: cfg.stroke, opacity: 0.92 });
-        }
-
-        function setKrStatus(nextStatus, fromRemote = false) {
-            if (!statusPalette[nextStatus]) return;
-            if (!fromRemote && firebaseConfigured && !isOperator) return;
-            const prevStatus = krStatus;
-            krStatus = nextStatus;
-            applyStatusVisuals(krStatus);
-
-            if (!fromRemote) {
-                if (nextStatus === 'red' || nextStatus === 'yellow') {
-                    triggerAlarmVoice('Криворізький район', nextStatus);
-                }
-                const cfg = statusPalette[krStatus];
-                if (firebaseConfigured && db) {
-                    db.ref('monitoring/status').set({
-                        value: krStatus,
-                        alertId: Date.now() + '_' + Math.random().toString(36).slice(2, 6)
-                    });
-                }
-                saveFeedEntry({
-                    timeStr: nowTimeStr(),
-                    title: 'Криворізький р-н (КР)',
-                    desc: `Статус: ${cfg.text}`,
-                    feedClass: cfg.feedClass,
-                    titleColor: cfg.color
-                });
-            } else if (initialRemoteStatusLoaded && prevStatus !== nextStatus && (nextStatus === 'red' || nextStatus === 'yellow')) {
-                triggerAlarmVoice('Криворізький район', nextStatus);
-            }
-        }
-
-        function setDniproStatus(nextStatus, fromRemote = false) {
-            if (!statusPalette[nextStatus]) return;
-            if (!fromRemote && firebaseConfigured && !isOperator) return;
-            const prevStatus = dniproStatus;
-            dniproStatus = nextStatus;
-            applyDniproStatusVisuals(dniproStatus);
-
-            if (!fromRemote) {
-                if (nextStatus === 'red' || nextStatus === 'yellow') {
-                    triggerAlarmVoice('Дніпропетровський район', nextStatus);
-                }
-                const cfg = statusPalette[dniproStatus];
-                if (firebaseConfigured && db) {
-                    db.ref('monitoring/dniproStatus').set({
-                        value: dniproStatus,
-                        alertId: Date.now() + '_' + Math.random().toString(36).slice(2, 6)
-                    });
-                }
-                saveFeedEntry({
-                    timeStr: nowTimeStr(),
-                    title: 'Дніпропетровський р-н',
-                    desc: `Статус: ${cfg.text}`,
-                    feedClass: cfg.feedClass,
-                    titleColor: cfg.color
-                });
-            } else if (initialRemoteStatusLoaded && prevStatus !== nextStatus && (nextStatus === 'red' || nextStatus === 'yellow')) {
-                triggerAlarmVoice('Дніпропетровський район', nextStatus);
-            }
-        }
-
-        function changeKrStatus() {
-            if (firebaseConfigured && !isOperator) return;
-            if (krStatus === 'red') setKrStatus('yellow');
-            else if (krStatus === 'yellow') setKrStatus('green');
-            else setKrStatus('red');
-        }
-
-        function changeDniproStatus() {
-            if (firebaseConfigured && !isOperator) return;
-            if (dniproStatus === 'red') setDniproStatus('yellow');
-            else if (dniproStatus === 'yellow') setDniproStatus('green');
-            else setDniproStatus('red');
-        }
-
-        const RED_TARGET_GLOW = 'drop-shadow(0 0 14px rgba(239, 68, 68, 1)) drop-shadow(0 0 6px rgba(220, 38, 38, 0.95)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.9))';
-        const DARK_STROKE = '#0f172a';
-
         const targetsData = {
-            geran: {
-                name: 'Герань-2',
-                glow: RED_TARGET_GLOW,
-                defaultSpeed: 185,
-                defaultAltitude: 800,
-                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/>
-                    <rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="1.5"/>
-                    <rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="1.5"/>
-                </svg>`
-            },
-            banderol: {
-                name: 'Бандероль',
-                glow: RED_TARGET_GLOW,
-                defaultSpeed: 520,
-                defaultAltitude: 2500,
-                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/>
-                </svg>`
-            },
-            jet: {
-                name: 'Реактивний Шахед',
-                glow: RED_TARGET_GLOW,
-                defaultSpeed: 460,
-                defaultAltitude: 1500,
-                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/>
-                </svg>`
-            },
-            iskander: {
-                name: 'Іскандер-М',
-                glow: RED_TARGET_GLOW,
-                defaultSpeed: 3600,
-                defaultAltitude: 35000,
-                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/>
-                </svg>`
-            },
-            kalibr: {
-                name: 'Калібр',
-                glow: RED_TARGET_GLOW,
-                defaultSpeed: 850,
-                defaultAltitude: 120,
-                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/>
-                </svg>`
-            },
-            recon: {
-                name: 'Розвідник',
-                glow: RED_TARGET_GLOW,
-                defaultSpeed: 110,
-                defaultAltitude: 1500,
-                svg: `<svg width="36" height="36" viewBox="0 0 100 100">
-                    <path fill="#ffffff" stroke="${DARK_STROKE}" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/>
-                </svg>`
-            }
+            geran: { name: 'Герань-2', defaultSpeed: 185, defaultAltitude: 800 },
+            banderol: { name: 'Бандероль', defaultSpeed: 520, defaultAltitude: 2500 },
+            jet: { name: 'Реактивний Шахед', defaultSpeed: 460, defaultAltitude: 1500 },
+            iskander: { name: 'Іскандер-М', defaultSpeed: 3600, defaultAltitude: 35000 },
+            kalibr: { name: 'Калібр', defaultSpeed: 850, defaultAltitude: 120 },
+            recon: { name: 'Розвідник', defaultSpeed: 110, defaultAltitude: 1500 }
         };
 
         let selectedTargetKey = null;
         let markers = [];
         let activeMarkerItem = null;
         let aimClickMode = false;
+        let routeEditMode = false;
         let lastRemoteSyncAt = 0;
 
         function clearToolSelection() {
@@ -1745,7 +1699,9 @@
             }
             selectedTargetKey = key;
             aimClickMode = false;
+            routeEditMode = false;
             syncAimClickUI();
+            syncRouteModeUI();
             document.querySelectorAll('.btn-tool').forEach(b => b.classList.remove('selected'));
             btnElement.classList.add('selected');
             const target = targetsData[key];
@@ -1807,11 +1763,55 @@
             }
         }
 
+        function updateRouteVisuals(item) {
+            if (!item || !item.marker) return;
+            if (item.routeLine) {
+                map.removeLayer(item.routeLine);
+                item.routeLine = null;
+            }
+            if (Array.isArray(item.routeDotMarkers)) {
+                item.routeDotMarkers.forEach(dm => map.removeLayer(dm));
+            }
+            item.routeDotMarkers = [];
+
+            const wps = Array.isArray(item.waypoints) ? item.waypoints : [];
+            if (!wps.length) return;
+
+            const pos = item.marker.getLatLng();
+            const allPts = [[pos.lat, pos.lng], ...wps.map(p => [p[0], p[1]])];
+            item.routeLine = L.polyline(allPts, {
+                pane: 'routeLinePane',
+                color: '#a78bfa',
+                weight: 2.6,
+                opacity: 0.92,
+                dashArray: '8, 6',
+                interactive: false
+            }).addTo(map);
+
+            wps.forEach((pt, idx) => {
+                const dotIcon = L.divIcon({
+                    html: `<div class="waypoint-dot">${idx + 1}</div>`,
+                    className: 'waypoint-dot-marker',
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0]
+                });
+                const dm = L.marker([pt[0], pt[1]], {
+                    pane: 'routeLinePane',
+                    icon: dotIcon,
+                    interactive: false
+                }).addTo(map);
+                item.routeDotMarkers.push(dm);
+            });
+        }
+
         function updateCourseLine(item) {
             if (!item || !item.marker) return;
             const pos = item.marker.getLatLng();
+            const hasRoute = Array.isArray(item.waypoints) && item.waypoints.length > 0;
             const hasDest = Number.isFinite(item.destLat) && Number.isFinite(item.destLng);
-            const tip = hasDest ? [item.destLat, item.destLng] : computeCourseTip(pos.lat, pos.lng, item.angle);
+            const tip = hasRoute
+                ? [item.waypoints[0][0], item.waypoints[0][1]]
+                : (hasDest ? [item.destLat, item.destLng] : computeCourseTip(pos.lat, pos.lng, item.angle));
             const isSelected = activeMarkerItem === item && isOperator;
 
             if (!item.courseShadowLine) {
@@ -1847,7 +1847,8 @@
                 });
             }
 
-            if (hasDest) {
+            const showDestDot = !hasRoute && hasDest;
+            if (showDestDot) {
                 if (!item.destMarker) {
                     item.destMarker = L.circleMarker([item.destLat, item.destLng], {
                         pane: 'courseLinePane',
@@ -1871,12 +1872,20 @@
             const pos = itemObj.marker.getLatLng();
             const loc = resolveLocationName(pos);
             const titleWithCount = formatTargetTitle(itemObj.target.name, itemObj.count);
-            const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
-            const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, itemObj.destLat, itemObj.destLng);
+            const hasRoute = Array.isArray(itemObj.waypoints) && itemObj.waypoints.length > 0;
+            const targetLat = hasRoute ? itemObj.waypoints[0][0] : itemObj.destLat;
+            const targetLng = hasRoute ? itemObj.waypoints[0][1] : itemObj.destLng;
+            const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, targetLat, targetLng);
+            const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, targetLat, targetLng);
             const etaRow = etaSummary ? `
                 <div class="target-card-row">
-                    <span class="target-card-label"><i class="fa-solid fa-clock" style="color:#dc2626;width:14px;"></i> До цілі:</span>
+                    <span class="target-card-label"><i class="fa-solid fa-clock" style="color:#dc2626;width:14px;"></i> До точки:</span>
                     <span class="target-card-val eta">${etaSummary}</span>
+                </div>` : '';
+            const routeRow = hasRoute ? `
+                <div class="target-card-row">
+                    <span class="target-card-label"><i class="fa-solid fa-route" style="color:#7c3aed;width:14px;"></i> Маршрут:</span>
+                    <span class="target-card-val">${itemObj.waypoints.length} ${itemObj.waypoints.length === 1 ? 'точка' : 'точки'}</span>
                 </div>` : '';
             return `
                 <div class="target-card">
@@ -1889,6 +1898,7 @@
                         <span class="target-card-val">${courseLabel} (${itemObj.angle}°)</span>
                     </div>
                     ${etaRow}
+                    ${routeRow}
                     <div class="target-card-row">
                         <span class="target-card-label"><i class="fa-solid fa-arrows-up-down" style="color:#0f172a;width:14px;"></i> Висота:</span>
                         <span class="target-card-val">${itemObj.altitude} м</span>
@@ -1909,12 +1919,12 @@
             if (!item) return;
             updateCourseLine(item);
             updateTrailLine(item);
+            updateRouteVisuals(item);
             if (!item.marker._icon) return;
             const iconEl = item.marker._icon.querySelector('.target-icon-wrap');
             if (!iconEl) return;
             const isSelected = activeMarkerItem === item && isOperator;
             iconEl.style.transform = `rotate(${item.angle}deg)`;
-            iconEl.style.filter = isSelected ? '' : item.target.glow;
             iconEl.classList.toggle('active-marker', isSelected);
             iconEl.classList.toggle('editable', isOperator);
 
@@ -1970,6 +1980,72 @@
             }
         }
 
+        function syncRouteModeUI() {
+            const btn = document.getElementById('btnRouteMode');
+            const btnClear = document.getElementById('btnClearRoute');
+            const mapEl = document.getElementById('map');
+            const canUse = Boolean(activeMarkerItem && isOperator);
+            const active = Boolean(routeEditMode && canUse);
+            if (btn) {
+                btn.classList.toggle('active', active);
+                btn.disabled = !canUse;
+                const wpCount = activeMarkerItem && Array.isArray(activeMarkerItem.waypoints) ? activeMarkerItem.waypoints.length : 0;
+                btn.innerHTML = active
+                    ? `<i class="fa-solid fa-route"></i> Маршрут: увімк (${wpCount})`
+                    : `<i class="fa-solid fa-route"></i> Маршрут${wpCount ? ` (${wpCount})` : ': вимк'}`;
+            }
+            if (btnClear) {
+                const hasWps = Boolean(activeMarkerItem && Array.isArray(activeMarkerItem.waypoints) && activeMarkerItem.waypoints.length > 0);
+                btnClear.disabled = !canUse || !hasWps;
+            }
+            if (mapEl) {
+                mapEl.classList.toggle('route-mode', active);
+            }
+        }
+
+        function toggleRouteMode() {
+            if (firebaseConfigured && !isOperator) return;
+            if (!activeMarkerItem) return;
+            routeEditMode = !routeEditMode;
+            if (routeEditMode) {
+                aimClickMode = false;
+                clearToolSelection();
+                syncAimClickUI();
+            }
+            syncRouteModeUI();
+        }
+
+        function addWaypointToSelected(latlng) {
+            if (!activeMarkerItem || !isOperator || !latlng) return;
+            if (!Array.isArray(activeMarkerItem.waypoints)) activeMarkerItem.waypoints = [];
+            activeMarkerItem.waypoints.push([latlng.lat, latlng.lng]);
+
+            const pos = activeMarkerItem.marker.getLatLng();
+            if (activeMarkerItem.waypoints.length === 1) {
+                activeMarkerItem.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, latlng.lat, latlng.lng));
+                activeMarkerItem.destLat = latlng.lat;
+                activeMarkerItem.destLng = latlng.lng;
+                syncRotationUI(activeMarkerItem.angle);
+            }
+
+            applyMarkerTransform(activeMarkerItem);
+            syncRouteModeUI();
+            activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
+            syncMarkersToFirebase();
+        }
+
+        function clearSelectedRoute() {
+            if (!activeMarkerItem || !isOperator) return;
+            activeMarkerItem.waypoints = [];
+            activeMarkerItem.destLat = null;
+            activeMarkerItem.destLng = null;
+            routeEditMode = false;
+            applyMarkerTransform(activeMarkerItem);
+            syncRouteModeUI();
+            activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
+            syncMarkersToFirebase();
+        }
+
         function syncDeleteSelectedUI() {
             const canAct = Boolean(activeMarkerItem && isOperator);
             const btnDel = document.getElementById('btnDeleteSelected');
@@ -1984,7 +2060,11 @@
             if (firebaseConfigured && !isOperator) return;
             if (!activeMarkerItem) return;
             aimClickMode = !aimClickMode;
-            if (aimClickMode) clearToolSelection();
+            if (aimClickMode) {
+                routeEditMode = false;
+                clearToolSelection();
+                syncRouteModeUI();
+            }
             syncAimClickUI();
         }
 
@@ -1995,11 +2075,20 @@
                 applyMarkerTransform(prev);
             }
             activeMarkerItem = item;
-            aimClickMode = Boolean(item && enableAim && isOperator);
+            if (!item) {
+                aimClickMode = false;
+                routeEditMode = false;
+            } else if (enableAim && isOperator && !routeEditMode) {
+                aimClickMode = true;
+            } else if (!isOperator) {
+                aimClickMode = false;
+                routeEditMode = false;
+            }
             applyMarkerTransform(item);
             syncRotationUI(item ? item.angle : 0);
             syncAutoFlyUI();
             syncAimClickUI();
+            syncRouteModeUI();
             syncDeleteSelectedUI();
             if (item && isOperator) {
                 document.getElementById('countInput').value = sanitizeCount(item.count);
@@ -2013,6 +2102,11 @@
             if (m.courseLine) map.removeLayer(m.courseLine);
             if (m.courseShadowLine) map.removeLayer(m.courseShadowLine);
             if (m.destMarker) map.removeLayer(m.destMarker);
+            if (m.routeLine) map.removeLayer(m.routeLine);
+            if (Array.isArray(m.routeDotMarkers)) {
+                m.routeDotMarkers.forEach(dm => map.removeLayer(dm));
+                m.routeDotMarkers = [];
+            }
             if (m.marker) map.removeLayer(m.marker);
         }
 
@@ -2032,9 +2126,11 @@
             if (activeMarkerItem === item) {
                 activeMarkerItem = null;
                 aimClickMode = false;
+                routeEditMode = false;
                 syncRotationUI(0);
                 syncAutoFlyUI();
                 syncAimClickUI();
+                syncRouteModeUI();
                 syncDeleteSelectedUI();
             }
 
@@ -2106,6 +2202,7 @@
                     autoFly: Boolean(item.autoFly),
                     destLat: Number.isFinite(item.destLat) ? item.destLat : null,
                     destLng: Number.isFinite(item.destLng) ? item.destLng : null,
+                    waypoints: Array.isArray(item.waypoints) ? item.waypoints.map(p => [p[0], p[1]]) : [],
                     trailPoints: Array.isArray(item.trailPoints) ? item.trailPoints.slice(-80).map(p => [p[0], p[1]]) : [[latlng.lat, latlng.lng]],
                     timeStr: item.timeStr
                 };
@@ -2212,6 +2309,7 @@
 
             appendTrailPoint(item, pos.lat, pos.lng);
             const newAngle = normalizeAngle(bearingDeg(pos.lat, pos.lng, destLatLng.lat, destLatLng.lng));
+            item.waypoints = [];
             item.angle = newAngle;
             item.destLat = destLatLng.lat;
             item.destLng = destLatLng.lng;
@@ -2220,6 +2318,7 @@
 
             syncRotationUI(newAngle);
             syncAutoFlyUI();
+            syncRouteModeUI();
             applyMarkerTransform(item);
             item.marker.setPopupContent(buildMarkerPopupHtml(item));
             item.marker.openPopup();
@@ -2260,24 +2359,47 @@
                     const pos = item.marker.getLatLng();
                     appendTrailPoint(item, pos.lat, pos.lng);
 
-                    if (Number.isFinite(item.destLat) && Number.isFinite(item.destLng)) {
-                        const remKm = distanceKm(pos.lat, pos.lng, item.destLat, item.destLng);
+                    const hasRoute = Array.isArray(item.waypoints) && item.waypoints.length > 0;
+                    const activeTargetLat = hasRoute ? item.waypoints[0][0] : item.destLat;
+                    const activeTargetLng = hasRoute ? item.waypoints[0][1] : item.destLng;
+
+                    if (Number.isFinite(activeTargetLat) && Number.isFinite(activeTargetLng)) {
+                        const remKm = distanceKm(pos.lat, pos.lng, activeTargetLat, activeTargetLng);
                         const stepKm = (Math.max(0, Number(item.speed) || 0) / 3600) * dtSec;
                         if (remKm <= Math.max(0.25, stepKm * 1.1)) {
-                            item.marker.setLatLng([item.destLat, item.destLng]);
-                            appendTrailPoint(item, item.destLat, item.destLng);
-                            item.destLat = null;
-                            item.destLng = null;
-                            item.autoFly = false;
+                            item.marker.setLatLng([activeTargetLat, activeTargetLng]);
+                            appendTrailPoint(item, activeTargetLat, activeTargetLng);
+                            if (hasRoute) {
+                                item.waypoints.shift();
+                                if (item.waypoints.length > 0) {
+                                    const nextWp = item.waypoints[0];
+                                    item.destLat = nextWp[0];
+                                    item.destLng = nextWp[1];
+                                    item.angle = normalizeAngle(bearingDeg(activeTargetLat, activeTargetLng, nextWp[0], nextWp[1]));
+                                    if (activeMarkerItem === item) syncRotationUI(item.angle);
+                                } else {
+                                    item.destLat = null;
+                                    item.destLng = null;
+                                    item.autoFly = false;
+                                }
+                                if (activeMarkerItem === item) {
+                                    syncAutoFlyUI();
+                                    syncRouteModeUI();
+                                }
+                            } else {
+                                item.destLat = null;
+                                item.destLng = null;
+                                item.autoFly = false;
+                                if (activeMarkerItem === item) syncAutoFlyUI();
+                            }
                             applyMarkerTransform(item);
-                            if (activeMarkerItem === item) syncAutoFlyUI();
                             if (item.marker.isPopupOpen()) {
                                 item.marker.setPopupContent(buildMarkerPopupHtml(item));
                             }
                             anyMoved = true;
                             return;
                         }
-                        item.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, item.destLat, item.destLng));
+                        item.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, activeTargetLat, activeTargetLng));
                         if (activeMarkerItem === item) syncRotationUI(item.angle);
                     }
 
@@ -2313,6 +2435,13 @@
             return [[fallbackLat, fallbackLng]];
         }
 
+        function parseWaypoints(rawWps) {
+            if (!Array.isArray(rawWps)) return [];
+            return rawWps
+                .filter(p => Array.isArray(p) && p.length >= 2 && Number.isFinite(Number(p[0])) && Number.isFinite(Number(p[1])))
+                .map(p => [Number(p[0]), Number(p[1])]);
+        }
+
         function createOrUpdateMarkerFromData(id, data, shouldSelect = false) {
             const target = targetsData[data.targetKey] || targetsData.geran;
             const latlng = L.latLng(data.lat, data.lng);
@@ -2323,6 +2452,7 @@
             const autoFly = Boolean(data.autoFly);
             const destLat = Number.isFinite(data.destLat) ? data.destLat : null;
             const destLng = Number.isFinite(data.destLng) ? data.destLng : null;
+            const waypoints = parseWaypoints(data.waypoints);
             const timeStr = data.timeStr || nowTimeStr();
             const parsedTrail = parseTrailPoints(data.trailPoints, latlng.lat, latlng.lng);
 
@@ -2337,6 +2467,7 @@
                 existing.autoFly = autoFly;
                 existing.destLat = destLat;
                 existing.destLng = destLng;
+                existing.waypoints = waypoints;
                 existing.timeStr = timeStr;
                 if (!existing.autoFly || !isOperator) {
                     existing.marker.setLatLng(latlng);
@@ -2345,13 +2476,25 @@
                 existing.marker.setPopupContent(buildMarkerPopupHtml(existing));
                 applyMarkerTransform(existing);
                 updateAirCounterUI();
-                if (activeMarkerItem === existing) syncAutoFlyUI();
+                if (activeMarkerItem === existing) {
+                    syncAutoFlyUI();
+                    syncRouteModeUI();
+                }
                 return existing;
             }
 
+            const svgByType = {
+                geran: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C53 8 54 14 54 22 L88 64 L88 73 L59 73 L57 64 L54 78 L46 78 L43 64 L41 73 L12 73 L12 64 L46 22 C46 14 47 8 50 8 Z"/><rect x="48" y="78" width="4" height="7" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/><rect x="33" y="84" width="34" height="5" rx="2.5" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/></svg>`,
+                banderol: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 8 C56 14 58 24 58 36 L58 46 L88 53 L86 62 L58 57 L58 76 L72 79 L71 86 L58 84 L56 92 L44 92 L42 84 L29 86 L28 79 L42 76 L42 57 L14 62 L12 53 L42 46 L42 36 C42 24 44 14 50 8 Z"/></svg>`,
+                jet: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 6 C54 6 55 15 55 25 L90 66 L90 75 L59 71 L56 86 L44 86 L41 71 L10 75 L10 66 L45 25 C45 15 46 6 50 6 Z"/></svg>`,
+                iskander: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="4" stroke-linejoin="round" d="M47 8 L53 8 L57 26 L58 74 L68 82 L68 89 L59 89 L59 93 L41 93 L41 89 L32 89 L32 82 L42 74 L43 26 Z"/></svg>`,
+                kalibr: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="4.5" stroke-linejoin="round" d="M50 10 L57 20 L57 52 L85 60 L83 68 L57 63 L57 82 L64 85 L64 93 L36 93 L36 85 L43 82 L43 63 L17 68 L15 60 L43 52 L43 20 Z"/></svg>`,
+                recon: `<svg width="36" height="36" viewBox="0 0 100 100"><path fill="#ffffff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" d="M50 10 C53 10 55 17 55 26 L55 38 L94 42 L94 50 L55 48 L54 74 L68 86 L65 92 L50 81 L35 92 L32 86 L46 74 L45 48 L6 50 L6 42 L45 38 L45 26 C45 17 47 10 50 10 Z"/></svg>`
+            };
+            const svgHtml = svgByType[data.targetKey] || svgByType.geran;
             const badgeHtml = count > 1 ? `<span class="group-count-badge">${count}x</span>` : '';
             const customIcon = L.divIcon({
-                html: `<div class="marker-slot"><div class="target-icon-wrap ${isOperator ? 'editable' : ''}" style="filter: ${target.glow}; transform: rotate(${angle}deg);">${target.svg}</div>${badgeHtml}</div>`,
+                html: `<div class="marker-slot"><div class="target-icon-wrap ${isOperator ? 'editable' : ''}" style="transform: rotate(${angle}deg);">${svgHtml}</div>${badgeHtml}</div>`,
                 className: 'custom-marker',
                 iconSize: [56, 44],
                 iconAnchor: [28, 22]
@@ -2370,12 +2513,15 @@
                 autoFly,
                 destLat,
                 destLng,
+                waypoints,
                 timeStr,
                 trailPoints: parsedTrail,
                 trailLine: null,
                 courseLine: null,
                 courseShadowLine: null,
-                destMarker: null
+                destMarker: null,
+                routeLine: null,
+                routeDotMarkers: []
             };
             markers.push(itemObj);
             applyMarkerTransform(itemObj);
@@ -2405,6 +2551,7 @@
                 appendTrailPoint(itemObj, cur.lat, cur.lng);
                 updateCourseLine(itemObj);
                 updateTrailLine(itemObj);
+                updateRouteVisuals(itemObj);
             });
 
             marker.on('dragstart', function() {
@@ -2415,8 +2562,11 @@
                 if (!isOperator) return;
                 const pos = itemObj.marker.getLatLng();
                 appendTrailPoint(itemObj, pos.lat, pos.lng);
-                if (Number.isFinite(itemObj.destLat) && Number.isFinite(itemObj.destLng)) {
-                    itemObj.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, itemObj.destLat, itemObj.destLng));
+                const hasRoute = Array.isArray(itemObj.waypoints) && itemObj.waypoints.length > 0;
+                const targetLat = hasRoute ? itemObj.waypoints[0][0] : itemObj.destLat;
+                const targetLng = hasRoute ? itemObj.waypoints[0][1] : itemObj.destLng;
+                if (Number.isFinite(targetLat) && Number.isFinite(targetLng)) {
+                    itemObj.angle = normalizeAngle(bearingDeg(pos.lat, pos.lng, targetLat, targetLng));
                     if (activeMarkerItem === itemObj) syncRotationUI(itemObj.angle);
                 }
                 applyMarkerTransform(itemObj);
@@ -2424,8 +2574,8 @@
                 syncMarkersToFirebase();
                 const loc = resolveLocationName(pos);
                 const titleWithCount = formatTargetTitle(itemObj.target.name, itemObj.count);
-                const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, itemObj.destLat, itemObj.destLng);
-                const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, itemObj.destLat, itemObj.destLng);
+                const courseLabel = resolveCourseTargetName(pos.lat, pos.lng, itemObj.angle, targetLat, targetLng);
+                const etaSummary = getDestinationEtaSummary(pos.lat, pos.lng, itemObj.speed, targetLat, targetLng);
                 const etaPart = etaSummary ? ` • До цілі: ${etaSummary}` : '';
                 saveFeedEntry({
                     timeStr: nowTimeStr(),
@@ -2441,7 +2591,7 @@
             });
 
             if (shouldSelect && isOperator) {
-                selectMarkerItem(itemObj, true);
+                selectMarkerItem(itemObj, false);
             }
 
             return itemObj;
@@ -2472,6 +2622,7 @@
                     autoFly: false,
                     destLat: null,
                     destLng: null,
+                    waypoints: [],
                     trailPoints: [[e.latlng.lat, e.latlng.lng]],
                     timeStr
                 }, true);
@@ -2493,6 +2644,11 @@
                 return;
             }
 
+            if (routeEditMode && activeMarkerItem) {
+                addWaypointToSelected(e.latlng);
+                return;
+            }
+
             if (aimClickMode && activeMarkerItem) {
                 directMarkerToLatLng(activeMarkerItem, e.latlng);
                 return;
@@ -2510,11 +2666,13 @@
             markers = [];
             activeMarkerItem = null;
             aimClickMode = false;
+            routeEditMode = false;
             lastLoggedCourseKey = '';
             updateAirCounterUI();
             syncRotationUI(0);
             syncAutoFlyUI();
             syncAimClickUI();
+            syncRouteModeUI();
             syncDeleteSelectedUI();
             if (!fromRemote && firebaseConfigured && db) {
                 db.ref('monitoring/markers').remove();
@@ -2528,35 +2686,51 @@
             return { value: null, alertId: null };
         }
 
-        let lastKrAlertId = null;
-        let lastDniproAlertId = null;
-
         if (firebaseConfigured && db) {
+            db.ref('monitoring/zones').on('value', snap => {
+                const remoteZones = snap.val() || {};
+                Object.keys(zonesConfig).forEach(zKey => {
+                    if (!remoteZones[zKey]) return;
+                    const { value, alertId } = unpackStatusPayload(remoteZones[zKey]);
+                    if (value && statusPalette[value]) {
+                        const statusChanged = zoneStatuses[zKey] !== value;
+                        const alertTriggered = Boolean(alertId && alertId !== zoneAlertIds[zKey]);
+                        zoneAlertIds[zKey] = alertId;
+                        zoneStatuses[zKey] = value;
+                        applyZoneVisuals(zKey);
+                        if (initialRemoteZonesLoaded && !isOperator && (alertTriggered || statusChanged) && (value === 'red' || value === 'yellow')) {
+                            triggerAlarmVoice(zonesConfig[zKey].label, value);
+                        }
+                    }
+                });
+                initialRemoteZonesLoaded = true;
+            });
+
             db.ref('monitoring/status').on('value', snap => {
                 const { value, alertId } = unpackStatusPayload(snap.val());
                 if (value && statusPalette[value]) {
-                    const statusChanged = krStatus !== value;
-                    const alertTriggered = Boolean(alertId && alertId !== lastKrAlertId);
-                    lastKrAlertId = alertId;
-                    krStatus = value;
-                    applyStatusVisuals(krStatus);
-                    if (initialRemoteStatusLoaded && !isOperator && (alertTriggered || statusChanged) && (value === 'red' || value === 'yellow')) {
-                        triggerAlarmVoice('Криворізький район', value);
+                    const statusChanged = zoneStatuses.kr !== value;
+                    const alertTriggered = Boolean(alertId && alertId !== zoneAlertIds.kr);
+                    zoneAlertIds.kr = alertId;
+                    zoneStatuses.kr = value;
+                    applyZoneVisuals('kr');
+                    if (initialRemoteZonesLoaded && !isOperator && (alertTriggered || statusChanged) && (value === 'red' || value === 'yellow')) {
+                        triggerAlarmVoice(zonesConfig.kr.label, value);
                     }
-                    initialRemoteStatusLoaded = true;
+                    initialRemoteZonesLoaded = true;
                 }
             });
 
             db.ref('monitoring/dniproStatus').on('value', snap => {
                 const { value, alertId } = unpackStatusPayload(snap.val());
                 if (value && statusPalette[value]) {
-                    const statusChanged = dniproStatus !== value;
-                    const alertTriggered = Boolean(alertId && alertId !== lastDniproAlertId);
-                    lastDniproAlertId = alertId;
-                    dniproStatus = value;
-                    applyDniproStatusVisuals(dniproStatus);
-                    if (initialRemoteStatusLoaded && !isOperator && (alertTriggered || statusChanged) && (value === 'red' || value === 'yellow')) {
-                        triggerAlarmVoice('Дніпропетровський район', value);
+                    const statusChanged = zoneStatuses.dnipro !== value;
+                    const alertTriggered = Boolean(alertId && alertId !== zoneAlertIds.dnipro);
+                    zoneAlertIds.dnipro = alertId;
+                    zoneStatuses.dnipro = value;
+                    applyZoneVisuals('dnipro');
+                    if (initialRemoteZonesLoaded && !isOperator && (alertTriggered || statusChanged) && (value === 'red' || value === 'yellow')) {
+                        triggerAlarmVoice(zonesConfig.dnipro.label, value);
                     }
                 }
             });
@@ -2572,8 +2746,10 @@
                         if (activeMarkerItem === item) {
                             activeMarkerItem = null;
                             aimClickMode = false;
+                            routeEditMode = false;
                             syncAutoFlyUI();
                             syncAimClickUI();
+                            syncRouteModeUI();
                             syncDeleteSelectedUI();
                         }
                         return false;
@@ -2597,8 +2773,7 @@
         }
 
         updateSoundButtonUI();
-        applyStatusVisuals(krStatus);
-        applyDniproStatusVisuals(dniproStatus);
+        Object.keys(zonesConfig).forEach(zKey => applyZoneVisuals(zKey));
         updateAirCounterUI();
         updateRoleUI();
     </script>
