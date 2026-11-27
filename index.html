@@ -91,17 +91,81 @@
         .badge-yellow { background: #ca8a04; color: white; }
         .badge-green { background: #16a34a; color: white; }
 
+        .center-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 500px;
+            height: 100%;
+        }
+
+        .air-counter-bar {
+            background: #111928;
+            border: 1px solid #1f2d45;
+            border-radius: 10px;
+            padding: 9px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 12.5px;
+        }
+        .air-counter-main {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .air-counter-total {
+            background: rgba(239, 68, 68, 0.16);
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            color: #fca5a5;
+            border-radius: 999px;
+            padding: 2px 9px;
+            font-size: 11.5px;
+            font-weight: 800;
+        }
+        .air-counter-total.empty {
+            background: rgba(34, 197, 94, 0.14);
+            border-color: rgba(34, 197, 94, 0.35);
+            color: #86efac;
+        }
+        .air-counter-breakdown {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .air-chip {
+            background: #182338;
+            border: 1px solid #2b3f63;
+            color: #e2e8f0;
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+        .air-chip.empty {
+            color: #94a3b8;
+            background: transparent;
+            border-color: transparent;
+            padding: 2px 0;
+        }
+
         #map-container {
             position: relative;
             border-radius: 10px;
             overflow: hidden;
             border: 1px solid #1f2d45;
-            min-height: 500px;
-            height: 100%;
+            min-height: 460px;
+            flex: 1;
         }
         #map {
             width: 100%;
-            height: 500px;
+            height: 100%;
+            min-height: 460px;
             background: #0b111e;
         }
         #map.aim-mode {
@@ -167,6 +231,10 @@
         .btn-aim { background: #334155; border: 1px solid #475569; }
         .btn-aim:hover { background: #475569; }
         .btn-aim.active { background: #2563eb; border-color: #60a5fa; box-shadow: 0 0 10px rgba(96, 165, 250, 0.45); }
+        .btn-lost { background: #475569; border: 1px solid #64748b; }
+        .btn-lost:hover:not(:disabled) { background: #64748b; }
+        .btn-airdef { background: #15803d; border: 1px solid #22c55e; }
+        .btn-airdef:hover:not(:disabled) { background: #16a34a; }
         .btn-delete-one { background: #991b1b; border: 1px solid #dc2626; }
         .btn-delete-one:hover:not(:disabled) { background: #b91c1c; }
         .btn-clear { background: #475569; }
@@ -518,6 +586,12 @@
                 <span id="angleLabel" class="angle-readout">0°</span>
             </div>
             <button type="button" class="btn-tool btn-rotate" onclick="setSelectedRotation(0)">↺ 0°</button>
+            <button type="button" class="btn-tool btn-lost" id="btnLostSelected" onclick="markSelectedLost()" disabled>
+                <i class="fa-solid fa-eye-slash"></i> Локаційно втрачено
+            </button>
+            <button type="button" class="btn-tool btn-airdef" id="btnAirDefSelected" onclick="markSelectedAirDef()" disabled>
+                <i class="fa-solid fa-bullseye"></i> Збито ППО
+            </button>
             <button type="button" class="btn-tool btn-delete-one" id="btnDeleteSelected" onclick="deleteSelectedMarker()" disabled>
                 <i class="fa-solid fa-xmark"></i> Видалити ціль
             </button>
@@ -585,8 +659,21 @@
             </div>
         </div>
 
-        <div id="map-container">
-            <div id="map"></div>
+        <div class="center-column">
+            <div class="air-counter-bar" id="airCounterBar">
+                <div class="air-counter-main">
+                    <i class="fa-solid fa-radar" style="color: #f87171;"></i>
+                    <span>У повітрі:</span>
+                    <span class="air-counter-total empty" id="airTotalBadge">0 цілей</span>
+                </div>
+                <div class="air-counter-breakdown" id="airBreakdown">
+                    <span class="air-chip empty">Активних цілей немає</span>
+                </div>
+            </div>
+
+            <div id="map-container">
+                <div id="map"></div>
+            </div>
         </div>
 
         <div class="panel">
@@ -627,6 +714,55 @@
         if (firebaseConfigured) {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
+        }
+
+        function sanitizeCount(val) {
+            const n = Math.round(Number(val));
+            if (!Number.isFinite(n) || n < 1) return 1;
+            return Math.min(99, n);
+        }
+
+        function formatTargetTitle(targetName, count) {
+            const c = sanitizeCount(count);
+            return c > 1 ? `${targetName} (${c}x)` : targetName;
+        }
+
+        function pluralTargets(count) {
+            const mod10 = count % 10;
+            const mod100 = count % 100;
+            if (mod10 === 1 && mod100 !== 11) return 'ціль';
+            if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'цілі';
+            return 'цілей';
+        }
+
+        function updateAirCounterUI() {
+            const totalBadge = document.getElementById('airTotalBadge');
+            const breakdownEl = document.getElementById('airBreakdown');
+            if (!totalBadge || !breakdownEl) return;
+
+            let totalCount = 0;
+            const byType = new Map();
+
+            markers.forEach(item => {
+                const c = sanitizeCount(item.count);
+                totalCount += c;
+                const name = item.target ? item.target.name : 'Ціль';
+                byType.set(name, (byType.get(name) || 0) + c);
+            });
+
+            totalBadge.textContent = `${totalCount} ${pluralTargets(totalCount)}`;
+            totalBadge.classList.toggle('empty', totalCount === 0);
+
+            if (totalCount === 0) {
+                breakdownEl.innerHTML = '<span class="air-chip empty">Активних цілей немає</span>';
+                return;
+            }
+
+            const chips = [];
+            byType.forEach((cnt, name) => {
+                chips.push(`<span class="air-chip">${cnt}x ${name}</span>`);
+            });
+            breakdownEl.innerHTML = chips.join('');
         }
 
         function updateRoleUI() {
@@ -672,6 +808,7 @@
             syncAutoFlyUI();
             syncAimClickUI();
             syncDeleteSelectedUI();
+            updateAirCounterUI();
         }
 
         function unlockOperator() {
@@ -1118,17 +1255,6 @@
             const dLng = (lng2 - lng1) * Math.PI / 180;
             const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        }
-
-        function sanitizeCount(val) {
-            const n = Math.round(Number(val));
-            if (!Number.isFinite(n) || n < 1) return 1;
-            return Math.min(99, n);
-        }
-
-        function formatTargetTitle(targetName, count) {
-            const c = sanitizeCount(count);
-            return c > 1 ? `${targetName} (${c}x)` : targetName;
         }
 
         function formatEtaText(distKm, speedKmh) {
@@ -1629,9 +1755,13 @@
         }
 
         function syncDeleteSelectedUI() {
-            const btn = document.getElementById('btnDeleteSelected');
-            if (!btn) return;
-            btn.disabled = !activeMarkerItem || !isOperator;
+            const canAct = Boolean(activeMarkerItem && isOperator);
+            const btnDel = document.getElementById('btnDeleteSelected');
+            const btnLost = document.getElementById('btnLostSelected');
+            const btnAirDef = document.getElementById('btnAirDefSelected');
+            if (btnDel) btnDel.disabled = !canAct;
+            if (btnLost) btnLost.disabled = !canAct;
+            if (btnAirDef) btnAirDef.disabled = !canAct;
         }
 
         function toggleAimClickMode() {
@@ -1670,7 +1800,7 @@
             if (m.marker) map.removeLayer(m.marker);
         }
 
-        function deleteMarkerById(id, fromRemote = false) {
+        function removeMarkerById(id, fromRemote = false, feedEntry = null) {
             if (!fromRemote && firebaseConfigured && !isOperator) return;
             const idx = markers.findIndex(m => m.id === id);
             if (idx === -1) return;
@@ -1681,6 +1811,7 @@
             item.autoFly = false;
             removeMarkerLayers(item);
             markers.splice(idx, 1);
+            updateAirCounterUI();
 
             if (activeMarkerItem === item) {
                 activeMarkerItem = null;
@@ -1695,19 +1826,52 @@
                 if (firebaseConfigured && db) {
                     db.ref(`monitoring/markers/${id}`).remove();
                 }
-                saveFeedEntry({
+                const entryToSave = feedEntry || {
                     timeStr: nowTimeStr(),
                     title: `${titleWithCount} — знято з супроводу`,
                     desc: `Ціль видалено в р-ні ${loc}`,
                     feedClass: 'green-line',
                     titleColor: '#4ade80'
-                });
+                };
+                saveFeedEntry(entryToSave);
             }
+        }
+
+        function deleteMarkerById(id, fromRemote = false) {
+            removeMarkerById(id, fromRemote, null);
         }
 
         function deleteSelectedMarker() {
             if (!activeMarkerItem || !isOperator) return;
             deleteMarkerById(activeMarkerItem.id, false);
+        }
+
+        function markSelectedLost() {
+            if (!activeMarkerItem || !isOperator) return;
+            const pos = activeMarkerItem.marker.getLatLng();
+            const loc = resolveLocationName(pos);
+            const titleWithCount = formatTargetTitle(activeMarkerItem.target.name, activeMarkerItem.count);
+            removeMarkerById(activeMarkerItem.id, false, {
+                timeStr: nowTimeStr(),
+                title: `${titleWithCount} — локаційно втрачено`,
+                desc: `Втрачено в р-ні ${loc}`,
+                feedClass: 'yellow-line',
+                titleColor: '#facc15'
+            });
+        }
+
+        function markSelectedAirDef() {
+            if (!activeMarkerItem || !isOperator) return;
+            const pos = activeMarkerItem.marker.getLatLng();
+            const loc = resolveLocationName(pos);
+            const titleWithCount = formatTargetTitle(activeMarkerItem.target.name, activeMarkerItem.count);
+            removeMarkerById(activeMarkerItem.id, false, {
+                timeStr: nowTimeStr(),
+                title: `${titleWithCount} — збито ППО`,
+                desc: `Збито в р-ні ${loc}`,
+                feedClass: 'green-line',
+                titleColor: '#4ade80'
+            });
         }
 
         function syncMarkersToFirebase() {
@@ -1754,6 +1918,7 @@
             activeMarkerItem.speed = Number.isFinite(speedVal) && speedVal >= 0 ? Math.round(speedVal) : 0;
             activeMarkerItem.altitude = Number.isFinite(altVal) && altVal >= 0 ? Math.round(altVal) : 0;
             applyMarkerTransform(activeMarkerItem);
+            updateAirCounterUI();
             activeMarkerItem.marker.setPopupContent(buildMarkerPopupHtml(activeMarkerItem));
             activeMarkerItem.marker.openPopup();
             syncMarkersToFirebase();
@@ -1963,6 +2128,7 @@
                 }
                 existing.marker.setPopupContent(buildMarkerPopupHtml(existing));
                 applyMarkerTransform(existing);
+                updateAirCounterUI();
                 if (activeMarkerItem === existing) syncAutoFlyUI();
                 return existing;
             }
@@ -1997,6 +2163,7 @@
             };
             markers.push(itemObj);
             applyMarkerTransform(itemObj);
+            updateAirCounterUI();
 
             marker.bindPopup(buildMarkerPopupHtml(itemObj));
 
@@ -2128,6 +2295,7 @@
             activeMarkerItem = null;
             aimClickMode = false;
             lastLoggedCourseKey = '';
+            updateAirCounterUI();
             syncRotationUI(0);
             syncAutoFlyUI();
             syncAimClickUI();
@@ -2177,6 +2345,7 @@
                 for (const id of remoteIds) {
                     createOrUpdateMarkerFromData(id, remoteMap[id], false);
                 }
+                updateAirCounterUI();
             });
 
             const seenFeedKeys = new Set();
@@ -2190,6 +2359,7 @@
 
         applyStatusVisuals(krStatus);
         applyDniproStatusVisuals(dniproStatus);
+        updateAirCounterUI();
         updateRoleUI();
     </script>
 </body>
